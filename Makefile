@@ -1,4 +1,4 @@
-.PHONY: pipeline ingest process dashboard seed seed-dry-run api web install install-api install-web migrate db-revision dev
+.PHONY: pipeline ingest process dashboard seed seed-dry-run api web install install-api install-web migrate db-revision dev stop
 
 # ─── Data pipeline ────────────────────────────────────────────────────────────
 pipeline: ingest process dashboard
@@ -35,8 +35,10 @@ web:
 	cd apps/web && npm run dev
 
 dev:
-	@echo "Start API:  make api"
-	@echo "Start Web:  make web"
+	scripts/run_all.sh
+
+stop:
+	scripts/stop_all.sh
 
 # ─── Database (Neon) ──────────────────────────────────────────────────────────
 migrate:
