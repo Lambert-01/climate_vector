@@ -42,13 +42,11 @@ echo "API: http://$HOST:$API_PORT"
 echo "Web: http://$HOST:$WEB_PORT"
 echo "Logs: $LOG_DIR"
 
-cd "$ROOT_DIR/apps/api"
-nohup "$ROOT_DIR/.venv/bin/uvicorn" app.main:app --host "$HOST" --port "$API_PORT" \
+nohup bash -lc "cd '$ROOT_DIR/apps/api' && '$ROOT_DIR/.venv/bin/uvicorn' app.main:app --host '$HOST' --port '$API_PORT'" \
   > "$LOG_DIR/api.log" 2>&1 &
 echo "$!" > "$PID_DIR/api.pid"
 
-cd "$ROOT_DIR/apps/web"
-nohup env VITE_API_BASE="http://$HOST:$API_PORT/api" npm run dev -- --host "$HOST" --port "$WEB_PORT" \
+nohup bash -lc "cd '$ROOT_DIR/apps/web' && VITE_API_BASE='http://$HOST:$API_PORT/api' npm run dev -- --host '$HOST' --port '$WEB_PORT'" \
   > "$LOG_DIR/web.log" 2>&1 &
 echo "$!" > "$PID_DIR/web.pid"
 
