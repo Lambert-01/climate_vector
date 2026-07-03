@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Cloud, Database, FlaskConical, Home, Map } from "lucide-react";
+import { Activity, AlertTriangle, BrainCircuit, Cloud, Database, FlaskConical, Home, Map } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import Overview from "./pages/Overview.jsx";
 import Sites from "./pages/Sites.jsx";
@@ -9,6 +9,7 @@ import Resistance from "./pages/Resistance.jsx";
 import Climate from "./pages/Climate.jsx";
 import Alerts from "./pages/Alerts.jsx";
 import DataReadiness from "./pages/DataReadiness.jsx";
+import Modeling from "./pages/Modeling.jsx";
 
 const PAGE_META = {
   "/": { title: "Overview", sub: "System summary and key indicators", icon: Home },
@@ -16,6 +17,7 @@ const PAGE_META = {
   "/mosquito": { title: "Mosquito Data", sub: "Ecology records from field surveys", icon: Activity },
   "/resistance": { title: "Resistance Tests", sub: "Insecticide resistance data", icon: FlaskConical },
   "/climate": { title: "Climate", sub: "NASA POWER district climate signals", icon: Cloud },
+  "/modeling": { title: "Mathematical Modelling", sub: "Suitability and vector-risk proxy signals", icon: BrainCircuit },
   "/alerts": { title: "Alerts & Response", sub: "Risk signal workflow", icon: AlertTriangle },
   "/data-readiness": { title: "Data Readiness", sub: "Validation and gap tracking", icon: Database },
 };
@@ -53,6 +55,7 @@ export default function App() {
           <Route path="/mosquito" element={<Mosquito />} />
           <Route path="/resistance" element={<Resistance />} />
           <Route path="/climate" element={<Climate />} />
+          <Route path="/modeling" element={<Modeling />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/data-readiness" element={<DataReadiness />} />
           <Route path="*" element={<Navigate to="/" replace />} />

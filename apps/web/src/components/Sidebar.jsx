@@ -4,6 +4,7 @@ import {
   Activity,
   AlertTriangle,
   BarChart2,
+  BrainCircuit,
   Cloud,
   Database,
   FlaskConical,
@@ -18,6 +19,7 @@ const NAV = [
   { to: "/mosquito", label: "Mosquito Data", icon: Activity },
   { to: "/resistance", label: "Resistance Tests", icon: FlaskConical },
   { to: "/climate", label: "Climate", icon: Cloud },
+  { to: "/modeling", label: "Modelling", icon: BrainCircuit },
   { to: "/alerts", label: "Alerts", icon: AlertTriangle },
   { to: "/data-readiness", label: "Data Readiness", icon: Database },
 ];

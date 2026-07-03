@@ -36,4 +36,8 @@ export const api = {
   climateDistricts: () => req("/climate/districts"),
   climateDistrict: (d, days = 90) => req(`/climate/district/${d}?days=${days}`),
   climateKigali: (days = 90) => req(`/climate/kigali?days=${days}`),
+
+  modelingReadiness: () => req("/modeling/readiness"),
+  districtRisk: (days = 30) => req(`/modeling/district-risk?days=${days}`),
+  districtModel: (district, days = 30) => req(`/modeling/district/${district}?days=${days}`),
 };
