@@ -16,14 +16,14 @@ dashboard:
 install: install-api install-web
 
 install-api:
-	cd apps/api && pip install -r requirements.txt
+	.venv/bin/pip install -r apps/api/requirements.txt
 
 install-web:
 	cd apps/web && npm install
 
 # ─── Run servers ──────────────────────────────────────────────────────────────
 api:
-	cd apps/api && uvicorn app.main:app --reload --port 8000
+	cd apps/api && ../../.venv/bin/uvicorn app.main:app --reload --port 8000
 
 web:
 	cd apps/web && npm run dev
@@ -34,10 +34,10 @@ dev:
 
 # ─── Database (Neon) ──────────────────────────────────────────────────────────
 migrate:
-	alembic upgrade head
+	.venv/bin/alembic upgrade head
 
 db-revision:
-	alembic revision --autogenerate -m "$(msg)"
+	.venv/bin/alembic revision --autogenerate -m "$(msg)"
 
 db-downgrade:
-	alembic downgrade -1
+	.venv/bin/alembic downgrade -1
