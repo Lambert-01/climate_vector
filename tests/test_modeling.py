@@ -28,3 +28,5 @@ def test_rule_based_signal_is_descriptive_and_conservative() -> None:
     assert signal.risk_level == "high"
     assert signal.uncertainty_level == "high"
     assert signal.rule_or_model_version == "rule-v0-descriptive"
+    assert 0 <= signal.suitability_index <= 1
+    assert 0 <= signal.vectorial_capacity_proxy <= 1
