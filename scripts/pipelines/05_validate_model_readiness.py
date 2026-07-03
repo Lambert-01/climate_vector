@@ -47,12 +47,14 @@ def build_validation() -> str:
     resistance = read_csv("data/processed/resistance_test_replicates_preliminary.csv")
     sites = read_csv("data/sites/sites.csv")
     climate = read_csv("data/external/nasa_power/rwanda_district_centroids_simple.csv")
+    site_candidates = read_csv("data/processed/site_coordinate_candidates.csv")
 
     checks = [
         ("Mosquito records", len(mosquito), "Rows available from processed ecology table."),
         ("Resistance records", len(resistance), "Rows available from processed resistance table."),
         ("Site registry rows", len(sites), "Rows in current site registry."),
         ("District climate centroids", len(climate), "District-level climate reference locations."),
+        ("Provisional site coordinate candidates", len(site_candidates), "District-centroid proxy coordinates for PI review only."),
     ]
 
     mosquito_fields = [
@@ -122,6 +124,7 @@ def build_validation() -> str:
         f"- Unique resistance sites: {unique_count(resistance, 'site_raw')}",
         f"- Site registry rows with numeric latitude: {sum(1 for row in sites if _is_float(row.get('latitude')))} / {len(sites)}",
         f"- Site registry rows with numeric longitude: {sum(1 for row in sites if _is_float(row.get('longitude')))} / {len(sites)}",
+        f"- Provisional site-district coordinate candidates: {len(site_candidates)}",
         "",
         "## Dominant Observed Categories",
         "",
@@ -161,6 +164,14 @@ def build_validation() -> str:
         "- Positive and negative habitat observations.",
         "- Resistance denominator, protocol, control mortality, and validity status.",
         "- Formal malaria or intervention outcome data, if disease early-warning is required.",
+        "",
+        "## Gap Mitigation Files Now Generated",
+        "",
+        "- `data/processed/site_coordinate_candidates.csv`: provisional district-centroid coordinates for mapping discussion only.",
+        "- `outputs/reports/pi_missing_data_request.csv`: exact missing fields to request from PI/lab/field teams.",
+        "- `outputs/reports/gap_resolution_summary.md`: short summary of what was generated.",
+        "",
+        "These files reduce project management gaps, but they do not replace official field data.",
     ])
     return "\n".join(lines) + "\n"
 
