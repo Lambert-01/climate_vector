@@ -1,7 +1,7 @@
-.PHONY: pipeline ingest process dashboard validate seed seed-dry-run api web install install-api install-web migrate db-revision dev stop
+.PHONY: pipeline ingest process dashboard validate gap-resolution seed seed-dry-run api web install install-api install-web migrate db-revision dev stop
 
 # ─── Data pipeline ────────────────────────────────────────────────────────────
-pipeline: ingest process dashboard validate
+pipeline: ingest process dashboard validate gap-resolution
 
 ingest:
 	python3 scripts/pipelines/01_ingest_raw_excel.py
@@ -14,6 +14,9 @@ dashboard:
 
 validate:
 	python3 scripts/pipelines/05_validate_model_readiness.py
+
+gap-resolution:
+	python3 scripts/pipelines/06_build_gap_resolution_package.py
 
 seed:
 	.venv/bin/python scripts/pipelines/04_seed_neon.py
