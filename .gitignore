@@ -1,0 +1,82 @@
+# ─── Environment ──────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# ─── Node / React ─────────────────────────────────────────────────────────────
+node_modules/
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.vite/
+*.local
+
+# ─── Data (raw sensitive files) ───────────────────────────────────────────────
+data/raw/*.xls
+data/raw/*.xlsx
+data/raw/*.csv
+data/external/era5_land/raw/
+data/external/population/
+data/external/osm/
+
+# ─── Large raster / GIS files ─────────────────────────────────────────────────
+*.tif
+*.tiff
+*.zip
+*.nc
+*.h5
+*.hdf5
+
+# ─── Outputs (generated) ──────────────────────────────────────────────────────
+outputs/reports/
+outputs/tables/
+data/interim/
+data/processed/
+
+# ─── Models ───────────────────────────────────────────────────────────────────
+models/registry/
+models/approved/
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+
+# ─── IDE / OS ─────────────────────────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Alembic ──────────────────────────────────────────────────────────────────
+alembic/versions/*.pyc

@@ -1,0 +1,44 @@
+# Data science
+pandas
+numpy
+geopandas
+shapely
+pyproj
+rasterio
+xarray
+h5netcdf
+netCDF4
+scikit-learn
+statsmodels
+matplotlib
+plotly
+streamlit
+folium
+streamlit-folium
+pyyaml
+openpyxl
+xlrd
+
+# API
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+
+# Neon PostgreSQL (async)
+asyncpg>=0.29.0
+sqlalchemy[asyncio]>=2.0.30
+alembic>=1.13.0
+
+# Auth
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.9
+
+# Utilities
+httpx>=0.27.0
+python-dotenv>=1.0.0
+
+# Dev / test
+pytest
+pytest-asyncio

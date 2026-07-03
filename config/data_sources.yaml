@@ -1,0 +1,33 @@
+raw_sources:
+  mosquito_behavior:
+    path: data/raw/mosquito_behavior_raw.xls
+    status: preserved_raw
+    purpose: historical mosquito ecology, habitat, and agricultural insecticide fields
+  ir_data:
+    path: data/raw/IR_data.xls
+    status: preserved_raw
+    purpose: enhanced ecology and preliminary insecticide-resistance test information
+
+external_sources:
+  boundaries:
+    path: data/external/boundaries
+    purpose: Rwanda administrative mapping
+  nasa_power:
+    path: data/external/nasa_power
+    purpose: district daily climate prototype data
+  worldclim:
+    path: data/external/worldclim
+    purpose: long-term climate covariates
+  landcover:
+    path: data/external/landcover
+    purpose: ESA WorldCover land-cover covariates
+  elevation:
+    path: data/external/elevation
+    purpose: elevation covariate
+  osm:
+    path: data/external/osm
+    purpose: roads, waterways, settlements, and landscape context
+  population:
+    path: data/external/population
+    purpose: population exposure context
+

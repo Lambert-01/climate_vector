@@ -1,0 +1,18 @@
+project:
+  name: climate-vector-rwanda
+  mode: proof_of_concept
+  country: Rwanda
+
+paths:
+  raw_data: data/raw
+  external_data: data/external
+  interim_data: data/interim
+  processed_data: data/processed
+  outputs: outputs
+
+scientific_guardrails:
+  allow_prediction_claims: false
+  require_full_dates_for_climate_lags: true
+  require_gps_for_site_models: true
+  require_denominator_for_resistance_rates: true
+

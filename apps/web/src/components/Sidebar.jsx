@@ -1,0 +1,64 @@
+import React from "react";
+import { NavLink } from "react-router-dom";
+import {
+  Activity,
+  AlertTriangle,
+  BarChart2,
+  Cloud,
+  Database,
+  FlaskConical,
+  Home,
+  Map,
+  Shield,
+} from "lucide-react";
+
+const NAV = [
+  { to: "/", label: "Overview", icon: Home },
+  { to: "/sites", label: "Sites & Map", icon: Map },
+  { to: "/mosquito", label: "Mosquito Data", icon: Activity },
+  { to: "/resistance", label: "Resistance Tests", icon: FlaskConical },
+  { to: "/climate", label: "Climate", icon: Cloud },
+  { to: "/alerts", label: "Alerts", icon: AlertTriangle },
+  { to: "/data-readiness", label: "Data Readiness", icon: Database },
+];
+
+export default function Sidebar() {
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-logo">
+        <div className="sidebar-logo-mark">
+          <div className="sidebar-logo-icon">
+            <Shield size={18} color="#fff" />
+          </div>
+          <div className="sidebar-logo-text">
+            <strong>Climate Vector</strong>
+            <span>Rwanda PoC</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="sidebar-section-label">Navigation</div>
+
+      <nav className="sidebar-nav">
+        {NAV.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === "/"}
+            className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
+          >
+            <Icon size={16} />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div className="sidebar-footer">
+        <div className="sidebar-badge">
+          <BarChart2 size={13} />
+          Descriptive Prototype
+        </div>
+      </div>
+    </aside>
+  );
+}
