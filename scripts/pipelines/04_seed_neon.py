@@ -79,17 +79,25 @@ def site_id(value: str | None) -> str | None:
     return value.lower().replace(" ", "_").replace("/", "_")
 
 
-async def bulk_upsert(session, model, rows: list[dict], conflict_cols: list[str]) -> None:
+async def bulk_upsert(
+    session,
+    model,
+    rows: list[dict],
+    conflict_cols: list[str],
+    batch_size: int = 1000,
+) -> None:
     if not rows:
         return
-    statement = insert(model).values(rows)
-    update_cols = {
-        column.name: getattr(statement.excluded, column.name)
-        for column in model.__table__.columns
-        if column.name not in conflict_cols
-    }
-    statement = statement.on_conflict_do_update(index_elements=conflict_cols, set_=update_cols)
-    await session.execute(statement)
+    for start in range(0, len(rows), batch_size):
+        batch = rows[start : start + batch_size]
+        statement = insert(model).values(batch)
+        update_cols = {
+            column.name: getattr(statement.excluded, column.name)
+            for column in model.__table__.columns
+            if column.name not in conflict_cols
+        }
+        statement = statement.on_conflict_do_update(index_elements=conflict_cols, set_=update_cols)
+        await session.execute(statement)
 
 
 async def seed(dry_run: bool = False) -> dict[str, int]:
