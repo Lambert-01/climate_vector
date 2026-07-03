@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     database_sync_url: str = "sqlite:///./dev.db"
 
     api_secret_key: str = "dev-secret"
-    api_cors_origins: str = "http://localhost:5173"
+    api_cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
 
     jwt_secret: str = "dev-jwt-secret"
     jwt_algorithm: str = "HS256"
