@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models import Alert, MosquitoObservation, ResistanceTestReplicate, Site
-from app.services.csv_store import read_csv
+from app.services.csv_store import read_csv, read_nasa_power_csv
 
 router = APIRouter(tags=["dashboard"])
 
@@ -47,5 +47,5 @@ def dashboard_readiness() -> dict:
 
 @router.get("/dashboard/climate-summary")
 def climate_summary() -> dict:
-    rows = read_csv("data/climate/kigali_test_2021_2025.csv")
-    return {"items": rows[:90]}
+    rows = read_nasa_power_csv("data/climate/kigali_test_2021_2025.csv")
+    return {"items": rows[-90:]}

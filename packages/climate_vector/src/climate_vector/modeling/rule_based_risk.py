@@ -8,9 +8,56 @@ class DistrictRiskSignal:
     district: str
     risk_level: str
     score: int
+    suitability_index: float
+    rainfall_index: float
+    temperature_index: float
+    evidence_index: float
+    vectorial_capacity_proxy: float
     uncertainty_level: str
     reason: str
     rule_or_model_version: str = "rule-v0-descriptive"
+
+
+def clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
+    return max(lower, min(upper, value))
+
+
+def temperature_suitability(tmean_c: float | None) -> float:
+    """Piecewise thermal suitability proxy for Anopheles ecology."""
+    if tmean_c is None:
+        return 0.0
+    if tmean_c < 16 or tmean_c > 34:
+        return 0.0
+    if tmean_c <= 25:
+        return clamp((tmean_c - 16) / 9)
+    if tmean_c <= 29:
+        return 1.0
+    return clamp((34 - tmean_c) / 5)
+
+
+def rainfall_suitability(rainfall_7d_mm: float | None, rainfall_30d_mm: float | None) -> float:
+    """Rainfall habitat proxy with saturation and a penalty for very heavy 7-day rain."""
+    r7 = max(0.0, rainfall_7d_mm or 0.0)
+    r30 = max(0.0, rainfall_30d_mm or 0.0)
+    short_term = clamp(r7 / 35)
+    sustained = clamp(r30 / 120)
+    flushing_penalty = 0.75 if r7 > 90 else 1.0
+    return clamp((0.45 * short_term + 0.55 * sustained) * flushing_penalty)
+
+
+def evidence_suitability(recent_records: int = 0, gps_validated: bool = False) -> float:
+    record_signal = clamp(recent_records / 50)
+    gps_bonus = 0.15 if gps_validated else 0.0
+    return clamp(0.85 * record_signal + gps_bonus)
+
+
+def vectorial_capacity_proxy(
+    temperature_index: float,
+    rainfall_index: float,
+    evidence_index: float,
+) -> float:
+    """Dimensionless proxy inspired by vectorial-capacity components, not absolute R0."""
+    return clamp((temperature_index**1.4) * (rainfall_index**1.1) * (0.35 + 0.65 * evidence_index))
 
 
 def score_district_signal(
@@ -22,6 +69,12 @@ def score_district_signal(
     gps_validated: bool = False,
 ) -> DistrictRiskSignal:
     """Create a conservative descriptive signal, not a validated prediction."""
+    temp_index = temperature_suitability(tmean_c)
+    rain_index = rainfall_suitability(rainfall_7d_mm, rainfall_30d_mm)
+    evidence_index = evidence_suitability(recent_records, gps_validated)
+    vc_proxy = vectorial_capacity_proxy(temp_index, rain_index, evidence_index)
+    suitability = clamp(0.42 * temp_index + 0.40 * rain_index + 0.18 * evidence_index)
+
     score = 0
     reasons: list[str] = []
 
@@ -47,9 +100,9 @@ def score_district_signal(
         score += 1
         reasons.append("historical mosquito records present")
 
-    if score >= 5:
+    if suitability >= 0.72 or score >= 5:
         risk_level = "high"
-    elif score >= 3:
+    elif suitability >= 0.45 or score >= 3:
         risk_level = "medium"
     else:
         risk_level = "low"
@@ -60,6 +113,11 @@ def score_district_signal(
         district=district,
         risk_level=risk_level,
         score=score,
+        suitability_index=round(suitability, 3),
+        rainfall_index=round(rain_index, 3),
+        temperature_index=round(temp_index, 3),
+        evidence_index=round(evidence_index, 3),
+        vectorial_capacity_proxy=round(vc_proxy, 3),
         uncertainty_level=uncertainty,
         reason=reason,
     )
