@@ -36,3 +36,16 @@ def test_modeling_endpoint_returns_district_signals() -> None:
     assert payload["items"]
     first = payload["items"][0]
     assert {"district", "suitability_index", "vectorial_capacity_proxy", "risk_level"}.issubset(first)
+
+
+def test_local_dev_cors_preflight_allows_127_frontend() -> None:
+    client = TestClient(app)
+    response = client.options(
+        "/api/dashboard/stats",
+        headers={
+            "Origin": "http://127.0.0.1:5173",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"

@@ -1,7 +1,7 @@
-.PHONY: pipeline ingest process dashboard seed seed-dry-run api web install install-api install-web migrate db-revision dev stop
+.PHONY: pipeline ingest process dashboard validate seed seed-dry-run api web install install-api install-web migrate db-revision dev stop
 
 # ─── Data pipeline ────────────────────────────────────────────────────────────
-pipeline: ingest process dashboard
+pipeline: ingest process dashboard validate
 
 ingest:
 	python3 scripts/pipelines/01_ingest_raw_excel.py
@@ -11,6 +11,9 @@ process:
 
 dashboard:
 	python3 scripts/pipelines/03_build_static_dashboard.py
+
+validate:
+	python3 scripts/pipelines/05_validate_model_readiness.py
 
 seed:
 	.venv/bin/python scripts/pipelines/04_seed_neon.py
