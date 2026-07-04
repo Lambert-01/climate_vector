@@ -20,6 +20,14 @@ const COLORS = {
   low: "#0d9488",
 };
 
+function titleCase(value) {
+  return String(value ?? "")
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export default function Modeling() {
   const { data: risk, loading: riskLoading, error: riskError } = useFetch(() => api.districtRisk(30));
   const { data: readiness, loading: readinessLoading, error: readinessError } = useFetch(api.modelingReadiness);
@@ -31,11 +39,16 @@ export default function Modeling() {
     : 0;
 
   const chartRows = rows.slice(0, 12).map((row) => ({
-    district: row.district,
+    district: titleCase(row.district),
     suitability: Number(row.suitability_index ?? 0),
     rainfall: Number(row.rainfall_index ?? 0),
     temperature: Number(row.temperature_index ?? 0),
     risk: row.risk_level,
+  }));
+  const tableRows = rows.map((row) => ({
+    ...row,
+    district: titleCase(row.district),
+    reason: row.reason || "Continue routine monitoring",
   }));
 
   return (
@@ -106,12 +119,34 @@ export default function Modeling() {
             )}
           </div>
         </SectionCard>
+
+        <SectionCard title="Current Model Scope" icon={Sigma}>
+          <div className="card-body">
+            <div className="coverage-list" style={{ padding: 0 }}>
+              <div className="readiness-item">
+                <div className="readiness-dot ready" />
+                <div className="readiness-item-label">Can support district climate suitability screening</div>
+                <Badge variant="green">usable now</Badge>
+              </div>
+              <div className="readiness-item">
+                <div className="readiness-dot partial" />
+                <div className="readiness-item-label">Can support descriptive mosquito and resistance summaries</div>
+                <Badge variant="amber">preliminary</Badge>
+              </div>
+              <div className="readiness-item">
+                <div className="readiness-dot missing" />
+                <div className="readiness-item-label">Cannot yet support validated abundance, resistance, or malaria prediction</div>
+                <Badge variant="red">blocked</Badge>
+              </div>
+            </div>
+          </div>
+        </SectionCard>
       </div>
 
       <SectionCard title="District Modelling Table" icon={Sigma}>
-        <ChartState loading={riskLoading} error={riskError} rows={rows} empty="No modelling table rows available.">
+        <ChartState loading={riskLoading} error={riskError} rows={tableRows} empty="No modelling table rows available.">
           <DataTable
-            rows={rows}
+            rows={tableRows}
             columns={[
               "district",
               "risk_level",
