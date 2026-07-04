@@ -71,6 +71,28 @@ def test_era5_public_endpoint_returns_converted_tables() -> None:
     assert "gridded climate summaries" in payload["model_note"]
 
 
+def test_public_data_validation_registry_returns_formula_roles() -> None:
+    client = TestClient(app)
+    response = client.get("/api/public-data/validation")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["items"]
+    assert payload["summary"]["sources"] >= 10
+    first = payload["items"][0]
+    assert {"source_name", "status", "model_use", "formula_role", "limitation"}.issubset(first)
+
+
+def test_public_data_formulation_sources_returns_modules() -> None:
+    client = TestClient(app)
+    response = client.get("/api/public-data/formulation-sources")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["items"]
+    first = payload["items"][0]
+    assert {"module", "symbol", "formula", "data_sources", "result", "status"}.issubset(first)
+    assert "screening proxies" in payload["governance"]
+
+
 def test_local_dev_cors_preflight_allows_127_frontend() -> None:
     client = TestClient(app)
     response = client.options(
