@@ -47,6 +47,8 @@ def download_url(url: str, destination: Path, timeout: int = 90) -> tuple[bool, 
         with urllib.request.urlopen(url, timeout=timeout) as response:
             destination.write_bytes(response.read())
         return True, "downloaded"
+    except urllib.error.HTTPError as exc:
+        return False, f"http_{exc.code}"
     except urllib.error.URLError as exc:
         if "CERTIFICATE_VERIFY_FAILED" not in str(exc):
             return False, f"failed: {exc}"
@@ -57,8 +59,6 @@ def download_url(url: str, destination: Path, timeout: int = 90) -> tuple[bool, 
             return True, "downloaded_ssl_unverified"
         except Exception as fallback_exc:
             return False, f"failed_after_ssl_fallback: {fallback_exc}"
-    except urllib.error.HTTPError as exc:
-        return False, f"http_{exc.code}"
     except Exception as exc:  # network errors vary by platform
         return False, f"failed: {exc}"
 
