@@ -24,7 +24,7 @@ function cleanRecord(row) {
     site: row.site_raw ?? row.site_name ?? row.visit_id ?? "—",
     species: row.anopheles_species_raw ?? row.species_clean ?? row.species_raw ?? "—",
     breeding_site_type: row.breeding_site_type_raw ?? row.habitat_type ?? "—",
-    collection_date: row.collection_date ?? row.visit_date ?? dateParts || "missing",
+    collection_date: (row.collection_date ?? row.visit_date ?? dateParts) || "missing",
     quality_flag: row.quality_flag ?? "needs_review",
   };
 }
