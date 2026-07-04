@@ -1,6 +1,8 @@
-# Climate Vector Rwanda
+# Rwanda Climate-Vector Intelligence System
 
 Professional Proof-of-Concept workspace for a climate-informed mosquito ecology, insecticide-resistance, and decision-support system for Rwanda.
+
+The current product is a **Climate-Vector Intelligence Prototype** built with the data currently available: preliminary mosquito ecology records, preliminary resistance-test records, public climate/environment datasets, and a transparent mathematical suitability proxy. It is not a validated prediction system yet.
 
 ## Stack
 
@@ -27,12 +29,13 @@ Implemented:
 - Data dictionaries.
 - Implementation master plan.
 - Public/open-data feature extraction from NASA POWER, GBIF, WorldClim inventory, ERA5-Land summary, and geospatial source inventory.
+- Current-data solution blueprint for NCST/Nexa Proof-of-Concept framing.
+- Missing-data source guide with public substitutes and pilot strategy.
+- Provisional site-coordinate map and validation workflow.
+- District-level mathematical suitability proxy dashboard.
 
 Not implemented yet:
 
-- Installed Python/Node dependencies.
-- Running FastAPI server.
-- Running React dev server.
 - Site-level climate/environment extraction.
 - Validated resistance classification.
 - Validated prediction models.
@@ -60,6 +63,7 @@ data/
 docs/
   implementation/       Master implementation plan
   architecture/         Full stack architecture
+  proposal/             NCST/Nexa proof-of-concept framing and current-data blueprint
   data_audits/          Dataset assessments
   data_dictionary/      Data dictionaries
 
@@ -94,6 +98,13 @@ outputs/tables/worldclim_archives_manifest.csv
 data/processed/gbif_mosquito_occurrences_rwanda.csv
 data/processed/public_data_district_features.csv
 data/processed/era5_land_available_summary.csv
+```
+
+Proposal blueprint:
+
+```text
+docs/proposal/current_data_solution_blueprint.md
+docs/proposal/nexa_poc_data_strategy.md
 ```
 
 ## Run API Later

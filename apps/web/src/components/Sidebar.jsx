@@ -33,8 +33,8 @@ export default function Sidebar() {
             <Shield size={18} color="#fff" />
           </div>
           <div className="sidebar-logo-text">
-            <strong>Climate Vector</strong>
-            <span>Rwanda PoC</span>
+            <strong>RCVIS</strong>
+            <span>Climate-Vector Intelligence</span>
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function Sidebar() {
       <div className="sidebar-footer">
         <div className="sidebar-badge">
           <BarChart2 size={13} />
-          Descriptive Prototype
+          Proof-of-Concept
         </div>
       </div>
     </aside>
