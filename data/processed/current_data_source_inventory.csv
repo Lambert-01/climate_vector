@@ -1,0 +1,4 @@
+source,type,current_use,limitations
+IR_data.xls,PI lecturer dataset,"resistance test records, insecticide tested, deaths observed after 24h, mortality-rate field where present, species context from sheet 1","denominator, protocol, control mortality, official GPS, and full dates not confirmed"
+mosquito_behavior_raw.xls,PI lecturer dataset,"district/site ecology records, larval origin, breeding-site type, agricultural insecticide-use context","no full dates, GPS, explicit mosquito counts, sampling effort, or positive/negative habitat status"
+public open datasets in data/external,supporting public covariates,"climate, rainfall, boundaries, population, land cover, elevation, public mosquito occurrences, and health-system context",support context only; cannot replace project-specific field and lab measurements

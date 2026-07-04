@@ -1,0 +1,2 @@
+dataset,records,date_start,date_end,rainfall_total_mm,rainfall_mean_daily_mm,temperature_mean_c,data_use
+era5_land_rwanda_2021_01_daily_summary,31,2021-01-01,2021-01-31,1724.02,55.614,19.172,national gridded climate test layer; expand before use as operational baseline

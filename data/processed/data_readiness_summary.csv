@@ -1,0 +1,9 @@
+item,ready,status,proposal_use
+mosquito_ecology_records,True,available_from_mosquito_behavior_raw,descriptive ecology and breeding-site evidence
+species_context,True,available_from_ir_data_sheet1,descriptive species context linked by row order
+resistance_test_records,True,available_preliminary_from_ir_data,descriptive insecticide exposure and mortality pattern summaries
+full_row_level_dates,False,day_only_present_month_year_missing,treat validation of dates as pilot work package
+official_site_gps,False,not_in_pi_excel_files,use district centroids/provisional coordinates for prototype maps only
+mosquito_counts_and_sampling_effort,False,not_in_current_excel_files,prototype uses record frequency; pilot will collect denominator and effort
+resistance_denominator_protocol_control,False,not_confirmed_in_current_excel_files,avoid definitive resistance classification before lab confirmation
+malaria_action_data,False,not_required_for_current_poc,future validation and operational impact work package

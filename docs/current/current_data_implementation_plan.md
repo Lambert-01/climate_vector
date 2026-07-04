@@ -10,6 +10,8 @@ The system name for implementation is:
 
 **Rwanda Climate-Vector Intelligence Prototype**
 
+This scope is aligned with the feedback note in `docs/current/feedback_alignment_note.md`: build a polished, honest proof-of-concept and avoid claiming a finished predictive climate-health model.
+
 ## 2. Data Scope
 
 ### Primary PI / Lecturer Data
@@ -67,6 +69,7 @@ It will not be presented as:
 - a validated malaria early-warning model
 - a definitive insecticide-resistance interpretation system
 - an official alerting system
+- a complex machine-learning system trained on incomplete outcomes
 
 The funding proposal should say that validation is a work package, not a prerequisite for the prototype.
 

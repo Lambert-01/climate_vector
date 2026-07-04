@@ -1,10 +1,22 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Database, Map, MapPin } from "lucide-react";
+import { BarChart3, CloudRain, Database, Droplets, Map, MapPin, TestTube2 } from "lucide-react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
+
+const SITE_COLORS = ["#2f6f4e", "#087f8c", "#d5a642", "#3b82f6", "#f59e0b", "#64748b"];
 
 function asNumber(value) {
   const parsed = Number.parseFloat(value);
@@ -13,6 +25,10 @@ function asNumber(value) {
 
 function markerColor(quality) {
   return String(quality).includes("validated") ? "#22c55e" : "#f59e0b";
+}
+
+function fmt(value) {
+  return Number(value ?? 0).toLocaleString();
 }
 
 function RwandaMap({ sites }) {
@@ -60,16 +76,18 @@ function RwandaMap({ sites }) {
       if (lat === null || lng === null) return;
 
       const color = markerColor(site.coordinate_quality);
+      const records = Number(site.records ?? 0) || 0;
+      const size = Math.max(12, Math.min(26, 10 + Math.sqrt(records)));
       const icon = L.divIcon({
         className: "",
-        html: `<div style="width:14px;height:14px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 1px 5px rgba(0,0,0,.35)"></div>`,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
+        html: `<div style="width:${size}px;height:${size}px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.32)"></div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
       });
       L.marker([lat, lng], { icon })
         .addTo(layer)
         .bindPopup(
-          `<strong>${site.site_name}</strong><br/>${site.district ?? ""}<br/><small>${String(site.coordinate_quality).replace(/_/g, " ")}</small>`
+          `<strong>${site.site_name}</strong><br/>${site.district ?? ""}<br/>Records: ${records}<br/>Habitat: ${site.dominant_habitat || "Not set"}<br/><small>${String(site.coordinate_quality).replace(/_/g, " ")}</small>`
         );
       points.push([lat, lng]);
     });
@@ -101,6 +119,12 @@ export default function Sites() {
         coordinate_quality: site.coordinate_quality ?? "validated",
         coordinate_source: site.coordinate_source ?? "site_registry",
         records: site.records ?? "",
+        dominant_habitat: site.dominant_habitat ?? "—",
+        dominant_species_context: site.dominant_species_context ?? "—",
+        dominant_agri_insecticide: site.dominant_agri_insecticide ?? "—",
+        rainfall_mean_daily_mm: site.rainfall_mean_daily_mm ?? "—",
+        tmean_c_mean: site.tmean_c_mean ?? "—",
+        gbif_occurrence_count: site.gbif_occurrence_count ?? "—",
       }))
       .filter((site) => asNumber(site.latitude) !== null && asNumber(site.longitude) !== null);
 
@@ -116,11 +140,30 @@ export default function Sites() {
       coordinate_quality: site.coordinate_quality,
       coordinate_source: site.coordinate_source,
       records: site.records,
+      dominant_habitat: site.dominant_habitat ?? "—",
+      dominant_species_context: site.dominant_species_context ?? "—",
+      dominant_agri_insecticide: site.dominant_agri_insecticide ?? "—",
+      rainfall_mean_daily_mm: site.rainfall_mean_daily_mm ?? "—",
+      tmean_c_mean: site.tmean_c_mean ?? "—",
+      gbif_occurrence_count: site.gbif_occurrence_count ?? "—",
     }));
   }, [rawSites, candidateRows]);
 
   const provisional = mappedSites.filter((s) => String(s.coordinate_quality).includes("provisional")).length;
   const validated = mappedSites.length - provisional;
+  const totalRecords = mappedSites.reduce((sum, site) => sum + (Number(site.records) || 0), 0);
+  const districts = new Set(mappedSites.map((site) => site.district).filter(Boolean)).size;
+  const topSites = [...mappedSites]
+    .sort((a, b) => (Number(b.records) || 0) - (Number(a.records) || 0))
+    .slice(0, 12)
+    .map((site) => ({
+      site: site.site_name,
+      records: Number(site.records) || 0,
+      district: site.district,
+    }));
+  const topSite = topSites[0]?.site ?? "—";
+  const topHabitat = mappedSites.find((site) => site.dominant_habitat)?.dominant_habitat ?? "—";
+  const topInsecticide = mappedSites.find((site) => site.dominant_agri_insecticide)?.dominant_agri_insecticide ?? "—";
 
   return (
     <div className="page ops-page">
@@ -139,12 +182,18 @@ export default function Sites() {
         <MetricStrip
           items={[
             { label: "Mapped locations", value: loading || cL ? "..." : mappedSites.length },
-            { label: "Validated GPS", value: loading || cL ? "..." : validated },
-            { label: "Provisional candidates", value: loading || cL ? "..." : provisional },
-            { label: "PI action", value: provisional ? "GPS needed" : "Review" },
+            { label: "PI records", value: loading || cL ? "..." : fmt(totalRecords) },
+            { label: "Districts", value: loading || cL ? "..." : districts },
+            { label: "Provisional GPS", value: loading || cL ? "..." : provisional },
           ]}
         />
       </SectionCard>
+
+      <div className="insight-grid">
+        <div className="insight-card"><MapPin size={17} /><span>Highest-volume site</span><strong>{topSite}</strong></div>
+        <div className="insight-card"><Droplets size={17} /><span>Main habitat signal</span><strong>{topHabitat}</strong></div>
+        <div className="insight-card"><TestTube2 size={17} /><span>Main exposure signal</span><strong>{topInsecticide}</strong></div>
+      </div>
 
       <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
         <SectionCard title="National map" icon={Map}>
@@ -155,29 +204,59 @@ export default function Sites() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Map data" icon={MapPin}>
-          <DataTable
-            rows={mappedSites}
-            maxRows={30}
-            columns={["site_name", "district", "records", "latitude", "longitude", "coordinate_quality", "coordinate_source"]}
-          />
+        <SectionCard title="Site volume" icon={BarChart3}>
+          <ChartState loading={loading || cL} error={error || cError} rows={topSites} empty="No site records available.">
+            <div className="card-body">
+              <div className="chart-wrap">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topSites} margin={{ top: 6, right: 12, left: -18, bottom: 54 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#edf2f4" vertical={false} />
+                    <XAxis dataKey="site" tick={{ fontSize: 10 }} angle={-35} textAnchor="end" interval={0} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #d8e2e4" }} />
+                    <Bar dataKey="records" name="Records" radius={[4, 4, 0, 0]}>
+                      {topSites.map((_, index) => <Cell key={index} fill={SITE_COLORS[index % SITE_COLORS.length]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </ChartState>
         </SectionCard>
       </div>
 
-      <SectionCard title="Site registry" icon={MapPin}>
+      <SectionCard title="Operational site registry" icon={MapPin}>
         <DataTable
-          rows={rawSites}
+          rows={mappedSites}
           maxRows={50}
-          columns={["site_id", "site_name", "district", "province", "latitude", "longitude", "coordinate_quality"]}
+          columns={[
+            "site_name",
+            "district",
+            "records",
+            "dominant_habitat",
+            "dominant_species_context",
+            "dominant_agri_insecticide",
+            "rainfall_mean_daily_mm",
+            "tmean_c_mean",
+            "gbif_occurrence_count",
+          ]}
         />
       </SectionCard>
 
-      <div style={{ marginTop: 20 }}>
-        <SectionCard title="GPS validation queue" icon={MapPin}>
+      <div className="grid-2" style={{ marginTop: 20 }}>
+        <SectionCard title="Map coordinates" icon={MapPin}>
           <DataTable
-            rows={candidateRows}
+            rows={mappedSites}
             maxRows={50}
-            columns={["site_name", "district", "records", "candidate_latitude", "candidate_longitude", "coordinate_quality", "pi_action"]}
+            columns={["site_name", "district", "records", "latitude", "longitude", "coordinate_quality", "coordinate_source"]}
+          />
+        </SectionCard>
+
+        <SectionCard title="Climate context" icon={CloudRain}>
+          <DataTable
+            rows={mappedSites}
+            maxRows={50}
+            columns={["site_name", "district", "rainfall_mean_daily_mm", "tmean_c_mean", "gbif_occurrence_count"]}
           />
         </SectionCard>
       </div>

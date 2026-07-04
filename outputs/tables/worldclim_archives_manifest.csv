@@ -1,0 +1,7 @@
+archive,tif_count,first_member,last_member,size_mb
+wc2.1_10m_bio.zip,19,wc2.1_10m_bio_1.tif,wc2.1_10m_bio_9.tif,47.56
+wc2.1_10m_prec.zip,12,wc2.1_10m_prec_01.tif,wc2.1_10m_prec_12.tif,6.92
+wc2.1_10m_tavg.zip,12,wc2.1_10m_tavg_01.tif,wc2.1_10m_tavg_12.tif,35.63
+wc2.1_10m_tmax.zip,12,wc2.1_10m_tmax_01.tif,wc2.1_10m_tmax_12.tif,35.71
+wc2.1_10m_tmin.zip,12,wc2.1_10m_tmin_01.tif,wc2.1_10m_tmin_12.tif,35.86
+wc2.1_10m_vapr.zip,12,wc2.1_10m_vapr_01.tif,wc2.1_10m_vapr_12.tif,25.95

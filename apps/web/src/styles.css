@@ -6,9 +6,9 @@
   --border: #dde6e8;
   --border-light: #eef3f4;
 
-  --sidebar-bg: #10201d;
-  --sidebar-hover: #19312b;
-  --sidebar-active: #24483d;
+  --sidebar-bg: #101c19;
+  --sidebar-hover: #1b3029;
+  --sidebar-active: #264f41;
   --sidebar-text: #a4b8b1;
   --sidebar-text-active: #ffffff;
   --sidebar-accent: #2dd4bf;
@@ -41,7 +41,7 @@
   --shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.05);
   --shadow-md: 0 4px 20px rgba(0,0,0,.10);
 
-  --sidebar-w: 240px;
+  --sidebar-w: 284px;
   --topbar-h: 64px;
   --font: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
@@ -67,7 +67,9 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
 /* ─── Sidebar ────────────────────────────────────────────────────────────────── */
 .sidebar {
   width: var(--sidebar-w);
-  background: var(--sidebar-bg);
+  background:
+    linear-gradient(180deg, rgba(47, 111, 78, .18), rgba(47, 111, 78, 0) 220px),
+    var(--sidebar-bg);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -76,8 +78,8 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   overflow-y: auto;
 }
 
-.sidebar-logo {
-  padding: 22px 20px 18px;
+.sidebar-brand-panel {
+  padding: 20px 18px 16px;
   border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
@@ -88,8 +90,8 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
 }
 
 .sidebar-logo-icon {
-  width: 34px; height: 34px;
-  background: linear-gradient(135deg, var(--teal-500), var(--teal-400));
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, #2f6f4e, #087f8c);
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -98,7 +100,7 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
 .sidebar-logo-text strong {
   display: block;
   color: #fff;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -108,8 +110,65 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   font-size: 11px;
 }
 
+.sidebar-product-meta {
+  display: flex;
+  gap: 7px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.sidebar-product-meta span {
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.045);
+  color: #c5d6d0;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.sidebar-mission {
+  margin: 14px 12px 6px;
+  padding: 12px;
+  border: 1px solid rgba(213, 166, 66, .24);
+  background: rgba(213, 166, 66, .08);
+  border-radius: 8px;
+}
+
+.mission-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #f4d48a;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.mission-steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.mission-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #dbe8e3;
+  font-size: 11.5px;
+  min-width: 0;
+}
+
+.mission-step svg {
+  color: #7dd3aa;
+  flex-shrink: 0;
+}
+
 .sidebar-section-label {
-  padding: 18px 20px 6px;
+  padding: 13px 10px 7px;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -119,17 +178,21 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
 
 .sidebar-nav {
   flex: 1;
-  padding: 6px 10px;
+  padding: 2px 10px 8px;
+}
+
+.nav-group + .nav-group {
+  margin-top: 4px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
+  padding: 10px 11px;
   border-radius: var(--radius-sm);
   color: var(--sidebar-text);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   transition: background .15s, color .15s;
   margin-bottom: 2px;
@@ -143,6 +206,7 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
 .nav-item.active {
   background: var(--sidebar-active);
   color: var(--sidebar-text-active);
+  box-shadow: inset 3px 0 0 #d5a642;
 }
 
 .nav-item.active svg {
@@ -151,9 +215,61 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
 
 .nav-item svg { flex-shrink: 0; }
 
+.nav-copy {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.nav-copy strong {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.nav-copy small {
+  color: rgba(197, 214, 208, .68);
+  font-size: 10.5px;
+  line-height: 1.2;
+}
+
+.nav-item.active .nav-copy small {
+  color: rgba(255,255,255,.72);
+}
+
 .sidebar-footer {
-  padding: 14px 10px;
+  padding: 12px 10px 14px;
   border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.sidebar-kpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.sidebar-kpis div {
+  padding: 9px;
+  border-radius: 7px;
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+.sidebar-kpis span,
+.sidebar-kpis strong {
+  display: block;
+}
+
+.sidebar-kpis span {
+  color: rgba(197,214,208,.68);
+  font-size: 10.5px;
+}
+
+.sidebar-kpis strong {
+  color: #fff;
+  font-size: 15px;
+  margin-top: 2px;
 }
 
 .sidebar-badge {
@@ -161,10 +277,10 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(45,212,191,.08);
-  border: 1px solid rgba(45,212,191,.15);
+  background: rgba(47,111,78,.18);
+  border: 1px solid rgba(125,211,170,.18);
   border-radius: var(--radius-sm);
-  color: var(--teal-400);
+  color: #a7f3d0;
   font-size: 11.5px;
   font-weight: 600;
 }
@@ -207,7 +323,29 @@ button { font-family: var(--font); cursor: pointer; border: none; background: no
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+}
+
+.topbar-mission {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.topbar-mission svg {
+  color: #2f6f4e;
+}
+
+.topbar-mission span + span {
+  padding-left: 7px;
+  border-left: 1px solid var(--border);
 }
 
 /* ─── Page ───────────────────────────────────────────────────────────────────── */
@@ -997,3 +1135,4 @@ tbody tr:hover td { background: var(--teal-50); }
   .ops-header { align-items: flex-start; flex-direction: column; }
   .page { padding: 16px; }
 }
+  .topbar-mission { display: none; }

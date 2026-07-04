@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models import Alert
+from app.services.csv_store import read_csv
 
 router = APIRouter(tags=["alerts"])
 
@@ -32,9 +33,11 @@ class AlertStatusUpdate(BaseModel):
 async def list_alerts(db: AsyncSession = Depends(get_db)) -> dict:
     try:
         rows = (await db.execute(select(Alert).order_by(Alert.alert_date.desc()))).scalars().all()
-        return {"items": [_alert_dict(a) for a in rows]}
+        if rows:
+            return {"items": [_alert_dict(a) for a in rows], "source": "db"}
     except Exception:
-        return {"items": _mock_alerts()}
+        pass
+    return {"items": _current_data_alerts(), "source": "current_data"}
 
 
 @router.post("/alerts", status_code=201)
@@ -79,25 +82,47 @@ def _alert_dict(a: Alert) -> dict:
 
 
 def _mock_alerts() -> list[dict]:
-    return [
-        {
-            "alert_id": "mock-001",
-            "alert_date": str(date.today()),
-            "district": "Bugesera",
-            "risk_level": "medium",
-            "risk_reason": "Elevated rainfall + historical breeding site activity",
-            "uncertainty_level": "high",
-            "status": "pending_review",
-            "recommended_action": "Increase larval surveillance frequency",
-        },
-        {
-            "alert_id": "mock-002",
-            "alert_date": str(date.today()),
-            "district": "Gasabo",
-            "risk_level": "low",
-            "risk_reason": "Seasonal temperature within normal range",
-            "uncertainty_level": "high",
-            "status": "acknowledged",
-            "recommended_action": "Routine monitoring",
-        },
-    ]
+    return _current_data_alerts()
+
+
+def _current_data_alerts() -> list[dict]:
+    site_rows = read_csv("data/sites/sites.csv")
+    district_rows = read_csv("outputs/tables/mosquito_district_raw_frequency.csv")
+    rainfall_by_district = {
+        row.get("district", "").strip().lower(): row
+        for row in read_csv("data/processed/public_data_district_features.csv")
+    }
+    district_counts = {
+        row.get("value", "").strip().lower(): int(float(row.get("count") or 0))
+        for row in district_rows
+        if row.get("value")
+    }
+    site_counts: dict[str, int] = {}
+    for row in site_rows:
+        district = row.get("district", "").strip().lower()
+        site_counts[district] = site_counts.get(district, 0) + 1
+
+    candidates = []
+    for district, count in district_counts.items():
+        climate = rainfall_by_district.get(district, {})
+        rainfall = float(climate.get("rainfall_mean_daily_mm") or 0)
+        score = count * 0.65 + rainfall * 35 + site_counts.get(district, 0) * 8
+        candidates.append((score, district, count, rainfall, site_counts.get(district, 0)))
+    candidates.sort(reverse=True)
+
+    rows = []
+    for index, (_, district, count, rainfall, sites) in enumerate(candidates[:5], start=1):
+        risk_level = "high" if index <= 2 else "medium"
+        rows.append(
+            {
+                "alert_id": f"current-data-{index:03d}",
+                "alert_date": str(date.today()),
+                "district": district.title(),
+                "risk_level": risk_level,
+                "risk_reason": f"{count} PI ecology records, {sites} mapped sites, {rainfall:.2f} mm/day rainfall proxy",
+                "uncertainty_level": "managed",
+                "status": "pending_review" if index <= 3 else "acknowledged",
+                "recommended_action": "Prioritize site GPS validation and targeted larval/resistance follow-up",
+            }
+        )
+    return rows

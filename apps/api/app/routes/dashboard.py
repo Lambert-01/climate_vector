@@ -20,6 +20,8 @@ async def dashboard_stats(db: AsyncSession = Depends(get_db)) -> dict:
         alert_count = (await db.execute(
             select(func.count()).select_from(Alert).where(Alert.status == "active")
         )).scalar_one()
+        if site_count == 0 and obs_count == 0 and res_count == 0:
+            raise RuntimeError("empty database; use current-data CSV fallback")
         return {
             "sites": site_count,
             "mosquito_observations": obs_count,
@@ -31,9 +33,10 @@ async def dashboard_stats(db: AsyncSession = Depends(get_db)) -> dict:
         # Fallback to CSV when DB is not yet seeded
         readiness = read_csv("data/processed/data_readiness_summary.csv")
         mosquito_rows = read_csv("data/processed/mosquito_ecology_preliminary.csv")
+        site_rows = read_csv("data/sites/sites.csv")
         sites = {row.get("site_raw", "").strip().lower() for row in mosquito_rows if row.get("site_raw")}
         return {
-            "sites": len(sites),
+            "sites": len(site_rows) or len(sites),
             "mosquito_observations": len(mosquito_rows),
             "resistance_tests": len(read_csv("data/processed/resistance_test_replicates_preliminary.csv")),
             "active_alerts": 0,

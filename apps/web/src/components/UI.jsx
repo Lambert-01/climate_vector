@@ -44,6 +44,10 @@ export function DataTable({ rows, columns, maxRows = 50 }) {
     return <div className="empty">No data available.</div>;
   }
   const cols = columns ?? Object.keys(rows[0]);
+  const cellValue = (value) => {
+    const text = String(value ?? "").trim();
+    return text || "—";
+  };
   return (
     <div className="table-wrap">
       <table>
@@ -53,7 +57,7 @@ export function DataTable({ rows, columns, maxRows = 50 }) {
         <tbody>
           {rows.slice(0, maxRows).map((row, i) => (
             <tr key={i}>
-              {cols.map((c) => <td key={c}>{row[c] ?? "—"}</td>)}
+              {cols.map((c) => <td key={c}>{cellValue(row[c])}</td>)}
             </tr>
           ))}
         </tbody>

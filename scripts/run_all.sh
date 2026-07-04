@@ -15,7 +15,8 @@ check_port() {
   if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
     echo "Port $port is already in use."
     lsof -nP -iTCP:"$port" -sTCP:LISTEN
-    echo "Stop that process or run with another port, for example: API_PORT=8010 WEB_PORT=5174 scripts/run_all.sh"
+    echo "Run: bash scripts/stop_all.sh"
+    echo "Or run with another port, for example: API_PORT=8010 WEB_PORT=5174 bash scripts/run_all.sh"
     exit 1
   fi
 }

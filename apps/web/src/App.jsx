@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, BrainCircuit, Cloud, Database, FlaskConical, Home, Map } from "lucide-react";
+import { Activity, AlertTriangle, BrainCircuit, Cloud, Database, FlaskConical, Home, Map, Radar } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import Overview from "./pages/Overview.jsx";
 import Sites from "./pages/Sites.jsx";
@@ -36,8 +36,16 @@ function Topbar() {
         <p>{meta.sub}</p>
       </div>
       <div className="topbar-right">
-        <span className="badge badge-teal" style={{ fontSize: 11 }}>Current-Data Build</span>
-        <span className="badge badge-amber" style={{ fontSize: 11 }}>Validation Pilot Next</span>
+        <div className="topbar-mission">
+          <Radar size={13} />
+          <span>Readiness</span>
+          <span>Habitat</span>
+          <span>Susceptibility</span>
+          <span>Climate</span>
+          <span>Response</span>
+        </div>
+        <span className="badge badge-teal" style={{ fontSize: 11 }}>MVP</span>
+        <span className="badge badge-amber" style={{ fontSize: 11 }}>Pilot Next</span>
       </div>
     </header>
   );

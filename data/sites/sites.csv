@@ -1,0 +1,31 @@
+site_id,site_name,district,province,records,latitude,longitude,coordinate_source,coordinate_quality,dominant_habitat,dominant_species_context,dominant_agri_insecticide,rainfall_mean_daily_mm,tmean_c_mean,gbif_occurrence_count
+gitarama,Gitarama,Muhanga,,148,-2.023505,29.688051,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.516,19.882,0
+gakoma,Gakoma,Gisagara,,144,-2.669791,29.758609,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.713,20.418,0
+mbazi,Mbazi,Huye,,144,-2.546499,29.67383,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.713,20.418,0
+mimuli,Mimuli,Nyagatare,,144,-1.389907,30.233744,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,4.635,17.674,0
+mwogo,Mwogo,Bugesera,,144,-2.210647,30.115794,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.516,19.882,0
+nyagatare,Nyagatare,Nyagatare,,144,-1.371907,30.233744,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,4.635,17.674,0
+remera,Remera,Ngoma,,144,-2.194554,30.451798,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.686,20.676,0
+rwesero,Rwesero,Gicumbi,,144,-1.632039,30.061685,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,4.635,17.674,0
+kicukiro,Kicukiro,Kicukiro,,143,-2.019506,30.080047,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.516,19.882,91
+mareba,Mareba,Bugesera,,140,-2.192647,30.115794,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.516,19.882,0
+bukora,Bukora,Kirehe,,132,-2.248788,30.62486,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.686,20.676,0
+kibogora,Kibogora,Nyamasheke,,132,-2.447802,29.070443,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.292,19.256,0
+mahesha,Mahesha,Rusizi,,132,-2.567376,29.040885,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.292,19.256,0
+rukara,Rukara,Kayonza,,132,-1.97731,30.517144,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,PROFENOFOS 4%,3.686,20.676,0
+cyondo,Cyondo,Nyagatare,,128,-1.353907,30.233744,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated rice,An.gambiae s.l,No pesticide,4.635,17.674,0
+busoro,Busoro,Nyanza,,120,-2.33736,29.720705,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated Rice,An.gambiae s.l,Cypermethrin 4%,3.713,20.418,0
+gahini,Gahini,Kayonza,,120,-1.95931,30.517144,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Drains,An.gambiae s.l,Cypermethrin 4%,3.686,20.676,0
+kajevuba,Kajevuba,Rulindo,,120,-1.747197,29.964016,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,"intercrop water drains, irrigated rice",An.gambiae s.l,Cypermethrin 4%,4.635,17.674,0
+kirarambogo,Kirarambogo,Gisagara,,120,-2.651791,29.758609,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated Rice,An.gambiae s.l,Cypermethrin 4%,3.713,20.418,0
+nyagasambu,Nyagasambu,Rwamagana,,120,-1.971296,30.310652,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Irrigated Rice,An.gambiae s.l,Cypermethrin 4%,3.686,20.676,0
+gashora,Gashora,Bugesera,,116,-2.174647,30.115794,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,"Irrigated rice, mining pits",An.gambiae s.l,PROFENOFOS 4%,3.516,19.882,0
+karambi,Karambi,Ruhango,,108,-2.207939,29.718368,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Drains,An.gambiae s.l,Cypermethrin 4%,3.516,19.882,0
+ngera,Ngera,Nyaruguru,,108,-2.701887,29.532192,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Drains,An.gambiae s.l,PROFENOFOS 40%,3.292,19.256,0
+rwaza,Rwaza,Musanze,,108,-1.54662,29.601422,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,"Drains, Ditches",An.gambiae s.l,Cypermethrin 4%,4.622,17.563,0
+ngarama,Ngarama,Gatsibo,,96,-1.654244,30.250717,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,Drains,An.gambiae s.l,Cypermethrin 4%,4.635,17.674,0
+nkanka,Nkanka,Rusizi,,96,-2.549376,29.040885,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,"Irrigated rice ,Drains",An.gambiae s.l,Cypermethrin 4%,3.292,19.256,0
+mubuga,Mubuga,Karongi,,84,-2.15757,29.415008,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,"irrigated rice, intercrop water drains",An.gambiae s.l,Cypermethrin 4%,3.327,20.358,0
+kivumu,Kivumu,Rutsiro,,60,-1.938803,29.407936,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,"Irrigeted tea, INTERCROPS WATER, HILLS WATER","An.gambiae, An.ziemani an chrisyi",PROFENOFOS 4%,3.327,20.358,0
+mbuga,Mbuga,Nyamagabe,,40,-2.42106,29.474579,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,"INTERCROPS WATER, HILLS WATER","an gambiae, an ziemani",PROFENOFOS 4%,3.292,19.256,0
+bungwe,Bungwe,Burera,,36,-1.512293,29.821104,district_centroid_offset_from_public_boundaries,provisional_requires_pi_gps,"INTERCROPS WATER, HILLS WATER","an, finestus, an ziemani.",PROFENOFOS 4%,4.635,17.674,0

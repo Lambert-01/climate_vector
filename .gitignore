@@ -57,6 +57,16 @@ outputs/tables/
 data/interim/
 data/processed/
 
+# Deployment-safe current-data extracts.
+# Raw Excel remains ignored; these CSVs are needed by the Render API.
+!outputs/
+!outputs/tables/
+!outputs/tables/*.csv
+!data/processed/
+!data/processed/*.csv
+!data/sites/
+!data/sites/*.csv
+
 # ─── Models ───────────────────────────────────────────────────────────────────
 models/registry/
 models/approved/

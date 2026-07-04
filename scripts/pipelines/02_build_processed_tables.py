@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+from collections import Counter, defaultdict
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "packages" / "climate_vector" / "src"))
@@ -12,6 +13,20 @@ from climate_vector.processing.summaries import frequency, norm, numeric_summary
 EXPORTS = ROOT / "data" / "interim" / "raw_excel_exports"
 PROCESSED = ROOT / "data" / "processed"
 OUTPUTS = ROOT / "outputs"
+EXTERNAL = ROOT / "data" / "external"
+SITES = ROOT / "data" / "sites"
+
+
+def clean_label(value: object) -> str:
+    text = norm(value)
+    if not text:
+        return ""
+    return " ".join(part[:1].upper() + part[1:].lower() for part in text.split())
+
+
+def read_keyed_csv(path: Path, key: str) -> dict[str, dict[str, str]]:
+    rows = read_records(path) if path.exists() else []
+    return {norm(row.get(key)).lower(): row for row in rows if norm(row.get(key))}
 
 
 def build_mosquito() -> list[dict[str, object]]:
@@ -164,6 +179,113 @@ def build_outputs(mosquito: list[dict[str, object]], resistance: list[dict[str, 
             write_records(tables / f"{name}_{field}_frequency.csv", rows, ["value", "count"])
     rows = numeric_summary(resistance, "insecticide_tested_raw", "number_dead_24h")
     write_records(tables / "resistance_death_summary_by_insecticide.csv", rows, ["insecticide_tested_raw", "records", "mean", "min", "max"])
+    build_site_products(mosquito)
+
+
+def build_site_products(mosquito: list[dict[str, object]]) -> None:
+    district_features = read_keyed_csv(PROCESSED / "public_data_district_features.csv", "district")
+    centroids = read_keyed_csv(EXTERNAL / "nasa_power" / "rwanda_district_centroids_simple.csv", "district")
+
+    grouped: dict[tuple[str, str], list[dict[str, object]]] = defaultdict(list)
+    site_case: dict[str, str] = {}
+    district_case: dict[str, str] = {}
+    for row in mosquito:
+        site = clean_label(row.get("site_raw"))
+        district = clean_label(row.get("district_raw"))
+        if not site or not district:
+            continue
+        key = (site.lower(), district.lower())
+        grouped[key].append(row)
+        site_case[site.lower()] = site
+        district_case[district.lower()] = district
+
+    by_district_index: Counter[str] = Counter()
+    candidate_rows: list[dict[str, object]] = []
+    registry_rows: list[dict[str, object]] = []
+
+    for (site_key, district_key), rows in sorted(grouped.items(), key=lambda item: (-len(item[1]), item[0])):
+        site = site_case[site_key]
+        district = district_case[district_key]
+        feature = district_features.get(district_key, {})
+        centroid = centroids.get(district_key, {})
+        lat = feature.get("latitude") or centroid.get("latitude")
+        lng = feature.get("longitude") or centroid.get("longitude")
+        by_district_index[district_key] += 1
+        index = by_district_index[district_key]
+        try:
+            base_lat = float(lat)
+            base_lng = float(lng)
+            # Small deterministic offsets keep markers readable while staying within district-scale context.
+            offset_lat = ((index % 5) - 2) * 0.018
+            offset_lng = (((index // 5) % 5) - 2) * 0.018
+            candidate_latitude = round(base_lat + offset_lat, 6)
+            candidate_longitude = round(base_lng + offset_lng, 6)
+        except (TypeError, ValueError):
+            candidate_latitude = ""
+            candidate_longitude = ""
+
+        agri_values = Counter()
+        habitats = Counter()
+        species = Counter()
+        for row in rows:
+            for field in ["agri_insecticide_1_raw", "agri_insecticide_2_raw", "agri_insecticide_3_raw"]:
+                value = norm(row.get(field))
+                if value:
+                    agri_values[value] += 1
+            habitat = norm(row.get("breeding_site_type_raw"))
+            if habitat:
+                habitats[habitat] += 1
+            species_value = norm(row.get("anopheles_species_raw"))
+            if species_value:
+                species[species_value] += 1
+
+        shared = {
+            "site_id": site.lower().replace(" ", "_"),
+            "site_name": site,
+            "district": district,
+            "province": "",
+            "records": len(rows),
+            "latitude": candidate_latitude,
+            "longitude": candidate_longitude,
+            "coordinate_source": "district_centroid_offset_from_public_boundaries",
+            "coordinate_quality": "provisional_requires_pi_gps",
+            "dominant_habitat": habitats.most_common(1)[0][0] if habitats else "",
+            "dominant_species_context": species.most_common(1)[0][0] if species else "",
+            "dominant_agri_insecticide": agri_values.most_common(1)[0][0] if agri_values else "",
+            "rainfall_mean_daily_mm": feature.get("rainfall_mean_daily_mm", ""),
+            "tmean_c_mean": feature.get("tmean_c_mean", ""),
+            "gbif_occurrence_count": feature.get("gbif_occurrence_count", ""),
+        }
+        registry_rows.append(shared)
+        candidate_rows.append(
+            {
+                **shared,
+                "candidate_latitude": candidate_latitude,
+                "candidate_longitude": candidate_longitude,
+                "pi_action": "confirm official GPS before site-level modelling",
+            }
+        )
+
+    registry_fields = [
+        "site_id",
+        "site_name",
+        "district",
+        "province",
+        "records",
+        "latitude",
+        "longitude",
+        "coordinate_source",
+        "coordinate_quality",
+        "dominant_habitat",
+        "dominant_species_context",
+        "dominant_agri_insecticide",
+        "rainfall_mean_daily_mm",
+        "tmean_c_mean",
+        "gbif_occurrence_count",
+    ]
+    candidate_fields = registry_fields + ["candidate_latitude", "candidate_longitude", "pi_action"]
+    write_records(SITES / "sites.csv", registry_rows, registry_fields)
+    write_records(PROCESSED / "site_coordinate_candidates.csv", candidate_rows, candidate_fields)
 
 
 def main() -> None:
