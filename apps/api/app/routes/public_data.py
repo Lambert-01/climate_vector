@@ -67,6 +67,35 @@ def era5_monthly() -> dict:
     }
 
 
+@router.get("/public-data/validation")
+def public_data_validation() -> dict:
+    rows = read_csv("data/processed/data_source_validation_summary.csv")
+    ready = [
+        row
+        for row in rows
+        if str(row.get("status", "")).startswith(("usable", "validated", "downloaded"))
+        or "validated" in str(row.get("status", ""))
+    ]
+    return {
+        "items": rows,
+        "summary": {
+            "sources": len(rows),
+            "ready_or_usable": len(ready),
+            "needs_extraction": len([row for row in rows if "extraction" in str(row.get("status", ""))]),
+            "primary_pi_sources": len([row for row in rows if str(row.get("source_id", "")).startswith("pi_")]),
+        },
+        "model_note": "This registry validates local availability and modelling role. It does not convert contextual public layers into validated mosquito outcomes.",
+    }
+
+
+@router.get("/public-data/formulation-sources")
+def public_data_formulation_sources() -> dict:
+    return {
+        "items": read_csv("data/processed/formulation_data_sources.csv"),
+        "governance": "Formula outputs are operational screening proxies until field/lab validation confirms GPS, dates, effort, denominators, protocols, and controls.",
+    }
+
+
 @router.get("/public-data/summary")
 def public_data_summary() -> dict:
     path = ROOT / "outputs" / "reports" / "public_data_exploitation_summary.md"

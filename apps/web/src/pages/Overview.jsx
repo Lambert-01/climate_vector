@@ -10,6 +10,7 @@ import {
   Globe2,
   Map,
   ShieldCheck,
+  Sigma,
   Target,
 } from "lucide-react";
 import {
@@ -29,6 +30,7 @@ import {
   AlertBanner,
   Badge,
   ChartState,
+  DataTable,
   MetricStrip,
   SectionCard,
   StatCard,
@@ -57,10 +59,14 @@ export default function Overview() {
   const { data: climate, loading: climateLoading, error: climateError } = useFetch(api.climateSummary);
   const { data: publicSources, loading: sourcesLoading, error: sourcesError } = useFetch(api.publicDataSources);
   const { data: publicFeatures, loading: featuresLoading, error: featuresError } = useFetch(api.publicDistrictFeatures);
+  const { data: validation, loading: validationLoading, error: validationError } = useFetch(api.publicValidation);
+  const { data: formulas, loading: formulasLoading, error: formulasError } = useFetch(api.publicFormulationSources);
   const { data: gbif } = useFetch(() => api.publicGbif(1));
   const { data: risk, loading: riskLoading, error: riskError } = useFetch(() => api.districtRisk(30));
 
   const sourceRows = publicSources?.items ?? [];
+  const validationRows = validation?.items ?? [];
+  const formulaRows = formulas?.items ?? [];
   const featureRows = publicFeatures?.items ?? [];
   const readinessRows = readiness?.items ?? [];
   const availableReadiness = readinessRows.filter((row) => String(row.ready).toLowerCase() === "true");
@@ -156,8 +162,8 @@ export default function Overview() {
         <StatCard
           icon={Globe2}
           label="Public covariate layers"
-          value={sourcesLoading ? "..." : loadedSources}
-          sub={`${pendingSources} planned scenario layer`}
+          value={validationLoading ? "..." : validation?.summary?.sources ?? loadedSources}
+          sub={`${validation?.summary?.ready_or_usable ?? loadedSources} ready or usable`}
           color="green"
         />
       </div>
@@ -191,6 +197,47 @@ export default function Overview() {
             <strong>{validationNeeds.length} fields treated as work package</strong>
           </div>
         </div>
+      </div>
+
+      <div className="grid-2 overview-grid">
+        <SectionCard title="Validated Evidence Registry" icon={ShieldCheck}>
+          <MetricStrip
+            items={[
+              { label: "Sources", value: validationLoading ? "..." : validation?.summary?.sources ?? 0 },
+              { label: "Usable", value: validationLoading ? "..." : validation?.summary?.ready_or_usable ?? 0 },
+              { label: "PI sources", value: validationLoading ? "..." : validation?.summary?.primary_pi_sources ?? 0 },
+              { label: "Formula modules", value: formulasLoading ? "..." : formulaRows.length },
+            ]}
+          />
+          <ChartState loading={validationLoading} error={validationError} rows={validationRows} empty="No validation registry generated yet.">
+            <div className="evidence-chip-grid">
+              {validationRows.slice(0, 8).map((row) => (
+                <div className="evidence-chip" key={row.source_id}>
+                  <strong>{row.source_name}</strong>
+                  <span>{row.records_or_files} records/files</span>
+                  <Badge variant={statusVariant(row.status)}>{String(row.status).replace(/_/g, " ")}</Badge>
+                </div>
+              ))}
+            </div>
+          </ChartState>
+        </SectionCard>
+
+        <SectionCard title="Formula Integration" icon={Sigma}>
+          <ChartState loading={formulasLoading} error={formulasError} rows={formulaRows} empty="No formulation registry generated yet.">
+            <div className="formula-stack">
+              {formulaRows.slice(0, 4).map((row) => (
+                <div className="formula-line" key={row.symbol}>
+                  <div>
+                    <strong>{row.symbol}</strong>
+                    <span>{row.module}</span>
+                  </div>
+                  <code>{row.formula}</code>
+                  <Badge variant={row.status?.includes("blocked") ? "amber" : "green"}>{String(row.status).replace(/_/g, " ")}</Badge>
+                </div>
+              ))}
+            </div>
+          </ChartState>
+        </SectionCard>
       </div>
 
       <div className="grid-2 overview-grid">
@@ -329,6 +376,16 @@ export default function Overview() {
               </div>
             ))}
           </div>
+        </ChartState>
+      </SectionCard>
+
+      <SectionCard title="Evidence To Result Trace" icon={Database}>
+        <ChartState loading={validationLoading} error={validationError} rows={validationRows} empty="No evidence trace available.">
+          <DataTable
+            rows={validationRows}
+            maxRows={12}
+            columns={["source_name", "status", "records_or_files", "model_use", "formula_role", "limitation"]}
+          />
         </ChartState>
       </SectionCard>
     </div>

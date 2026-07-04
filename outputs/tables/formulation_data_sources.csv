@@ -1,0 +1,7 @@
+module,symbol,formula,data_sources,result,status
+Climate suitability,CSI_d,"0.35 f_T(T_d) + 0.30 f_R(R_7,R_30) + 0.15 f_H(RH_d) + 0.10 f_Q(Q_d) + 0.10 O_species","NASA POWER, ERA5-Land, CHIRPS, GBIF",District screening score from 0 to 1,implemented_proxy
+Live field window,FWI_d,"0.45 LCSI_d + 0.35 clip(R_48/25,0,1) + 0.20 clip(1-W/28,0,1)","Open-Meteo live forecast, NASA/ERA5 fallback context",When field verification is likely useful,implemented_proxy
+Habitat evidence,H_d,softmax count of PI breeding-site classes weighted by wetness and land-cover suitability,"PI mosquito behaviour, CHIRPS, ESA WorldCover, WorldClim",Habitat/exposure evidence component,descriptive_now
+Insecticide susceptibility intelligence,IR_i,"1 - deaths_24h / n_tested, with n/protocol/control confirmed during pilot",PI IR_data.xls,Preliminary resistance-pressure signal,blocked_for_final_classification
+Uncertainty penalty,U_d,"1 - weighted_missingness(GPS,date,count,effort,denominator,protocol,control)","PI datasets, readiness registry",Confidence label and pilot work queue,implemented_governance
+Operational priority,P_d,CSI_d x (0.5 + 0.3 H_d + 0.2 IR_i) x U_d,All validated current-data layers,"District/site follow-up priority, not malaria prediction",proposal_ready_proxy

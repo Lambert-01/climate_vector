@@ -53,5 +53,7 @@ export const api = {
   publicGbif: (limit = 200) => req(`/public-data/gbif?limit=${limit}`),
   publicWorldclim: () => req("/public-data/worldclim"),
   publicEra5: () => req("/public-data/era5"),
+  publicValidation: () => req("/public-data/validation"),
+  publicFormulationSources: () => req("/public-data/formulation-sources"),
   publicSummary: () => req("/public-data/summary"),
 };

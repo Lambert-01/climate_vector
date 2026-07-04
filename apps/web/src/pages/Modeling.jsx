@@ -31,7 +31,11 @@ function titleCase(value) {
 export default function Modeling() {
   const { data: risk, loading: riskLoading, error: riskError } = useFetch(() => api.districtRisk(30));
   const { data: readiness, loading: readinessLoading, error: readinessError } = useFetch(api.modelingReadiness);
+  const { data: formulas, loading: formulasLoading, error: formulasError } = useFetch(api.publicFormulationSources);
+  const { data: validation, loading: validationLoading, error: validationError } = useFetch(api.publicValidation);
   const rows = risk?.items ?? [];
+  const formulaRows = formulas?.items ?? [];
+  const evidenceRows = validation?.items ?? [];
   const high = rows.filter((r) => r.risk_level === "high").length;
   const medium = rows.filter((r) => r.risk_level === "medium").length;
   const meanSuitability = rows.length
@@ -70,7 +74,7 @@ export default function Modeling() {
             { label: "High districts", value: riskLoading ? "..." : high },
             { label: "Medium districts", value: riskLoading ? "..." : medium },
             { label: "Mean index", value: riskLoading ? "..." : meanSuitability.toFixed(2) },
-            { label: "Training", value: readinessLoading ? "..." : readiness?.ready ? "Ready" : "Pilot needed" },
+            { label: "Evidence sources", value: validationLoading ? "..." : validation?.summary?.sources ?? 0 },
           ]}
         />
       </SectionCard>
@@ -108,6 +112,41 @@ export default function Modeling() {
                 </div>
               </div>
             )}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Formula engine" icon={Sigma}>
+          <div className="card-body">
+            <ChartState loading={formulasLoading} error={formulasError} rows={formulaRows} empty="No formulation registry available.">
+              <div className="formula-stack compact">
+                {formulaRows.map((row) => (
+                  <div className="formula-line" key={row.symbol}>
+                    <div>
+                      <strong>{row.symbol}</strong>
+                      <span>{row.module}</span>
+                    </div>
+                    <code>{row.formula}</code>
+                    <Badge variant={row.status?.includes("blocked") ? "amber" : "green"}>{String(row.status).replace(/_/g, " ")}</Badge>
+                  </div>
+                ))}
+              </div>
+            </ChartState>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Evidence inputs" icon={Calculator}>
+          <div className="card-body">
+            <ChartState loading={validationLoading} error={validationError} rows={evidenceRows} empty="No validation registry available.">
+              <div className="coverage-list" style={{ padding: 0 }}>
+                {evidenceRows.slice(0, 6).map((row) => (
+                  <div className="readiness-item" key={row.source_id}>
+                    <div className={`readiness-dot ${String(row.status).includes("missing") ? "missing" : "ready"}`} />
+                    <div className="readiness-item-label">{row.formula_role}</div>
+                    <Badge variant={String(row.status).includes("blocked") ? "amber" : "green"}>{row.records_or_files}</Badge>
+                  </div>
+                ))}
+              </div>
+            </ChartState>
           </div>
         </SectionCard>
 

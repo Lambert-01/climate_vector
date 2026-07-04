@@ -22,10 +22,14 @@ const PRIORITY_BADGE = { high: "red", medium: "amber", low: "green" };
 export default function DataReadiness() {
   const { data, loading } = useFetch(api.readiness);
   const { data: missingSources, loading: mL, error: mError } = useFetch(api.missingDataSources);
+  const { data: validation, loading: vL, error: vError } = useFetch(api.publicValidation);
+  const { data: formulas, loading: fL, error: fError } = useFetch(api.publicFormulationSources);
 
   const items = data?.items ?? [];
   const ready = items.filter((i) => String(i.ready).toLowerCase() === "true").length;
   const sourceRows = missingSources?.items ?? [];
+  const validationRows = validation?.items ?? [];
+  const formulaRows = formulas?.items ?? [];
 
   return (
     <div className="page ops-page">
@@ -45,8 +49,8 @@ export default function DataReadiness() {
           items={[
             { label: "Ready", value: ready },
             { label: "Pilot fields", value: items.length - ready },
-            { label: "High priority", value: MISSING_ITEMS.filter((i) => i.priority === "high").length },
-            { label: "Mode", value: "PoC" },
+            { label: "Evidence sources", value: vL ? "..." : validation?.summary?.sources ?? 0 },
+            { label: "Formula modules", value: fL ? "..." : formulaRows.length },
           ]}
         />
       </SectionCard>
@@ -66,6 +70,39 @@ export default function DataReadiness() {
               </div>
             ))}
           </div>
+        </SectionCard>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <SectionCard title="Validated public evidence" icon={CheckCircle}>
+          <ChartState loading={vL} error={vError} rows={validationRows} empty="Validation registry is not loaded.">
+            <DataTable
+              rows={validationRows}
+              maxRows={12}
+              columns={[
+                "source_name",
+                "category",
+                "status",
+                "records_or_files",
+                "date_start",
+                "date_end",
+                "formula_role",
+                "limitation",
+              ]}
+            />
+          </ChartState>
+        </SectionCard>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <SectionCard title="Formula source map" icon={ClipboardCheck}>
+          <ChartState loading={fL} error={fError} rows={formulaRows} empty="Formula registry is not loaded.">
+            <DataTable
+              rows={formulaRows}
+              maxRows={12}
+              columns={["module", "symbol", "formula", "data_sources", "result", "status"]}
+            />
+          </ChartState>
         </SectionCard>
       </div>
 
