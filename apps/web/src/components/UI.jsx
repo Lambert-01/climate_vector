@@ -66,6 +66,34 @@ export function Badge({ children, variant = "teal" }) {
   return <span className={`badge badge-${variant}`}>{children}</span>;
 }
 
+export function ChartState({ loading, error, rows, empty = "No graphable records loaded.", children }) {
+  if (loading) return <Spinner />;
+  if (error) {
+    return (
+      <div className="empty">
+        <AlertTriangle size={18} />
+        <div>Could not load this figure.</div>
+        <small>{error}</small>
+      </div>
+    );
+  }
+  if (!rows?.length) return <div className="empty">{empty}</div>;
+  return children;
+}
+
+export function MetricStrip({ items }) {
+  return (
+    <div className="metric-strip">
+      {items.map((item) => (
+        <div className="metric-item" key={item.label}>
+          <div className="metric-value">{item.value ?? "—"}</div>
+          <div className="metric-label">{item.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AlertBanner({ type = "info", title, message }) {
   const icons = { info: Info, warning: AlertTriangle, error: AlertTriangle };
   const Icon = icons[type] ?? Info;

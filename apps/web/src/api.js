@@ -40,4 +40,11 @@ export const api = {
   modelingReadiness: () => req("/modeling/readiness"),
   districtRisk: (days = 30) => req(`/modeling/district-risk?days=${days}`),
   districtModel: (district, days = 30) => req(`/modeling/district/${district}?days=${days}`),
+
+  publicDataSources: () => req("/public-data/sources"),
+  publicDistrictFeatures: () => req("/public-data/district-features"),
+  publicGbif: (limit = 200) => req(`/public-data/gbif?limit=${limit}`),
+  publicWorldclim: () => req("/public-data/worldclim"),
+  publicEra5: () => req("/public-data/era5"),
+  publicSummary: () => req("/public-data/summary"),
 };

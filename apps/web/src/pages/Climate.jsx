@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Cloud } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Cloud, Database } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -13,45 +13,62 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { SectionCard, Spinner } from "../components/UI";
+import { ChartState, MetricStrip, SectionCard } from "../components/UI";
+
+function numberValue(value) {
+  return Number.parseFloat(value ?? 0) || 0;
+}
 
 export default function Climate() {
   const [selectedDistrict, setSelectedDistrict] = useState("bugesera");
   const [days, setDays] = useState(90);
 
   const { data: districts } = useFetch(api.climateDistricts);
-  const { data: districtClimate, loading: dL } = useFetch(
+  const { data: publicFeatures } = useFetch(api.publicDistrictFeatures);
+  const { data: districtClimate, loading: dL, error: dError } = useFetch(
     () => api.climateDistrict(selectedDistrict, days),
     [selectedDistrict, days]
   );
-  const { data: kigali, loading: kL } = useFetch(
+  const { data: kigali, loading: kL, error: kError } = useFetch(
     () => api.climateKigali(days),
     [days]
   );
 
   const districtRows = (districtClimate?.items ?? []).map((r) => ({
     date: r.DATE ?? r.date ?? "",
-    rain: parseFloat(r.PRECTOTCORR ?? r.rainfall_mm ?? 0) || 0,
-    tmax: parseFloat(r.T2M_MAX ?? r.tmax_c ?? 0) || 0,
-    tmin: parseFloat(r.T2M_MIN ?? r.tmin_c ?? 0) || 0,
-    tmean: parseFloat(r.T2M ?? r.tmean_c ?? 0) || 0,
-    rh: parseFloat(r.RH2M ?? r.relative_humidity ?? 0) || 0,
+    rain: numberValue(r.PRECTOTCORR ?? r.rainfall_mm),
+    tmax: numberValue(r.T2M_MAX ?? r.tmax_c),
+    tmin: numberValue(r.T2M_MIN ?? r.tmin_c),
+    tmean: numberValue(r.T2M ?? r.tmean_c),
+    rh: numberValue(r.RH2M ?? r.relative_humidity),
   }));
 
   const kigaliRows = (kigali?.items ?? []).map((r) => ({
     date: r.DATE ?? r.date ?? "",
-    rain: parseFloat(r.PRECTOTCORR ?? r.rainfall_mm ?? 0) || 0,
-    tmean: parseFloat(r.T2M ?? r.tmean_c ?? 0) || 0,
+    rain: numberValue(r.PRECTOTCORR ?? r.rainfall_mm),
+    tmean: numberValue(r.T2M ?? r.tmean_c),
   }));
+
+  const feature = useMemo(() => {
+    return (publicFeatures?.items ?? []).find(
+      (row) => String(row.district).toLowerCase() === selectedDistrict.toLowerCase()
+    );
+  }, [publicFeatures, selectedDistrict]);
+
+  const totalRain = districtRows.reduce((sum, row) => sum + row.rain, 0);
+  const meanTemp = districtRows.length
+    ? districtRows.reduce((sum, row) => sum + row.tmean, 0) / districtRows.length
+    : 0;
+  const rainyDays = districtRows.filter((row) => row.rain >= 1).length;
+  const label = selectedDistrict.charAt(0).toUpperCase() + selectedDistrict.slice(1);
 
   return (
     <div className="page">
       <div className="page-header">
         <h2>Climate Data</h2>
-        <p>NASA POWER district climate signals — 2021–2025</p>
+        <p>NASA POWER daily district climate signals, with open-data coverage checks</p>
       </div>
 
-      {/* Controls */}
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         <select
           value={selectedDistrict}
@@ -66,24 +83,41 @@ export default function Climate() {
           }}
         >
           {(districts?.districts ?? ["bugesera", "gasabo", "kicukiro", "musanze", "rubavu"]).map((d) => (
-            <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+            <option key={d} value={d}>
+              {d.charAt(0).toUpperCase() + d.slice(1)}
+            </option>
           ))}
         </select>
         {[30, 90, 180, 365].map((d) => (
-          <button
-            key={d}
-            onClick={() => setDays(d)}
-            className={`btn ${days === d ? "btn-primary" : "btn-outline"}`}
-          >
+          <button key={d} onClick={() => setDays(d)} className={`btn ${days === d ? "btn-primary" : "btn-outline"}`}>
             {d}d
           </button>
         ))}
       </div>
 
-      <div className="grid-2" style={{ marginBottom: 20 }}>
-        <SectionCard title={`${selectedDistrict} — Rainfall (mm)`} icon={Cloud}>
-          <div className="card-body">
-            {dL ? <Spinner /> : (
+      <SectionCard title={`${label} Climate Coverage`} icon={Database}>
+        <MetricStrip
+          items={[
+            { label: "Rows in view", value: dL ? "..." : districtRows.length.toLocaleString() },
+            { label: "Rainfall total", value: dL ? "..." : `${totalRain.toFixed(1)} mm` },
+            { label: "Mean temperature", value: dL ? "..." : `${meanTemp.toFixed(1)} C` },
+            { label: "Rainy days >=1mm", value: dL ? "..." : rainyDays },
+          ]}
+        />
+        <MetricStrip
+          items={[
+            { label: "Full climate records", value: feature?.climate_records ?? "..." },
+            { label: "Date range", value: feature ? `${feature.date_start} to ${feature.date_end}` : "..." },
+            { label: "GBIF records", value: feature?.gbif_occurrence_count ?? "..." },
+            { label: "Public-data status", value: feature ? "Loaded" : "Checking" },
+          ]}
+        />
+      </SectionCard>
+
+      <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
+        <SectionCard title={`${label} - Rainfall (mm)`} icon={Cloud}>
+          <ChartState loading={dL} error={dError} rows={districtRows} empty={`No climate rows found for ${label}.`}>
+            <div className="card-body">
               <div className="chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={districtRows} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
@@ -94,25 +128,25 @@ export default function Climate() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#eef3f4" />
-                    <XAxis dataKey="date" tick={{ fontSize: 9 }} tickLine={false} interval={Math.floor(districtRows.length / 6)} />
+                    <XAxis dataKey="date" tick={{ fontSize: 9 }} tickLine={false} interval={Math.max(1, Math.floor(districtRows.length / 6))} />
                     <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                     <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #dde6e8" }} />
                     <Area type="monotone" dataKey="rain" stroke="#0d9488" strokeWidth={2} fill="url(#rainGrad2)" name="Rainfall (mm)" dot={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-            )}
-          </div>
+            </div>
+          </ChartState>
         </SectionCard>
 
-        <SectionCard title={`${selectedDistrict} — Temperature (°C)`} icon={Cloud}>
-          <div className="card-body">
-            {dL ? <Spinner /> : (
+        <SectionCard title={`${label} - Temperature (C)`} icon={Cloud}>
+          <ChartState loading={dL} error={dError} rows={districtRows} empty={`No temperature rows found for ${label}.`}>
+            <div className="card-body">
               <div className="chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={districtRows} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#eef3f4" />
-                    <XAxis dataKey="date" tick={{ fontSize: 9 }} tickLine={false} interval={Math.floor(districtRows.length / 6)} />
+                    <XAxis dataKey="date" tick={{ fontSize: 9 }} tickLine={false} interval={Math.max(1, Math.floor(districtRows.length / 6))} />
                     <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                     <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #dde6e8" }} />
                     <Line type="monotone" dataKey="tmax" stroke="#ef4444" strokeWidth={1.5} dot={false} name="T max" />
@@ -121,29 +155,29 @@ export default function Climate() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-            )}
-          </div>
+            </div>
+          </ChartState>
         </SectionCard>
       </div>
 
-      <SectionCard title="Kigali Reference — Rainfall & Temperature" icon={Cloud}>
-        <div className="card-body">
-          {kL ? <Spinner /> : (
+      <SectionCard title="Kigali Reference - Rainfall & Temperature" icon={Cloud}>
+        <ChartState loading={kL} error={kError} rows={kigaliRows} empty="No Kigali reference rows available.">
+          <div className="card-body">
             <div className="chart-wrap" style={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={kigaliRows} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#eef3f4" />
-                  <XAxis dataKey="date" tick={{ fontSize: 9 }} tickLine={false} interval={Math.floor(kigaliRows.length / 8)} />
+                  <XAxis dataKey="date" tick={{ fontSize: 9 }} tickLine={false} interval={Math.max(1, Math.floor(kigaliRows.length / 8))} />
                   <YAxis yAxisId="left" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                   <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #dde6e8" }} />
                   <Line yAxisId="left" type="monotone" dataKey="rain" stroke="#0d9488" strokeWidth={1.5} dot={false} name="Rainfall (mm)" />
-                  <Line yAxisId="right" type="monotone" dataKey="tmean" stroke="#f59e0b" strokeWidth={1.5} dot={false} name="T mean (°C)" />
+                  <Line yAxisId="right" type="monotone" dataKey="tmean" stroke="#f59e0b" strokeWidth={1.5} dot={false} name="T mean (C)" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          )}
-        </div>
+          </div>
+        </ChartState>
       </SectionCard>
     </div>
   );

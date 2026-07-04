@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { AlertBanner, Badge, DataTable, SectionCard, Spinner, StatCard } from "../components/UI";
+import { AlertBanner, Badge, ChartState, DataTable, SectionCard, Spinner, StatCard } from "../components/UI";
 
 const COLORS = {
   high: "#ef4444",
@@ -21,8 +21,8 @@ const COLORS = {
 };
 
 export default function Modeling() {
-  const { data: risk, loading: riskLoading } = useFetch(() => api.districtRisk(30));
-  const { data: readiness, loading: readinessLoading } = useFetch(api.modelingReadiness);
+  const { data: risk, loading: riskLoading, error: riskError } = useFetch(() => api.districtRisk(30));
+  const { data: readiness, loading: readinessLoading, error: readinessError } = useFetch(api.modelingReadiness);
   const rows = risk?.items ?? [];
   const high = rows.filter((r) => r.risk_level === "high").length;
   const medium = rows.filter((r) => r.risk_level === "medium").length;
@@ -50,6 +50,13 @@ export default function Modeling() {
         title="Model governance"
         message="These are transparent suitability and vectorial-capacity proxy signals. They are not validated disease predictions or official alerts."
       />
+      {(riskError || readinessError) && (
+        <AlertBanner
+          type="error"
+          title="Model data endpoint failed"
+          message={riskError || readinessError}
+        />
+      )}
 
       <div className="stats-grid">
         <StatCard icon={BrainCircuit} label="High suitability districts" value={riskLoading ? "..." : high} sub="Proxy signal" color="orange" />
@@ -67,7 +74,7 @@ export default function Modeling() {
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <SectionCard title="Top District Suitability" icon={BrainCircuit}>
           <div className="card-body">
-            {riskLoading ? <Spinner /> : (
+            <ChartState loading={riskLoading} error={riskError} rows={chartRows} empty="No district suitability rows available.">
               <div className="chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartRows} margin={{ top: 4, right: 8, left: -20, bottom: 45 }}>
@@ -81,7 +88,7 @@ export default function Modeling() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            )}
+            </ChartState>
           </div>
         </SectionCard>
 
@@ -102,7 +109,7 @@ export default function Modeling() {
       </div>
 
       <SectionCard title="District Modelling Table" icon={Sigma}>
-        {riskLoading ? <Spinner /> : (
+        <ChartState loading={riskLoading} error={riskError} rows={rows} empty="No modelling table rows available.">
           <DataTable
             rows={rows}
             columns={[
@@ -118,7 +125,7 @@ export default function Modeling() {
               "reason",
             ]}
           />
-        )}
+        </ChartState>
       </SectionCard>
     </div>
   );

@@ -12,15 +12,14 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { AlertBanner, DataTable, SectionCard, Spinner } from "../components/UI";
+import { AlertBanner, ChartState, DataTable, SectionCard } from "../components/UI";
 
 const COLORS = ["#f97316", "#ef4444", "#f59e0b", "#fb923c", "#fbbf24", "#fca5a5"];
 
 export default function Resistance() {
-  const { data: byInsecticide, loading: iL } = useFetch(api.resistanceByInsecticide);
-  const { data: deathSummary, loading: dL } = useFetch(api.resistanceDeathSummary);
-  const { data: byDistrict, loading: distL } = useFetch(api.resistanceByDistrict);
-  const { data: records, loading: rL } = useFetch(() => api.resistanceRecords(200));
+  const { data: deathSummary, loading: dL, error: dError } = useFetch(api.resistanceDeathSummary);
+  const { data: byDistrict, loading: distL, error: distError } = useFetch(api.resistanceByDistrict);
+  const { data: records, loading: rL, error: rError } = useFetch(() => api.resistanceRecords(200));
 
   const deathData = (deathSummary?.items ?? []).map((r) => ({
     insecticide: String(r.insecticide_tested_raw ?? "").slice(0, 22),
@@ -45,7 +44,7 @@ export default function Resistance() {
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <SectionCard title="Mean 24h Deaths by Insecticide" icon={FlaskConical}>
           <div className="card-body">
-            {dL ? <Spinner /> : deathData.length ? (
+            <ChartState loading={dL} error={dError} rows={deathData} empty="No death summary rows available.">
               <div className="chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={deathData} margin={{ top: 4, right: 8, left: -20, bottom: 60 }}>
@@ -70,13 +69,13 @@ export default function Resistance() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            ) : <div className="empty">No death summary data.</div>}
+            </ChartState>
           </div>
         </SectionCard>
 
         <SectionCard title="Tests by District" icon={FlaskConical}>
           <div className="card-body">
-            {distL ? <Spinner /> : (
+            <ChartState loading={distL} error={distError} rows={byDistrict?.items ?? []} empty="No district resistance rows available.">
               <div className="chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -91,28 +90,28 @@ export default function Resistance() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            )}
+            </ChartState>
           </div>
         </SectionCard>
       </div>
 
       <SectionCard title="Death Summary by Insecticide" icon={FlaskConical}>
-        {dL ? <Spinner /> : (
+        <ChartState loading={dL} error={dError} rows={deathSummary?.items ?? []} empty="No death summary table rows loaded.">
           <DataTable
             rows={deathSummary?.items ?? []}
             columns={["insecticide_tested_raw", "records", "mean", "min", "max"]}
           />
-        )}
+        </ChartState>
       </SectionCard>
 
       <div style={{ marginTop: 20 }}>
         <SectionCard title="Resistance Records (first 200)" icon={FlaskConical}>
-          {rL ? <Spinner /> : (
+          <ChartState loading={rL} error={rError} rows={records?.items ?? []} empty="No resistance records loaded.">
             <DataTable
               rows={records?.items ?? []}
               columns={["source_row_id", "district_raw", "site_raw", "insecticide_tested_raw", "concentration_label_raw", "number_dead_24h", "mortality_rate_raw", "quality_flag"]}
             />
-          )}
+          </ChartState>
         </SectionCard>
       </div>
     </div>

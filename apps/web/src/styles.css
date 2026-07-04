@@ -544,6 +544,7 @@ tbody tr:hover td { background: var(--teal-50); }
 .chart-wrap {
   width: 100%;
   height: 260px;
+  min-height: 220px;
 }
 
 /* ─── Empty state ────────────────────────────────────────────────────────────── */
@@ -555,6 +556,69 @@ tbody tr:hover td { background: var(--teal-50); }
 }
 
 .empty svg { margin-bottom: 10px; opacity: .4; }
+.empty small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* ─── Compact metrics ───────────────────────────────────────────────────────── */
+.metric-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px 16px 0;
+}
+
+.metric-item {
+  background: var(--surface-2);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  min-width: 0;
+}
+
+.metric-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.metric-label {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+.coverage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.coverage-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.2fr) minmax(120px, .7fr) minmax(80px, .4fr) 2fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+}
+
+.coverage-name {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.coverage-note {
+  color: var(--text-secondary);
+}
 
 /* ─── Loading spinner ────────────────────────────────────────────────────────── */
 .spinner {
@@ -587,11 +651,14 @@ tbody tr:hover td { background: var(--teal-50); }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .col-span-2 { grid-column: span 1; }
+  .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .coverage-row { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
   .main-content { margin-left: 0; }
   .stats-grid { grid-template-columns: 1fr; }
+  .metric-strip { grid-template-columns: 1fr; }
   .page { padding: 16px; }
 }
