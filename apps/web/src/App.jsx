@@ -12,14 +12,14 @@ import DataReadiness from "./pages/DataReadiness.jsx";
 import Modeling from "./pages/Modeling.jsx";
 
 const PAGE_META = {
-  "/": { title: "Overview", sub: "System summary and key indicators", icon: Home },
-  "/sites": { title: "Sites & Map", sub: "Sentinel site registry", icon: Map },
+  "/": { title: "Intelligence Overview", sub: "Current-data climate-vector proof-of-concept", icon: Home },
+  "/sites": { title: "Sites & Map", sub: "Sentinel registry and provisional coordinate validation", icon: Map },
   "/mosquito": { title: "Mosquito Data", sub: "Ecology records from field surveys", icon: Activity },
-  "/resistance": { title: "Resistance Tests", sub: "Insecticide resistance data", icon: FlaskConical },
-  "/climate": { title: "Climate", sub: "NASA POWER district climate signals", icon: Cloud },
-  "/modeling": { title: "Mathematical Modelling", sub: "Suitability and vector-risk proxy signals", icon: BrainCircuit },
+  "/resistance": { title: "Resistance Signals", sub: "Preliminary insecticide resistance evidence", icon: FlaskConical },
+  "/climate": { title: "Climate Signals", sub: "NASA POWER district climate suitability inputs", icon: Cloud },
+  "/modeling": { title: "Mathematical Modelling", sub: "Current-data suitability and vector-risk proxy signals", icon: BrainCircuit },
   "/alerts": { title: "Alerts & Response", sub: "Risk signal workflow", icon: AlertTriangle },
-  "/data-readiness": { title: "Data Readiness", sub: "Validation and gap tracking", icon: Database },
+  "/data-readiness": { title: "Data Readiness", sub: "Validation, public substitutes, and pilot data strategy", icon: Database },
 };
 
 function Topbar() {
@@ -36,7 +36,7 @@ function Topbar() {
         <p>{meta.sub}</p>
       </div>
       <div className="topbar-right">
-        <span className="badge badge-teal" style={{ fontSize: 11 }}>Rwanda PoC</span>
+        <span className="badge badge-teal" style={{ fontSize: 11 }}>Climate-Vector Intelligence</span>
         <span className="badge badge-amber" style={{ fontSize: 11 }}>Descriptive Only</span>
       </div>
     </header>
