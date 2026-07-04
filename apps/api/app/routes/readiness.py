@@ -85,6 +85,15 @@ def readiness() -> dict[str, object]:
 @router.get("/readiness/missing-data-sources")
 def missing_data_sources() -> dict[str, object]:
     request_rows = read_csv("outputs/reports/pi_missing_data_request.csv")
+    if not request_rows:
+        request_rows = [
+            {"missing_item": "full date: day, month, year", "priority": "high"},
+            {"missing_item": "official latitude and longitude for every sentinel site", "priority": "high"},
+            {"missing_item": "mosquito count or abundance per sample", "priority": "high"},
+            {"missing_item": "sampling effort and method", "priority": "high"},
+            {"missing_item": "number exposed denominator", "priority": "high"},
+            {"missing_item": "control mortality and protocol", "priority": "high"},
+        ]
     enriched = []
     for row in request_rows:
         item = row.get("missing_item", "")

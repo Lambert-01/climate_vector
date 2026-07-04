@@ -1,5 +1,5 @@
 import React from "react";
-import { FlaskConical } from "lucide-react";
+import { FlaskConical, Gauge, MapPin, TestTube2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { AlertBanner, ChartState, DataTable, SectionCard } from "../components/UI";
+import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
 
 const COLORS = ["#f97316", "#ef4444", "#f59e0b", "#fb923c", "#fbbf24", "#fca5a5"];
 
@@ -42,22 +42,44 @@ export default function Resistance() {
     records: parseInt(r.records ?? 0),
   }));
   const tableRows = (records?.items ?? []).map(cleanRecord);
+  const districtRows = byDistrict?.items ?? [];
+  const topInsecticide = deathData[0]?.insecticide ?? "—";
+  const meanDeaths = deathData.length
+    ? deathData.reduce((sum, row) => sum + row.mean, 0) / deathData.length
+    : 0;
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h2>Insecticide Resistance Tests</h2>
-        <p>Preliminary resistance-test records from IR_data.xls</p>
+    <div className="page ops-page">
+      <div className="ops-header">
+        <div>
+          <div className="eyebrow">Resistance module</div>
+          <h2>Insecticide signals</h2>
+        </div>
+        <div className="hero-badges">
+          <Badge variant="green">IR data loaded</Badge>
+          <Badge variant="amber">Lab validation pending</Badge>
+        </div>
       </div>
 
-      <AlertBanner
-        type="warning"
-        title="Validation required before interpretation"
-        message="Denominator (likely 25), test protocol, control mortality, species cleaning, dates, and GPS must be confirmed by PI/lab before resistance status can be assigned."
-      />
+      <SectionCard title="Assay coverage" icon={FlaskConical}>
+        <MetricStrip
+          items={[
+            { label: "Rows", value: rL ? "..." : (records?.total ?? tableRows.length).toLocaleString() },
+            { label: "Insecticide groups", value: dL ? "..." : deathData.length },
+            { label: "Districts", value: distL ? "..." : districtRows.length },
+            { label: "Mean 24h deaths", value: dL ? "..." : meanDeaths.toFixed(1) },
+          ]}
+        />
+      </SectionCard>
+
+      <div className="insight-grid">
+        <div className="insight-card"><TestTube2 size={17} /><span>Largest test group</span><strong>{topInsecticide}</strong></div>
+        <div className="insight-card"><Gauge size={17} /><span>Best current use</span><strong>Screening signal</strong></div>
+        <div className="insight-card"><MapPin size={17} /><span>Top district</span><strong>{districtRows[0]?.value ?? "—"}</strong></div>
+      </div>
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
-        <SectionCard title="Mean 24h Deaths by Insecticide" icon={FlaskConical}>
+        <SectionCard title="24h deaths by insecticide" icon={FlaskConical}>
           <div className="card-body">
             <ChartState loading={dL} error={dError} rows={deathData} empty="No death summary rows available.">
               <div className="chart-wrap">
@@ -88,13 +110,13 @@ export default function Resistance() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Tests by District" icon={FlaskConical}>
+        <SectionCard title="District distribution" icon={MapPin}>
           <div className="card-body">
-            <ChartState loading={distL} error={distError} rows={byDistrict?.items ?? []} empty="No district resistance rows available.">
+            <ChartState loading={distL} error={distError} rows={districtRows} empty="No district resistance rows available.">
               <div className="chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={(byDistrict?.items ?? []).slice(0, 12)}
+                    data={districtRows.slice(0, 12)}
                     margin={{ top: 4, right: 8, left: -20, bottom: 40 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#eef3f4" vertical={false} />
@@ -110,7 +132,7 @@ export default function Resistance() {
         </SectionCard>
       </div>
 
-      <SectionCard title="Death Summary by Insecticide" icon={FlaskConical}>
+      <SectionCard title="Insecticide summary" icon={FlaskConical}>
         <ChartState loading={dL} error={dError} rows={deathSummary?.items ?? []} empty="No death summary table rows loaded.">
           <DataTable
             rows={deathSummary?.items ?? []}
@@ -120,11 +142,11 @@ export default function Resistance() {
       </SectionCard>
 
       <div style={{ marginTop: 20 }}>
-        <SectionCard title="Resistance Records (first 200)" icon={FlaskConical}>
+        <SectionCard title="Record explorer" icon={FlaskConical}>
           <ChartState loading={rL} error={rError} rows={tableRows} empty="No resistance records loaded.">
             <DataTable
               rows={tableRows}
-              columns={["source_row_id", "district", "site", "insecticide", "concentration", "dead_24h", "denominator", "control_mortality", "quality_flag"]}
+              columns={["source_row_id", "district", "site", "insecticide", "concentration", "dead_24h"]}
             />
           </ChartState>
         </SectionCard>

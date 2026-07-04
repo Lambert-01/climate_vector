@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Cloud, Database } from "lucide-react";
+import { Cloud, CloudRain, Database, ThermometerSun } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { ChartState, MetricStrip, SectionCard } from "../components/UI";
+import { Badge, ChartState, MetricStrip, SectionCard } from "../components/UI";
 
 function numberValue(value) {
   return Number.parseFloat(value ?? 0) || 0;
@@ -63,13 +63,19 @@ export default function Climate() {
   const label = selectedDistrict.charAt(0).toUpperCase() + selectedDistrict.slice(1);
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h2>Climate Data</h2>
-        <p>NASA POWER daily district climate signals, with open-data coverage checks</p>
+    <div className="page ops-page">
+      <div className="ops-header">
+        <div>
+          <div className="eyebrow">Climate module</div>
+          <h2>District climate signals</h2>
+        </div>
+        <div className="hero-badges">
+          <Badge variant="green">NASA POWER loaded</Badge>
+          <Badge variant="blue">{label}</Badge>
+        </div>
       </div>
 
-      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+      <div className="ops-toolbar">
         <select
           value={selectedDistrict}
           onChange={(e) => setSelectedDistrict(e.target.value)}
@@ -95,7 +101,7 @@ export default function Climate() {
         ))}
       </div>
 
-      <SectionCard title={`${label} Climate Coverage`} icon={Database}>
+      <SectionCard title={`${label} coverage`} icon={Database}>
         <MetricStrip
           items={[
             { label: "Rows in view", value: dL ? "..." : districtRows.length.toLocaleString() },
@@ -114,8 +120,14 @@ export default function Climate() {
         />
       </SectionCard>
 
+      <div className="insight-grid">
+        <div className="insight-card"><CloudRain size={17} /><span>Rainfall total</span><strong>{totalRain.toFixed(1)} mm</strong></div>
+        <div className="insight-card"><ThermometerSun size={17} /><span>Mean temperature</span><strong>{meanTemp.toFixed(1)} C</strong></div>
+        <div className="insight-card"><Cloud size={17} /><span>Rainy days</span><strong>{rainyDays}</strong></div>
+      </div>
+
       <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
-        <SectionCard title={`${label} - Rainfall (mm)`} icon={Cloud}>
+        <SectionCard title={`${label} rainfall`} icon={CloudRain}>
           <ChartState loading={dL} error={dError} rows={districtRows} empty={`No climate rows found for ${label}.`}>
             <div className="card-body">
               <div className="chart-wrap">
@@ -139,7 +151,7 @@ export default function Climate() {
           </ChartState>
         </SectionCard>
 
-        <SectionCard title={`${label} - Temperature (C)`} icon={Cloud}>
+        <SectionCard title={`${label} temperature`} icon={ThermometerSun}>
           <ChartState loading={dL} error={dError} rows={districtRows} empty={`No temperature rows found for ${label}.`}>
             <div className="card-body">
               <div className="chart-wrap">
@@ -160,7 +172,7 @@ export default function Climate() {
         </SectionCard>
       </div>
 
-      <SectionCard title="Kigali Reference - Rainfall & Temperature" icon={Cloud}>
+      <SectionCard title="Gasabo reference" icon={Cloud}>
         <ChartState loading={kL} error={kError} rows={kigaliRows} empty="No Kigali reference rows available.">
           <div className="card-body">
             <div className="chart-wrap" style={{ height: 300 }}>

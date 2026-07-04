@@ -1,8 +1,8 @@
 import React from "react";
-import { CheckCircle, Database, XCircle } from "lucide-react";
+import { CheckCircle, ClipboardCheck, Database, XCircle } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { AlertBanner, Badge, ChartState, DataTable, ReadinessList, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, MetricStrip, ReadinessList, SectionCard, Spinner } from "../components/UI";
 
 const MISSING_ITEMS = [
   { item: "Full sample dates (month + year per row)", priority: "high" },
@@ -28,48 +28,35 @@ export default function DataReadiness() {
   const sourceRows = missingSources?.items ?? [];
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h2>Data Readiness</h2>
-        <p>Current data availability and validation status</p>
-      </div>
-
-      <AlertBanner
-        type="warning"
-        title="Scientific guardrail"
-        message="No row should enter model training unless date, location, outcome, and sampling effort are valid. Resistance rows have additional requirements."
-      />
-
-      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-        <div className="stat-card" style={{ flex: "1 1 160px" }}>
-          <div className="stat-icon green"><CheckCircle size={18} /></div>
-          <div className="stat-body">
-            <div className="stat-value">{ready}</div>
-            <div className="stat-label">Items ready</div>
-          </div>
+    <div className="page ops-page">
+      <div className="ops-header">
+        <div>
+          <div className="eyebrow">Data operations</div>
+          <h2>Readiness control</h2>
         </div>
-        <div className="stat-card" style={{ flex: "1 1 160px" }}>
-          <div className="stat-icon red"><XCircle size={18} /></div>
-          <div className="stat-body">
-            <div className="stat-value">{items.length - ready}</div>
-            <div className="stat-label">Items missing</div>
-          </div>
-        </div>
-        <div className="stat-card" style={{ flex: "1 1 160px" }}>
-          <div className="stat-icon amber"><Database size={18} /></div>
-          <div className="stat-body">
-            <div className="stat-value">{MISSING_ITEMS.filter((i) => i.priority === "high").length}</div>
-            <div className="stat-label">High-priority gaps</div>
-          </div>
+        <div className="hero-badges">
+          <Badge variant="green">{ready} ready</Badge>
+          <Badge variant="amber">{items.length - ready} pilot fields</Badge>
         </div>
       </div>
+
+      <SectionCard title="Readiness snapshot" icon={ClipboardCheck}>
+        <MetricStrip
+          items={[
+            { label: "Ready", value: ready },
+            { label: "Pilot fields", value: items.length - ready },
+            { label: "High priority", value: MISSING_ITEMS.filter((i) => i.priority === "high").length },
+            { label: "Mode", value: "PoC" },
+          ]}
+        />
+      </SectionCard>
 
       <div className="grid-2">
-        <SectionCard title="Readiness Checklist" icon={Database}>
+        <SectionCard title="Checklist" icon={Database}>
           {loading ? <Spinner /> : <ReadinessList items={items} />}
         </SectionCard>
 
-        <SectionCard title="Missing Data Tracker" icon={XCircle}>
+        <SectionCard title="Pilot queue" icon={XCircle}>
           <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
             {MISSING_ITEMS.map((item, i) => (
               <div key={i} className="readiness-item">
@@ -83,8 +70,8 @@ export default function DataReadiness() {
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <SectionCard title="Where To Get Missing Data" icon={Database}>
-          <ChartState loading={mL} error={mError} rows={sourceRows} empty="No missing-data source guide generated yet.">
+        <SectionCard title="Source plan" icon={Database}>
+          <ChartState loading={mL} error={mError} rows={sourceRows} empty="Source plan is not loaded.">
             <DataTable
               rows={sourceRows}
               maxRows={20}
@@ -105,7 +92,7 @@ export default function DataReadiness() {
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <SectionCard title="Quality Flag Reference" icon={Database}>
+        <SectionCard title="Quality flags" icon={Database}>
           <div className="table-wrap">
             <table>
               <thead>

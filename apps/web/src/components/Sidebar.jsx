@@ -15,13 +15,13 @@ import {
 
 const NAV = [
   { to: "/", label: "Overview", icon: Home },
-  { to: "/sites", label: "Sites & Map", icon: Map },
-  { to: "/mosquito", label: "Mosquito Data", icon: Activity },
-  { to: "/resistance", label: "Resistance Tests", icon: FlaskConical },
+  { to: "/sites", label: "Sites", icon: Map },
+  { to: "/mosquito", label: "Mosquito", icon: Activity },
+  { to: "/resistance", label: "Resistance", icon: FlaskConical },
   { to: "/climate", label: "Climate", icon: Cloud },
-  { to: "/modeling", label: "Modelling", icon: BrainCircuit },
-  { to: "/alerts", label: "Alerts", icon: AlertTriangle },
-  { to: "/data-readiness", label: "Data Readiness", icon: Database },
+  { to: "/modeling", label: "Risk Engine", icon: BrainCircuit },
+  { to: "/alerts", label: "Response", icon: AlertTriangle },
+  { to: "/data-readiness", label: "Data Control", icon: Database },
 ];
 
 export default function Sidebar() {
@@ -34,7 +34,7 @@ export default function Sidebar() {
           </div>
           <div className="sidebar-logo-text">
             <strong>RCVIS</strong>
-            <span>Climate-Vector Intelligence</span>
+            <span>Operations dashboard</span>
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function Sidebar() {
       <div className="sidebar-footer">
         <div className="sidebar-badge">
           <BarChart2 size={13} />
-          Proof-of-Concept
+          Current-data build
         </div>
       </div>
     </aside>

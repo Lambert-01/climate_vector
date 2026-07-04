@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { AlertTriangle, CheckCircle, Clock, Plus, RefreshCw } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { AlertBanner, Badge, SectionCard, Spinner } from "../components/UI";
+import { Badge, MetricStrip, SectionCard, Spinner } from "../components/UI";
 
 const RISK_BADGE = {
   high: "red",
@@ -22,7 +22,7 @@ function AlertCard({ alert, onStatusChange }) {
   return (
     <div className="alert-card">
       <div className={`alert-card-risk ${alert.risk_level ?? "low"}`}>
-        {alert.risk_level === "high" ? "🔴" : alert.risk_level === "medium" ? "🟡" : "🟢"}
+        <AlertTriangle size={18} />
       </div>
       <div className="alert-card-body">
         <div className="alert-card-title">
@@ -111,45 +111,31 @@ export default function Alerts() {
   const active = items.filter((a) => a.status === "active").length;
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h2>Alerts & Response</h2>
-        <p>Risk signal review, approval, and action tracking</p>
-      </div>
-
-      <AlertBanner
-        type="info"
-        title="Alert workflow"
-        message="All alerts require technical review and approval before being sent to district/RBC actors. Current alerts are prototype rule-based signals only."
-      />
-
-      {/* Summary row */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-        <div className="stat-card" style={{ flex: "1 1 160px" }}>
-          <div className="stat-icon amber"><AlertTriangle size={18} /></div>
-          <div className="stat-body">
-            <div className="stat-value">{pending}</div>
-            <div className="stat-label">Pending review</div>
-          </div>
+    <div className="page ops-page">
+      <div className="ops-header">
+        <div>
+          <div className="eyebrow">Operations module</div>
+          <h2>Signals and response</h2>
         </div>
-        <div className="stat-card" style={{ flex: "1 1 160px" }}>
-          <div className="stat-icon red"><AlertTriangle size={18} /></div>
-          <div className="stat-body">
-            <div className="stat-value">{active}</div>
-            <div className="stat-label">Active alerts</div>
-          </div>
-        </div>
-        <div className="stat-card" style={{ flex: "1 1 160px" }}>
-          <div className="stat-icon teal"><CheckCircle size={18} /></div>
-          <div className="stat-body">
-            <div className="stat-value">{items.filter((a) => a.status === "resolved").length}</div>
-            <div className="stat-label">Resolved</div>
-          </div>
+        <div className="hero-badges">
+          <Badge variant="amber">Review workflow</Badge>
+          <Badge variant="blue">Prototype</Badge>
         </div>
       </div>
+
+      <SectionCard title="Signal queue" icon={AlertTriangle}>
+        <MetricStrip
+          items={[
+            { label: "Pending", value: pending },
+            { label: "Active", value: active },
+            { label: "Resolved", value: items.filter((a) => a.status === "resolved").length },
+            { label: "Total", value: items.length },
+          ]}
+        />
+      </SectionCard>
 
       <SectionCard
-        title="Alert List"
+        title="Review board"
         icon={AlertTriangle}
         action={
           <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>

@@ -12,14 +12,14 @@ import DataReadiness from "./pages/DataReadiness.jsx";
 import Modeling from "./pages/Modeling.jsx";
 
 const PAGE_META = {
-  "/": { title: "Intelligence Overview", sub: "Current-data climate-vector proof-of-concept", icon: Home },
-  "/sites": { title: "Sites & Map", sub: "Sentinel registry and provisional coordinate validation", icon: Map },
-  "/mosquito": { title: "Mosquito Data", sub: "Ecology records from field surveys", icon: Activity },
-  "/resistance": { title: "Resistance Signals", sub: "Preliminary insecticide resistance evidence", icon: FlaskConical },
-  "/climate": { title: "Climate Signals", sub: "NASA POWER district climate suitability inputs", icon: Cloud },
-  "/modeling": { title: "Mathematical Modelling", sub: "Current-data suitability and vector-risk proxy signals", icon: BrainCircuit },
-  "/alerts": { title: "Alerts & Response", sub: "Risk signal workflow", icon: AlertTriangle },
-  "/data-readiness": { title: "Data Readiness", sub: "Validation, public substitutes, and pilot data strategy", icon: Database },
+  "/": { title: "Prototype Command View", sub: "Current PI data plus public climate/environment intelligence", icon: Home },
+  "/sites": { title: "Spatial Operations", sub: "Sites, coordinate status, and map view", icon: Map },
+  "/mosquito": { title: "Mosquito Surveillance", sub: "Ecology, species context, and habitats", icon: Activity },
+  "/resistance": { title: "Resistance Intelligence", sub: "Insecticide assay signal review", icon: FlaskConical },
+  "/climate": { title: "Climate Intelligence", sub: "District rainfall and temperature signals", icon: Cloud },
+  "/modeling": { title: "Risk Engine", sub: "Suitability and priority scoring", icon: BrainCircuit },
+  "/alerts": { title: "Response Board", sub: "Signal review and action workflow", icon: AlertTriangle },
+  "/data-readiness": { title: "Data Control", sub: "Readiness and validation queue", icon: Database },
 };
 
 function Topbar() {
@@ -36,8 +36,8 @@ function Topbar() {
         <p>{meta.sub}</p>
       </div>
       <div className="topbar-right">
-        <span className="badge badge-teal" style={{ fontSize: 11 }}>Climate-Vector Intelligence</span>
-        <span className="badge badge-amber" style={{ fontSize: 11 }}>Descriptive Only</span>
+        <span className="badge badge-teal" style={{ fontSize: 11 }}>Current-Data Build</span>
+        <span className="badge badge-amber" style={{ fontSize: 11 }}>Validation Pilot Next</span>
       </div>
     </header>
   );

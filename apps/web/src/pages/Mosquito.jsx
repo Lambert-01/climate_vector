@@ -1,5 +1,5 @@
 import React from "react";
-import { Activity } from "lucide-react";
+import { Activity, Database, Droplets, MapPin } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { AlertBanner, ChartState, DataTable, SectionCard } from "../components/UI";
+import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
 
 const COLORS = ["#0d9488", "#0b6b77", "#2dd4bf", "#14b8a6", "#5eead4", "#99f6e4"];
 
@@ -70,31 +70,53 @@ export default function Mosquito() {
   const { data: byBreeding, loading: bL, error: bError } = useFetch(api.mosquitoByBreedingSite);
   const { data: records, loading: rL, error: rError } = useFetch(() => api.mosquitoRecords(200));
   const tableRows = (records?.items ?? []).map(cleanRecord);
+  const districtRows = byDistrict?.items ?? [];
+  const speciesRows = bySpecies?.items ?? [];
+  const breedingRows = byBreeding?.items ?? [];
+  const topDistrict = districtRows[0]?.value ?? "—";
+  const topHabitat = breedingRows[0]?.value ?? "—";
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h2>Mosquito Data</h2>
-        <p>Preliminary ecology records from field surveys</p>
+    <div className="page ops-page">
+      <div className="ops-header">
+        <div>
+          <div className="eyebrow">Ecology module</div>
+          <h2>Mosquito surveillance</h2>
+        </div>
+        <div className="hero-badges">
+          <Badge variant="green">PI data loaded</Badge>
+          <Badge variant="amber">Current-data view</Badge>
+        </div>
       </div>
 
-      <AlertBanner
-        type="warning"
-        title="Preliminary data"
-        message="Missing full dates, GPS coordinates, mosquito counts, and sampling effort. Descriptive summaries only."
-      />
+      <SectionCard title="Coverage" icon={Database}>
+        <MetricStrip
+          items={[
+            { label: "Records", value: rL ? "..." : (records?.total ?? tableRows.length).toLocaleString() },
+            { label: "Districts", value: dL ? "..." : districtRows.length },
+            { label: "Species labels", value: sL ? "..." : speciesRows.length },
+            { label: "Habitat labels", value: bL ? "..." : breedingRows.length },
+          ]}
+        />
+      </SectionCard>
+
+      <div className="insight-grid">
+        <div className="insight-card"><MapPin size={17} /><span>Top district</span><strong>{topDistrict}</strong></div>
+        <div className="insight-card"><Droplets size={17} /><span>Dominant habitat</span><strong>{topHabitat}</strong></div>
+        <div className="insight-card"><Activity size={17} /><span>Dominant species context</span><strong>{speciesRows[0]?.value ?? "—"}</strong></div>
+      </div>
 
       <div className="grid-3" style={{ marginBottom: 20 }}>
-        <BarChartCard title="Records by District" icon={Activity} data={byDistrict?.items ?? []} loading={dL} error={dError} />
-        <BarChartCard title="Anopheles Species" icon={Activity} data={bySpecies?.items ?? []} loading={sL} error={sError} />
-        <BarChartCard title="Breeding Site Types" icon={Activity} data={byBreeding?.items ?? []} loading={bL} error={bError} />
+        <BarChartCard title="District distribution" icon={MapPin} data={districtRows} loading={dL} error={dError} />
+        <BarChartCard title="Species context" icon={Activity} data={speciesRows} loading={sL} error={sError} />
+        <BarChartCard title="Habitat distribution" icon={Droplets} data={breedingRows} loading={bL} error={bError} />
       </div>
 
-      <SectionCard title="Mosquito Records (first 200)" icon={Activity}>
+      <SectionCard title="Record explorer" icon={Activity}>
         <ChartState loading={rL} error={rError} rows={tableRows} empty="No mosquito records loaded.">
           <DataTable
             rows={tableRows}
-            columns={["source_row_id", "district", "site", "species", "breeding_site_type", "collection_date", "quality_flag"]}
+            columns={["source_row_id", "district", "site", "species", "breeding_site_type", "collection_date"]}
           />
         </ChartState>
       </SectionCard>

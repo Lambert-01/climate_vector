@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { AlertBanner, Badge, ChartState, DataTable, SectionCard, Spinner, StatCard } from "../components/UI";
+import { Badge, ChartState, DataTable, MetricStrip, SectionCard, Spinner } from "../components/UI";
 
 const COLORS = {
   high: "#ef4444",
@@ -52,40 +52,31 @@ export default function Modeling() {
   }));
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h2>Mathematical Modelling</h2>
-        <p>Applied-mathematical suitability proxies from climate, ecology, and resistance data</p>
+    <div className="page ops-page">
+      <div className="ops-header">
+        <div>
+          <div className="eyebrow">Model engine</div>
+          <h2>Suitability intelligence</h2>
+        </div>
+        <div className="hero-badges">
+          <Badge variant="green">Transparent index</Badge>
+          <Badge variant="amber">Validation next</Badge>
+        </div>
       </div>
 
-      <AlertBanner
-        type="warning"
-        title="Model governance"
-        message="These are transparent suitability and vectorial-capacity proxy signals. They are not validated disease predictions or official alerts."
-      />
-      {(riskError || readinessError) && (
-        <AlertBanner
-          type="error"
-          title="Model data endpoint failed"
-          message={riskError || readinessError}
+      <SectionCard title="Model run" icon={BrainCircuit}>
+        <MetricStrip
+          items={[
+            { label: "High districts", value: riskLoading ? "..." : high },
+            { label: "Medium districts", value: riskLoading ? "..." : medium },
+            { label: "Mean index", value: riskLoading ? "..." : meanSuitability.toFixed(2) },
+            { label: "Training", value: readinessLoading ? "..." : readiness?.ready ? "Ready" : "Pilot needed" },
+          ]}
         />
-      )}
-
-      <div className="stats-grid">
-        <StatCard icon={BrainCircuit} label="High suitability districts" value={riskLoading ? "..." : high} sub="Proxy signal" color="orange" />
-        <StatCard icon={Calculator} label="Medium suitability districts" value={riskLoading ? "..." : medium} sub="Proxy signal" color="amber" />
-        <StatCard icon={Sigma} label="Mean suitability index" value={riskLoading ? "..." : meanSuitability.toFixed(2)} sub="0 to 1 scale" color="teal" />
-        <StatCard
-          icon={BrainCircuit}
-          label="Training status"
-          value={readinessLoading ? "..." : readiness?.ready ? "Ready" : "Blocked"}
-          sub={readiness?.ready ? "Minimum fields present" : "Critical fields missing"}
-          color={readiness?.ready ? "green" : "red"}
-        />
-      </div>
+      </SectionCard>
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
-        <SectionCard title="Top District Suitability" icon={BrainCircuit}>
+        <SectionCard title="Top districts" icon={BrainCircuit}>
           <div className="card-body">
             <ChartState loading={riskLoading} error={riskError} rows={chartRows} empty="No district suitability rows available.">
               <div className="chart-wrap">
@@ -105,7 +96,7 @@ export default function Modeling() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Training Readiness" icon={Calculator}>
+        <SectionCard title="Training readiness" icon={Calculator}>
           <div className="card-body">
             {readinessLoading ? <Spinner /> : (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -120,7 +111,7 @@ export default function Modeling() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Current Model Scope" icon={Sigma}>
+        <SectionCard title="Model scope" icon={Sigma}>
           <div className="card-body">
             <div className="coverage-list" style={{ padding: 0 }}>
               <div className="readiness-item">
@@ -130,8 +121,8 @@ export default function Modeling() {
               </div>
               <div className="readiness-item">
                 <div className="readiness-dot partial" />
-                <div className="readiness-item-label">Can support descriptive mosquito and resistance summaries</div>
-                <Badge variant="amber">preliminary</Badge>
+                <div className="readiness-item-label">Can support mosquito and resistance signal summaries</div>
+                <Badge variant="amber">screening</Badge>
               </div>
               <div className="readiness-item">
                 <div className="readiness-dot missing" />
@@ -143,7 +134,7 @@ export default function Modeling() {
         </SectionCard>
       </div>
 
-      <SectionCard title="District Modelling Table" icon={Sigma}>
+      <SectionCard title="District table" icon={Sigma}>
         <ChartState loading={riskLoading} error={riskError} rows={tableRows} empty="No modelling table rows available.">
           <DataTable
             rows={tableRows}

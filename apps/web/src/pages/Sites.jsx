@@ -123,13 +123,19 @@ export default function Sites() {
   const validated = mappedSites.length - provisional;
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h2>Sentinel Sites</h2>
-        <p>Site registry, provisional coordinate candidates, and national mapping view</p>
+    <div className="page ops-page">
+      <div className="ops-header">
+        <div>
+          <div className="eyebrow">Spatial module</div>
+          <h2>Sites and map</h2>
+        </div>
+        <div className="hero-badges">
+          <Badge variant={provisional ? "amber" : "green"}>{provisional ? "GPS validation needed" : "GPS ready"}</Badge>
+          <Badge variant="blue">{mappedSites.length} mapped</Badge>
+        </div>
       </div>
 
-      <SectionCard title="Site Coordinate Coverage" icon={Database}>
+      <SectionCard title="Coordinate coverage" icon={Database}>
         <MetricStrip
           items={[
             { label: "Mapped locations", value: loading || cL ? "..." : mappedSites.length },
@@ -141,18 +147,15 @@ export default function Sites() {
       </SectionCard>
 
       <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
-        <SectionCard title="Site Map" icon={Map}>
+        <SectionCard title="National map" icon={Map}>
           <div className="card-body">
             <ChartState loading={loading || cL} error={error || cError} rows={mappedSites} empty="No mappable site coordinates available.">
               <RwandaMap sites={mappedSites} />
-              <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>
-                Amber markers are provisional district-centroid candidates. They are useful for discussion, but PI must provide official site GPS before site-level modelling.
-              </p>
             </ChartState>
           </div>
         </SectionCard>
 
-        <SectionCard title="Map Data Status" icon={MapPin}>
+        <SectionCard title="Map data" icon={MapPin}>
           <DataTable
             rows={mappedSites}
             maxRows={30}
@@ -161,7 +164,7 @@ export default function Sites() {
         </SectionCard>
       </div>
 
-      <SectionCard title="Original Site Registry" icon={MapPin}>
+      <SectionCard title="Site registry" icon={MapPin}>
         <DataTable
           rows={rawSites}
           maxRows={50}
@@ -170,7 +173,7 @@ export default function Sites() {
       </SectionCard>
 
       <div style={{ marginTop: 20 }}>
-        <SectionCard title="PI Coordinate Candidates To Validate" icon={MapPin}>
+        <SectionCard title="GPS validation queue" icon={MapPin}>
           <DataTable
             rows={candidateRows}
             maxRows={50}
