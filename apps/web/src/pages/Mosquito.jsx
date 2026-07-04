@@ -70,10 +70,14 @@ export default function Mosquito() {
   const { data: bySpecies, loading: sL, error: sError } = useFetch(api.mosquitoBySpecies);
   const { data: byBreeding, loading: bL, error: bError } = useFetch(api.mosquitoByBreedingSite);
   const { data: records, loading: rL, error: rError } = useFetch(() => api.mosquitoRecords(200));
+  const { data: validation, loading: vL, error: vError } = useFetch(api.publicValidation);
   const tableRows = (records?.items ?? []).map(cleanRecord);
   const districtRows = byDistrict?.items ?? [];
   const speciesRows = bySpecies?.items ?? [];
   const breedingRows = byBreeding?.items ?? [];
+  const evidenceRows = (validation?.items ?? []).filter((row) =>
+    ["pi_mosquito_behavior", "gbif_vector_occurrences", "chirps_daily", "worldclim_baseline"].includes(row.source_id)
+  );
   const topDistrict = districtRows[0]?.value ?? "—";
   const topHabitat = breedingRows[0]?.value ?? "—";
 
@@ -96,7 +100,7 @@ export default function Mosquito() {
             { label: "Records", value: rL ? "..." : (records?.total ?? tableRows.length).toLocaleString() },
             { label: "Districts", value: dL ? "..." : districtRows.length },
             { label: "Species labels", value: sL ? "..." : speciesRows.length },
-            { label: "Habitat labels", value: bL ? "..." : breedingRows.length },
+            { label: "Evidence inputs", value: vL ? "..." : evidenceRows.length },
           ]}
         />
       </SectionCard>
@@ -121,6 +125,18 @@ export default function Mosquito() {
           />
         </ChartState>
       </SectionCard>
+
+      <div style={{ marginTop: 20 }}>
+        <SectionCard title="Ecology evidence inputs" icon={Database}>
+          <ChartState loading={vL} error={vError} rows={evidenceRows} empty="No ecology evidence registry loaded.">
+            <DataTable
+              rows={evidenceRows}
+              maxRows={6}
+              columns={["source_name", "status", "records_or_files", "formula_role", "model_use", "limitation"]}
+            />
+          </ChartState>
+        </SectionCard>
+      </div>
     </div>
   );
 }

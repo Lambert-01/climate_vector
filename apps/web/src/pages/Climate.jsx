@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, MetricStrip, SectionCard } from "../components/UI";
+import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
 
 function numberValue(value) {
   return Number.parseFloat(value ?? 0) || 0;
@@ -25,6 +25,7 @@ export default function Climate() {
 
   const { data: districts } = useFetch(api.climateDistricts);
   const { data: publicFeatures } = useFetch(api.publicDistrictFeatures);
+  const { data: era5, loading: eL, error: eError } = useFetch(api.publicEra5);
   const { data: districtClimate, loading: dL, error: dError } = useFetch(
     () => api.climateDistrict(selectedDistrict, days),
     [selectedDistrict, days]
@@ -48,6 +49,14 @@ export default function Climate() {
     rain: numberValue(r.PRECTOTCORR ?? r.rainfall_mm),
     tmean: numberValue(r.T2M ?? r.tmean_c),
   }));
+  const era5Rows = (era5?.monthly ?? []).map((r) => ({
+    month: r.month,
+    rain: numberValue(r.rainfall_total_estimated_mm),
+    tmean: numberValue(r.tmean_c),
+    dewpoint: numberValue(r.dewpoint_c),
+    runoff: numberValue(r.runoff_total_estimated_mm),
+  }));
+  const era5Latest = era5Rows[era5Rows.length - 1];
 
   const feature = useMemo(() => {
     return (publicFeatures?.items ?? []).find(
@@ -115,7 +124,7 @@ export default function Climate() {
             { label: "Full climate records", value: feature?.climate_records ?? "..." },
             { label: "Date range", value: feature ? `${feature.date_start} to ${feature.date_end}` : "..." },
             { label: "GBIF records", value: feature?.gbif_occurrence_count ?? "..." },
-            { label: "Public-data status", value: feature ? "Loaded" : "Checking" },
+            { label: "ERA5 monthly rows", value: eL ? "..." : era5Rows.length },
           ]}
         />
       </SectionCard>
@@ -168,6 +177,41 @@ export default function Climate() {
                 </ResponsiveContainer>
               </div>
             </div>
+          </ChartState>
+        </SectionCard>
+      </div>
+
+      <div className="grid-2" style={{ marginBottom: 20 }}>
+        <SectionCard title="ERA5-Land monthly baseline" icon={Database}>
+          <MetricStrip
+            items={[
+              { label: "Coverage", value: era5Rows.length ? `${era5Rows[0].month} to ${era5Latest?.month}` : "..." },
+              { label: "Latest rain", value: era5Latest ? `${era5Latest.rain.toFixed(1)} mm` : "..." },
+              { label: "Latest temp", value: era5Latest ? `${era5Latest.tmean.toFixed(1)} C` : "..." },
+              { label: "Mode", value: "Rwanda bbox" },
+            ]}
+          />
+          <ChartState loading={eL} error={eError} rows={era5Rows} empty="No ERA5 monthly rows loaded.">
+            <div className="card-body">
+              <div className="chart-wrap">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={era5Rows} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#eef3f4" />
+                    <XAxis dataKey="month" tick={{ fontSize: 9 }} tickLine={false} interval={Math.max(1, Math.floor(era5Rows.length / 8))} />
+                    <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #dde6e8" }} />
+                    <Line type="monotone" dataKey="rain" stroke="#0d9488" strokeWidth={1.5} dot={false} name="Rainfall total mm" />
+                    <Line type="monotone" dataKey="tmean" stroke="#f59e0b" strokeWidth={1.5} dot={false} name="T mean C" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </ChartState>
+        </SectionCard>
+
+        <SectionCard title="ERA5 validation table" icon={Database}>
+          <ChartState loading={eL} error={eError} rows={era5Rows} empty="No ERA5 monthly rows loaded.">
+            <DataTable rows={era5Rows.slice(-12)} columns={["month", "rain", "tmean", "dewpoint", "runoff"]} />
           </ChartState>
         </SectionCard>
       </div>

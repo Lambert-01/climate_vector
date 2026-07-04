@@ -1,5 +1,5 @@
 import React from "react";
-import { FlaskConical, Gauge, MapPin, TestTube2 } from "lucide-react";
+import { Database, FlaskConical, Gauge, MapPin, TestTube2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -34,6 +34,7 @@ export default function Resistance() {
   const { data: deathSummary, loading: dL, error: dError } = useFetch(api.resistanceDeathSummary);
   const { data: byDistrict, loading: distL, error: distError } = useFetch(api.resistanceByDistrict);
   const { data: records, loading: rL, error: rError } = useFetch(() => api.resistanceRecords(200));
+  const { data: validation, loading: vL, error: vError } = useFetch(api.publicValidation);
 
   const deathData = (deathSummary?.items ?? []).map((r) => ({
     insecticide: String(r.insecticide_tested_raw ?? "").slice(0, 22),
@@ -43,6 +44,9 @@ export default function Resistance() {
   }));
   const tableRows = (records?.items ?? []).map(cleanRecord);
   const districtRows = byDistrict?.items ?? [];
+  const evidenceRows = (validation?.items ?? []).filter((row) =>
+    ["pi_ir_data", "who_hdx_context", "pi_mosquito_behavior"].includes(row.source_id)
+  );
   const topInsecticide = deathData[0]?.insecticide ?? "—";
   const meanDeaths = deathData.length
     ? deathData.reduce((sum, row) => sum + row.mean, 0) / deathData.length
@@ -67,7 +71,7 @@ export default function Resistance() {
             { label: "Rows", value: rL ? "..." : (records?.total ?? tableRows.length).toLocaleString() },
             { label: "Insecticide groups", value: dL ? "..." : deathData.length },
             { label: "Districts", value: distL ? "..." : districtRows.length },
-            { label: "Mean 24h deaths", value: dL ? "..." : meanDeaths.toFixed(1) },
+            { label: "Evidence inputs", value: vL ? "..." : evidenceRows.length },
           ]}
         />
       </SectionCard>
@@ -147,6 +151,18 @@ export default function Resistance() {
             <DataTable
               rows={tableRows}
               columns={["source_row_id", "district", "site", "insecticide", "concentration", "dead_24h"]}
+            />
+          </ChartState>
+        </SectionCard>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <SectionCard title="Resistance evidence inputs" icon={Database}>
+          <ChartState loading={vL} error={vError} rows={evidenceRows} empty="No resistance evidence registry loaded.">
+            <DataTable
+              rows={evidenceRows}
+              maxRows={6}
+              columns={["source_name", "status", "records_or_files", "formula_role", "model_use", "limitation"]}
             />
           </ChartState>
         </SectionCard>
