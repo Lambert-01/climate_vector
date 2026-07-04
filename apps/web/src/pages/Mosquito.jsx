@@ -132,7 +132,7 @@ export default function Mosquito() {
             <DataTable
               rows={evidenceRows}
               maxRows={6}
-              columns={["source_name", "status", "records_or_files", "formula_role", "model_use", "limitation"]}
+              columns={["source_name", "status", "records_or_files", "model_use", "frontend_use", "limitation"]}
             />
           </ChartState>
         </SectionCard>

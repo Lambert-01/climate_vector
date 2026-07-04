@@ -1384,95 +1384,51 @@ tbody tr:hover td { background: var(--teal-50); }
   background: linear-gradient(90deg, #0d9488, #2563eb);
 }
 
-.formula-grid {
+.decision-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  padding: 16px;
-}
-
-.formula-card {
-  border: 1px solid var(--border-light);
-  background: var(--surface-2);
-  border-radius: var(--radius-sm);
-  padding: 13px;
-  min-width: 0;
-}
-
-.formula-card span,
-.formula-card strong,
-.formula-card code {
-  display: block;
-}
-
-.formula-card span {
-  color: #8a5f0a;
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: .06em;
-}
-
-.formula-card strong {
-  font-size: 13px;
-  margin-top: 4px;
-}
-
-.formula-card code {
-  margin-top: 8px;
-  padding: 7px;
-  border-radius: 6px;
-  background: #eef5f5;
-  color: var(--teal-900);
-  font-size: 11.5px;
-  overflow-wrap: anywhere;
-}
-
-.formula-stack {
-  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   padding: 16px;
 }
 
-.formula-stack.compact {
+.decision-grid.compact {
   padding: 0;
 }
 
-.formula-line {
+.decision-card {
   min-width: 0;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  padding: 12px;
-  display: grid;
-  grid-template-columns: 92px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
+  background: linear-gradient(180deg, #ffffff, #f6fbfa);
+  padding: 13px;
 }
 
-.formula-line strong,
-.formula-line span {
+.decision-card span,
+.decision-card strong,
+.decision-card small {
   display: block;
 }
 
-.formula-line strong {
-  color: var(--teal-900);
-  font-size: 13px;
-}
-
-.formula-line span {
+.decision-card span {
   color: var(--text-muted);
   font-size: 11px;
-  margin-top: 3px;
+  font-weight: 850;
+  letter-spacing: .05em;
+  text-transform: uppercase;
 }
 
-.formula-line code {
-  min-width: 0;
+.decision-card strong {
   color: var(--text-primary);
-  background: #eef5f5;
-  border-radius: 6px;
-  padding: 7px 8px;
-  font-size: 11.5px;
-  overflow-wrap: anywhere;
+  font-size: 13.5px;
+  line-height: 1.35;
+  margin-top: 6px;
+}
+
+.decision-card small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 8px;
 }
 
 /* ─── Loading spinner ────────────────────────────────────────────────────────── */
@@ -1515,7 +1471,7 @@ tbody tr:hover td { background: var(--teal-50); }
   .live-now-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .live-now-card.primary { grid-column: span 2; }
   .weather-day-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .formula-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .decision-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
@@ -1531,7 +1487,7 @@ tbody tr:hover td { background: var(--teal-50); }
   .live-now-grid { grid-template-columns: 1fr; }
   .live-now-card.primary { grid-column: span 1; }
   .weather-day-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .formula-grid { grid-template-columns: 1fr; }
+  .decision-grid { grid-template-columns: 1fr; }
   .page { padding: 16px; }
 }
   .topbar-mission { display: none; }
