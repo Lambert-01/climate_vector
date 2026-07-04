@@ -1,5 +1,5 @@
 import React from "react";
-import { BrainCircuit, Calculator, Sigma } from "lucide-react";
+import { BrainCircuit, Calculator, ClipboardCheck, Target } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -31,10 +31,8 @@ function titleCase(value) {
 export default function Modeling() {
   const { data: risk, loading: riskLoading, error: riskError } = useFetch(() => api.districtRisk(30));
   const { data: readiness, loading: readinessLoading, error: readinessError } = useFetch(api.modelingReadiness);
-  const { data: formulas, loading: formulasLoading, error: formulasError } = useFetch(api.publicFormulationSources);
   const { data: validation, loading: validationLoading, error: validationError } = useFetch(api.publicValidation);
   const rows = risk?.items ?? [];
-  const formulaRows = formulas?.items ?? [];
   const evidenceRows = validation?.items ?? [];
   const high = rows.filter((r) => r.risk_level === "high").length;
   const medium = rows.filter((r) => r.risk_level === "medium").length;
@@ -63,7 +61,7 @@ export default function Modeling() {
           <h2>Suitability intelligence</h2>
         </div>
         <div className="hero-badges">
-          <Badge variant="green">Transparent index</Badge>
+          <Badge variant="green">Decision support</Badge>
           <Badge variant="amber">Validation next</Badge>
         </div>
       </div>
@@ -115,33 +113,36 @@ export default function Modeling() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Formula engine" icon={Sigma}>
+        <SectionCard title="Decision output" icon={Target}>
           <div className="card-body">
-            <ChartState loading={formulasLoading} error={formulasError} rows={formulaRows} empty="No formulation registry available.">
-              <div className="formula-stack compact">
-                {formulaRows.map((row) => (
-                  <div className="formula-line" key={row.symbol}>
-                    <div>
-                      <strong>{row.symbol}</strong>
-                      <span>{row.module}</span>
-                    </div>
-                    <code>{row.formula}</code>
-                    <Badge variant={row.status?.includes("blocked") ? "amber" : "green"}>{String(row.status).replace(/_/g, " ")}</Badge>
-                  </div>
-                ))}
+            <div className="decision-grid compact">
+              <div className="decision-card">
+                <span>High priority</span>
+                <strong>{high} districts</strong>
+                <small>Review first for field verification and partner planning.</small>
               </div>
-            </ChartState>
+              <div className="decision-card">
+                <span>Watch list</span>
+                <strong>{medium} districts</strong>
+                <small>Maintain monitoring and climate/rainfall tracking.</small>
+              </div>
+              <div className="decision-card">
+                <span>Confidence</span>
+                <strong>Pilot-grade</strong>
+                <small>Useful for prioritization, not official disease prediction.</small>
+              </div>
+            </div>
           </div>
         </SectionCard>
 
-        <SectionCard title="Evidence inputs" icon={Calculator}>
+        <SectionCard title="Evidence inputs" icon={ClipboardCheck}>
           <div className="card-body">
             <ChartState loading={validationLoading} error={validationError} rows={evidenceRows} empty="No validation registry available.">
               <div className="coverage-list" style={{ padding: 0 }}>
                 {evidenceRows.slice(0, 6).map((row) => (
                   <div className="readiness-item" key={row.source_id}>
                     <div className={`readiness-dot ${String(row.status).includes("missing") ? "missing" : "ready"}`} />
-                    <div className="readiness-item-label">{row.formula_role}</div>
+                    <div className="readiness-item-label">{row.source_name}</div>
                     <Badge variant={String(row.status).includes("blocked") ? "amber" : "green"}>{row.records_or_files}</Badge>
                   </div>
                 ))}
@@ -150,7 +151,7 @@ export default function Modeling() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Model scope" icon={Sigma}>
+        <SectionCard title="Use boundaries" icon={Target}>
           <div className="card-body">
             <div className="coverage-list" style={{ padding: 0 }}>
               <div className="readiness-item">
@@ -173,7 +174,7 @@ export default function Modeling() {
         </SectionCard>
       </div>
 
-      <SectionCard title="District table" icon={Sigma}>
+      <SectionCard title="District action table" icon={Target}>
         <ChartState loading={riskLoading} error={riskError} rows={tableRows} empty="No modelling table rows available.">
           <DataTable
             rows={tableRows}

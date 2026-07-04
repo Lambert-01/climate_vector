@@ -129,7 +129,6 @@ export default function LiveWeather() {
   const meanHumidity = hourly.length ? hourly.reduce((sum, row) => sum + row.humidity, 0) / hourly.length : 0;
   const components = current?.components ?? {};
   const insights = current?.insights ?? [];
-  const formulas = detail?.model?.formulas ?? summary?.model?.formulas ?? [];
   const sourceStatus = detail?.source_status ?? summary?.source_status ?? "checking";
 
   return (
@@ -186,7 +185,7 @@ export default function LiveWeather() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Model components" icon={Gauge}>
+        <SectionCard title="Field-readiness signals" icon={Gauge}>
           <div className="signal-panel">
             <SignalPill label="Temperature" value={components.temperature_suitability} />
             <SignalPill label="Humidity" value={components.humidity_suitability} />
@@ -278,15 +277,23 @@ export default function LiveWeather() {
         </SectionCard>
       </div>
 
-      <SectionCard title="Transparent formulas" icon={Gauge}>
-        <div className="formula-grid">
-          {formulas.map((item) => (
-            <div className="formula-card" key={item.symbol}>
-              <span>{item.symbol}</span>
-              <strong>{item.label}</strong>
-              <code>{item.formula}</code>
-            </div>
-          ))}
+      <SectionCard title="Operational use" icon={Gauge}>
+        <div className="decision-grid">
+          <div className="decision-card">
+            <span>Today</span>
+            <strong>Schedule field checks when wetness and temperature align</strong>
+            <small>Use the nowcast to choose districts for verification, not to issue official alerts.</small>
+          </div>
+          <div className="decision-card">
+            <span>48 hours</span>
+            <strong>Prepare teams before rainfall peaks</strong>
+            <small>Rainfall and humidity help plan larval habitat inspection windows.</small>
+          </div>
+          <div className="decision-card">
+            <span>Governance</span>
+            <strong>Review before action</strong>
+            <small>All operational recommendations remain pending technical and PI review.</small>
+          </div>
         </div>
       </SectionCard>
     </div>
