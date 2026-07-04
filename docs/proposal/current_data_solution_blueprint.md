@@ -614,3 +614,465 @@ The missing data should be included as:
 
 This is the scientifically honest and strategically strong way forward.
 
+## 15. Detailed Implementation Roadmap
+
+The implementation should be divided into practical stages. Each stage must produce something visible in the system and something useful for the proposal or PI discussion. This avoids the common problem where modelling projects spend too long on abstract analysis before producing a usable tool.
+
+### Stage 1: Current-Data Stabilization
+
+The first stage is to stabilize the current data. This means the available mosquito ecology records, resistance-test records, public climate data, and public environmental inventories must be reproducible from scripts. No manual spreadsheet edits should be needed after the raw files are received. Each script should produce a clear output table and a clear report.
+
+Key outputs:
+
+- Clean preliminary mosquito ecology table.
+- Clean preliminary resistance-test table.
+- District climate feature table.
+- Public data inventory.
+- Missing-data source guide.
+- Site coordinate candidate table.
+- Dashboard-ready summary tables.
+
+This stage is already mostly implemented. Its purpose is to make sure that the project can be demonstrated even before PI/lab data are complete.
+
+### Stage 2: Dashboard Professionalization
+
+The second stage is to make the system look and behave like a professional decision-support prototype. Every chart should either show real data or explain why the data are not available. No page should show empty blocks without context. The user should always understand whether a number is validated, preliminary, provisional, or missing.
+
+Required design rules:
+
+- Use clear labels: “preliminary”, “provisional”, “descriptive”, “blocked”, “validated”.
+- Do not hide missing data.
+- Show scientific warnings near charts that could be misinterpreted.
+- Use district names and readable field names.
+- Show public-data coverage and missing-data source guidance.
+- Keep the UI operational and focused, not decorative.
+
+This is essential for the funding application because reviewers must quickly understand that the team has technical capacity, scientific honesty, and a realistic plan.
+
+### Stage 3: Current-Data Modelling Engine
+
+The third stage is the current-data modelling engine. Since counts, effort, full dates, and GPS are incomplete, the engine should remain a transparent proxy model. The current model should answer:
+
+- Which districts currently show climate suitability?
+- Which districts have historical mosquito evidence?
+- Which districts have preliminary resistance-test signals?
+- Which districts should be prioritized for pilot validation?
+
+The model must not claim to forecast abundance or malaria transmission. It should produce a district screening score and uncertainty class.
+
+Recommended model outputs:
+
+- `suitability_index`
+- `temperature_index`
+- `rainfall_index`
+- `evidence_index`
+- `vectorial_capacity_proxy`
+- `risk_level`
+- `uncertainty_level`
+- `reason`
+
+These outputs are easy for a dashboard user to understand and easy for a modeller to improve later.
+
+### Stage 4: Proof-of-Concept Pilot Module
+
+The fourth stage is the pilot module. This is where the missing data become part of the funded work. The system should include templates or tables showing exactly what must be collected during the proof-of-concept phase.
+
+The pilot module should define:
+
+- Districts to prioritize.
+- Sentinel sites to validate.
+- Required field forms.
+- Required lab forms.
+- Frequency of data collection.
+- Minimum data completeness targets.
+- Validation metrics.
+
+The pilot should not try to cover all Rwanda immediately. A good proof of concept can start with selected districts that represent different ecological zones, agricultural exposure patterns, and climate suitability profiles.
+
+### Stage 5: Validation And Scale Pathway
+
+The fifth stage is validation. Once prospective pilot data exist, the project can move from proxy screening to fitted statistical models. This is where stronger mathematical models become appropriate:
+
+- Occurrence models for habitat positive/negative status.
+- Count models for mosquito abundance.
+- Mortality models for resistance.
+- Exposure-response models for agricultural insecticide pressure.
+- Future scenario models under SSP climate pathways.
+
+Validation should compare predicted risk classes against observed pilot outcomes. The system should report model accuracy, uncertainty, and failure cases.
+
+## 16. Stakeholder Workflow
+
+The system should be designed around real users, not only researchers. Different stakeholders will use different parts of the platform.
+
+### PI And Research Team
+
+The PI needs to see:
+
+- What data are available.
+- What data are missing.
+- Which missing data can be recovered.
+- Which missing data must be collected prospectively.
+- Whether the project is fundable and scientifically defensible.
+
+For the PI, the most important modules are:
+
+- Data Readiness.
+- Missing Data Source Guide.
+- Mosquito Records.
+- Resistance Records.
+- Proposal Blueprint.
+
+### Entomology Team
+
+The entomology team needs to see:
+
+- Mosquito records by site and district.
+- Species labels requiring cleaning.
+- Breeding-site types.
+- Missing counts and effort.
+- Pilot data collection requirements.
+
+For the entomology team, the platform should become a data-quality and surveillance-planning tool.
+
+### Laboratory Resistance Team
+
+The resistance team needs to see:
+
+- Insecticides tested.
+- Deaths observed at 24h.
+- Missing denominator.
+- Missing control mortality.
+- Missing assay protocol.
+- Missing species confirmation.
+
+The system should help the laboratory team understand that denominator and control data are not administrative details; they determine whether resistance status can be interpreted.
+
+### District Health And Environment Actors
+
+District actors need simple outputs:
+
+- Is the district currently climatically suitable?
+- Are there historical mosquito records?
+- Is resistance evidence present?
+- Should field surveillance be prioritized?
+- What action is recommended?
+
+For them, the dashboard should avoid complicated model details and focus on clear signals and uncertainty.
+
+### Funders And Reviewers
+
+Funders need to see:
+
+- The problem is important.
+- The prototype already works.
+- The team understands the data limitations.
+- The missing data are part of a realistic proof-of-concept plan.
+- The system can support local action.
+
+The strongest message for funders is that the project is already beyond an idea: it has a working data engine, dashboard, mathematical model, and data-governance workflow.
+
+## 17. Demonstration Script
+
+When presenting the system to the PI or funder, use a short scripted walkthrough.
+
+### Step 1: Start With The Problem
+
+Explain that mosquito ecology and insecticide resistance are climate-sensitive, but data are often fragmented across field records, lab sheets, climate sources, and district reports. The system brings these pieces together.
+
+### Step 2: Show The Overview
+
+Show:
+
+- Total mosquito records.
+- Total resistance records.
+- Public data coverage.
+- District climate features.
+- Critical missing data and where to get it.
+
+Message:
+
+> The prototype already integrates current data and shows what is scientifically usable now.
+
+### Step 3: Show Climate Signals
+
+Show rainfall and temperature charts by district.
+
+Message:
+
+> Climate data are available now and can drive district-level suitability screening.
+
+### Step 4: Show Mosquito Ecology
+
+Show district, species, and breeding-site summaries.
+
+Message:
+
+> The historical ecology data are useful for descriptive intelligence, but counts, effort, dates, and GPS are needed for validated models.
+
+### Step 5: Show Resistance Signals
+
+Show insecticide and death-summary charts.
+
+Message:
+
+> The resistance data provide preliminary signals, but denominator, protocol, and control mortality are required before official resistance interpretation.
+
+### Step 6: Show Modelling
+
+Show the suitability index and current model scope.
+
+Message:
+
+> This is a transparent proxy model for prioritization, not a final prediction model.
+
+### Step 7: Show Data Readiness
+
+Show the missing-data source guide.
+
+Message:
+
+> The system does not only identify gaps; it tells the project exactly how to close them during the proof-of-concept phase.
+
+### Step 8: Close With The Funding Fit
+
+Message:
+
+> The proof-of-concept will validate this prototype through targeted data rescue and prospective surveillance in selected sentinel districts.
+
+## 18. Work Packages For The Proposal
+
+The application can be organized into five work packages.
+
+### Work Package 1: Data Integration And Governance
+
+Objectives:
+
+- Organize available mosquito, resistance, climate, and environmental data.
+- Create a reproducible data pipeline.
+- Build a dataset registry and data-readiness tracker.
+
+Deliverables:
+
+- Clean processed datasets.
+- Data dictionary.
+- Missing-data source guide.
+- Data governance report.
+
+### Work Package 2: Climate And Environmental Feature Engineering
+
+Objectives:
+
+- Integrate NASA POWER climate data.
+- Add CHIRPS rainfall where possible.
+- Prepare WorldClim, elevation, land-cover, population, and OSM covariates.
+- Generate district and site-level climate/environment summaries.
+
+Deliverables:
+
+- Climate feature table.
+- Environmental feature table.
+- District suitability dashboard.
+
+### Work Package 3: Prototype Dashboard And Decision Support
+
+Objectives:
+
+- Build a usable dashboard for PI and stakeholders.
+- Show mosquito, resistance, climate, map, modelling, alert, and readiness pages.
+- Make the system useful even before perfect data exist.
+
+Deliverables:
+
+- Web dashboard.
+- API backend.
+- Site map.
+- Missing-data tracker.
+- District screening module.
+
+### Work Package 4: Mathematical Modelling
+
+Objectives:
+
+- Implement current-data suitability proxy.
+- Prepare statistical model structures for future pilot data.
+- Define uncertainty and validation rules.
+
+Deliverables:
+
+- Suitability model.
+- Vectorial capacity proxy.
+- Model-readiness report.
+- Future validated model specifications.
+
+### Work Package 5: Pilot Validation
+
+Objectives:
+
+- Validate selected sentinel sites.
+- Collect model-ready prospective data.
+- Test whether climate signals can prioritize surveillance.
+- Prepare the transition path from proof of concept to scale.
+
+Deliverables:
+
+- Pilot dataset.
+- Validation report.
+- Updated model.
+- Scale-up roadmap.
+
+## 19. Minimum Data Collection Forms
+
+The proof-of-concept should use simple forms. The system does not need complicated forms at the start; it needs consistent forms.
+
+### Site Form
+
+Fields:
+
+- site_id
+- site_name
+- district
+- sector
+- cell
+- latitude
+- longitude
+- coordinate_source
+- coordinate_quality
+- date_validated
+- validated_by
+
+### Field Visit Form
+
+Fields:
+
+- sample_id
+- site_id
+- collection_date
+- collection_method
+- habitat_type
+- habitat_positive
+- effort_type
+- effort_value
+- collector_name_or_team
+- notes
+
+### Mosquito Count Form
+
+Fields:
+
+- sample_id
+- life_stage
+- species_raw
+- species_clean
+- identification_method
+- count
+- lab_confirmed
+
+### Resistance Test Form
+
+Fields:
+
+- replicate_id
+- site_id
+- test_date
+- species
+- protocol
+- insecticide
+- concentration
+- number_exposed
+- number_dead_24h
+- control_mortality
+- validity_status
+
+### Agricultural Exposure Form
+
+Fields:
+
+- site_id
+- date_or_season
+- nearby_crop_type
+- insecticide_name
+- chemical_class
+- frequency
+- dose
+- field_location
+- source_of_information
+
+## 20. Risk Management
+
+The project has risks, but they can be managed.
+
+### Risk 1: Missing PI Data Are Not Recovered
+
+Mitigation:
+
+- Continue with public climate/environment and descriptive entomology analytics.
+- Use the proof-of-concept phase to collect prospective model-ready data.
+
+### Risk 2: GPS Coordinates Are Delayed
+
+Mitigation:
+
+- Use district centroids only for provisional maps.
+- Clearly label all provisional coordinates.
+- Prioritize GPS validation in the first pilot month.
+
+### Risk 3: Resistance Denominator Is Not Confirmed
+
+Mitigation:
+
+- Do not classify resistance officially.
+- Report only descriptive deaths observed.
+- Collect denominator-confirmed assay data prospectively.
+
+### Risk 4: Public Data Are Too Coarse For Site-Level Modelling
+
+Mitigation:
+
+- Start with district-level screening.
+- Add site-level extraction only after GPS validation.
+- Use multiple public sources for comparison.
+
+### Risk 5: Stakeholders Misinterpret Proxy Risk As Official Forecast
+
+Mitigation:
+
+- Use clear labels.
+- Show uncertainty.
+- Separate “proxy signal” from “validated prediction”.
+- Require technical review before action alerts.
+
+## 21. Monitoring And Evaluation
+
+The proof-of-concept should have measurable indicators.
+
+Technical indicators:
+
+- Number of datasets integrated.
+- Number of districts covered by climate data.
+- Number of records processed.
+- Percentage of pilot records with complete dates.
+- Percentage of pilot sites with validated GPS.
+- Percentage of resistance tests with denominator and protocol.
+
+Scientific indicators:
+
+- Correlation between suitability signal and observed mosquito presence.
+- Ability to rank high-priority districts.
+- Improvement in model readiness from baseline to pilot end.
+- Number of uncertainty flags reduced.
+
+Operational indicators:
+
+- Number of users trained.
+- Number of dashboard review sessions.
+- Number of surveillance decisions supported.
+- Time from data upload to dashboard update.
+
+## 22. Final Proposal Narrative
+
+The final proposal narrative should be confident but careful:
+
+> This project will develop and validate a Rwanda Climate-Vector Intelligence System that integrates climate, environmental, entomological, and insecticide-resistance data to support earlier mosquito surveillance and local response planning. Using current historical records and public climate/environment datasets, the team has built an initial proof-of-concept dashboard and mathematical suitability engine. The proposed work will strengthen the system through retrospective data rescue, prospective pilot surveillance, site GPS validation, and laboratory metadata completion. The expected result is a practical climate-health decision-support tool that helps identify where mosquito proliferation and resistance risks may intensify under changing climate conditions.
+
+This narrative is strong because it does not oversell. It shows a working prototype, a realistic validation plan, and a clear path toward national relevance.
