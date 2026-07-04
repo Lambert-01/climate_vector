@@ -1,4 +1,6 @@
-const BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000/api";
+const configuredBase = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000/api";
+const trimmedBase = configuredBase.replace(/\/+$/, "");
+const BASE = trimmedBase.endsWith("/api") ? trimmedBase : `${trimmedBase}/api`;
 
 async function req(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
