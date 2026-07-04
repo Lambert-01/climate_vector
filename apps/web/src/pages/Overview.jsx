@@ -10,7 +10,6 @@ import {
   Globe2,
   Map,
   ShieldCheck,
-  Sigma,
   Target,
 } from "lucide-react";
 import {
@@ -61,13 +60,11 @@ export default function Overview() {
   const { data: publicSources, loading: sourcesLoading, error: sourcesError } = useFetch(api.publicDataSources);
   const { data: publicFeatures, loading: featuresLoading, error: featuresError } = useFetch(api.publicDistrictFeatures);
   const { data: validation, loading: validationLoading, error: validationError } = useFetch(api.publicValidation);
-  const { data: formulas, loading: formulasLoading, error: formulasError } = useFetch(api.publicFormulationSources);
   const { data: gbif } = useFetch(() => api.publicGbif(1));
   const { data: risk, loading: riskLoading, error: riskError } = useFetch(() => api.districtRisk(30));
 
   const sourceRows = publicSources?.items ?? [];
   const validationRows = validation?.items ?? [];
-  const formulaRows = formulas?.items ?? [];
   const featureRows = publicFeatures?.items ?? [];
   const readinessRows = readiness?.items ?? [];
   const availableReadiness = readinessRows.filter((row) => String(row.ready).toLowerCase() === "true");
@@ -108,7 +105,7 @@ export default function Overview() {
           <h2>Climate-vector intelligence prototype</h2>
           <p>
             A professional proof-of-concept using the two PI datasets, public climate layers,
-            mosquito occurrence context, and transparent mathematical suitability scores.
+            mosquito occurrence context, and validated operational evidence for action review.
           </p>
           <div className="hero-badges">
             <Badge variant="green">Ready for proposal demo</Badge>
@@ -215,7 +212,7 @@ export default function Overview() {
               { label: "Sources", value: validationLoading ? "..." : validation?.summary?.sources ?? 0 },
               { label: "Usable", value: validationLoading ? "..." : validation?.summary?.ready_or_usable ?? 0 },
               { label: "PI sources", value: validationLoading ? "..." : validation?.summary?.primary_pi_sources ?? 0 },
-              { label: "Formula modules", value: formulasLoading ? "..." : formulaRows.length },
+              { label: "Pilot gaps", value: readinessLoading ? "..." : validationNeeds.length },
             ]}
           />
           <ChartState loading={validationLoading} error={validationError} rows={validationRows} empty="No validation registry generated yet.">
@@ -231,21 +228,24 @@ export default function Overview() {
           </ChartState>
         </SectionCard>
 
-        <SectionCard title="Formula Integration" icon={Sigma}>
-          <ChartState loading={formulasLoading} error={formulasError} rows={formulaRows} empty="No formulation registry generated yet.">
-            <div className="formula-stack">
-              {formulaRows.slice(0, 4).map((row) => (
-                <div className="formula-line" key={row.symbol}>
-                  <div>
-                    <strong>{row.symbol}</strong>
-                    <span>{row.module}</span>
-                  </div>
-                  <code>{row.formula}</code>
-                  <Badge variant={row.status?.includes("blocked") ? "amber" : "green"}>{String(row.status).replace(/_/g, " ")}</Badge>
-                </div>
-              ))}
+        <SectionCard title="Policy Decision Support" icon={Target}>
+          <div className="decision-grid">
+            <div className="decision-card">
+              <span>Use now</span>
+              <strong>Prioritize districts for field verification</strong>
+              <small>Climate, mosquito ecology, resistance, and public context combined for review.</small>
             </div>
-          </ChartState>
+            <div className="decision-card">
+              <span>Use now</span>
+              <strong>Track readiness for pilot funding</strong>
+              <small>Shows exactly which data must be collected before formal prediction claims.</small>
+            </div>
+            <div className="decision-card">
+              <span>Do not overclaim</span>
+              <strong>No official outbreak prediction yet</strong>
+              <small>Outputs are screening intelligence until GPS, dates, effort, and lab protocol are confirmed.</small>
+            </div>
+          </div>
         </SectionCard>
       </div>
 
@@ -393,7 +393,7 @@ export default function Overview() {
           <DataTable
             rows={validationRows}
             maxRows={12}
-            columns={["source_name", "status", "records_or_files", "model_use", "formula_role", "limitation"]}
+            columns={["source_name", "status", "records_or_files", "model_use", "frontend_use", "limitation"]}
           />
         </ChartState>
       </SectionCard>

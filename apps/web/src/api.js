@@ -55,6 +55,5 @@ export const api = {
   publicWorldclim: () => req("/public-data/worldclim"),
   publicEra5: () => req("/public-data/era5"),
   publicValidation: () => req("/public-data/validation"),
-  publicFormulationSources: () => req("/public-data/formulation-sources"),
   publicSummary: () => req("/public-data/summary"),
 };

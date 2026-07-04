@@ -23,13 +23,14 @@ export default function DataReadiness() {
   const { data, loading } = useFetch(api.readiness);
   const { data: missingSources, loading: mL, error: mError } = useFetch(api.missingDataSources);
   const { data: validation, loading: vL, error: vError } = useFetch(api.publicValidation);
-  const { data: formulas, loading: fL, error: fError } = useFetch(api.publicFormulationSources);
 
   const items = data?.items ?? [];
   const ready = items.filter((i) => String(i.ready).toLowerCase() === "true").length;
   const sourceRows = missingSources?.items ?? [];
   const validationRows = validation?.items ?? [];
-  const formulaRows = formulas?.items ?? [];
+  const readySources = validationRows.filter((row) =>
+    ["usable", "validated", "downloaded"].some((key) => String(row.status ?? "").includes(key))
+  ).length;
 
   return (
     <div className="page ops-page">
@@ -50,7 +51,7 @@ export default function DataReadiness() {
             { label: "Ready", value: ready },
             { label: "Pilot fields", value: items.length - ready },
             { label: "Evidence sources", value: vL ? "..." : validation?.summary?.sources ?? 0 },
-            { label: "Formula modules", value: fL ? "..." : formulaRows.length },
+            { label: "Usable sources", value: vL ? "..." : readySources },
           ]}
         />
       </SectionCard>
@@ -86,7 +87,7 @@ export default function DataReadiness() {
                 "records_or_files",
                 "date_start",
                 "date_end",
-                "formula_role",
+                "frontend_use",
                 "limitation",
               ]}
             />
@@ -95,14 +96,24 @@ export default function DataReadiness() {
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <SectionCard title="Formula source map" icon={ClipboardCheck}>
-          <ChartState loading={fL} error={fError} rows={formulaRows} empty="Formula registry is not loaded.">
-            <DataTable
-              rows={formulaRows}
-              maxRows={12}
-              columns={["module", "symbol", "formula", "data_sources", "result", "status"]}
-            />
-          </ChartState>
+        <SectionCard title="Decision readiness" icon={ClipboardCheck}>
+          <div className="decision-grid">
+            <div className="decision-card">
+              <span>Ready</span>
+              <strong>Evidence integration dashboard</strong>
+              <small>PI data, climate layers, GBIF context, and resistance summaries are connected.</small>
+            </div>
+            <div className="decision-card">
+              <span>Ready</span>
+              <strong>District prioritization</strong>
+              <small>Useful for planning field verification and partner discussion.</small>
+            </div>
+            <div className="decision-card">
+              <span>Pilot</span>
+              <strong>Operational validation</strong>
+              <small>GPS, dates, sampling effort, denominator, and protocol remain collection priorities.</small>
+            </div>
+          </div>
         </SectionCard>
       </div>
 
