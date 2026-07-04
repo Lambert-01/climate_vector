@@ -3,6 +3,7 @@ import {
   CloudSun,
   Droplets,
   Gauge,
+  Info,
   MapPin,
   Radio,
   RefreshCw,
@@ -75,6 +76,33 @@ function WeatherTile({ icon: Icon, label, value, tone = "teal" }) {
   );
 }
 
+function SignalPill({ label, value }) {
+  const pct = Math.round(n(value) * 100);
+  return (
+    <div className="signal-pill">
+      <div>
+        <span>{label}</span>
+        <strong>{pct}%</strong>
+      </div>
+      <div className="signal-meter">
+        <i style={{ width: `${Math.max(4, pct)}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function InsightCard({ item }) {
+  return (
+    <div className={`auto-insight ${item.level ?? "medium"}`}>
+      <Info size={15} />
+      <div>
+        <strong>{item.title}</strong>
+        <span>{item.detail}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function LiveWeather() {
   const [selected, setSelected] = useState("gasabo");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -99,6 +127,10 @@ export default function LiveWeather() {
   }));
   const rain48 = hourly.reduce((sum, row) => sum + row.rain, 0);
   const meanHumidity = hourly.length ? hourly.reduce((sum, row) => sum + row.humidity, 0) / hourly.length : 0;
+  const components = current?.components ?? {};
+  const insights = current?.insights ?? [];
+  const formulas = detail?.model?.formulas ?? summary?.model?.formulas ?? [];
+  const sourceStatus = detail?.source_status ?? summary?.source_status ?? "checking";
 
   return (
     <div className="page ops-page live-weather-page">
@@ -142,7 +174,27 @@ export default function LiveWeather() {
         <WeatherTile icon={Radio} label="Nowcast" value={current ? `${Math.round(n(current.nowcast_score) * 100)}%` : "..."} tone="green" />
         <WeatherTile icon={Waves} label="48h Rain" value={`${rain48.toFixed(1)} mm`} tone="blue" />
         <WeatherTile icon={Droplets} label="48h Humidity" value={`${meanHumidity.toFixed(0)}%`} tone="teal" />
-        <WeatherTile icon={Gauge} label="Source" value="Open-Meteo" tone="amber" />
+        <WeatherTile icon={Gauge} label="Field Window" value={current ? `${Math.round(n(current.field_window_index) * 100)}%` : "..."} tone="amber" />
+      </div>
+
+      <div className="grid-2" style={{ marginTop: 18 }}>
+        <SectionCard title="Auto insights" icon={Radio} action={<Badge variant={sourceStatus === "live" ? "green" : "amber"}>{sourceStatus}</Badge>}>
+          <div className="auto-insight-grid">
+            {(insights.length ? insights : [{ title: "Checking", detail: "Waiting for forecast signal.", level: "medium" }]).map((item, index) => (
+              <InsightCard key={`${item.title}-${index}`} item={item} />
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Model components" icon={Gauge}>
+          <div className="signal-panel">
+            <SignalPill label="Temperature" value={components.temperature_suitability} />
+            <SignalPill label="Humidity" value={components.humidity_suitability} />
+            <SignalPill label="Rainfall" value={components.rainfall_suitability} />
+            <SignalPill label="Moisture" value={components.moisture_balance_suitability} />
+            <SignalPill label="Dewpoint" value={components.dewpoint_suitability} />
+          </div>
+        </SectionCard>
       </div>
 
       <div className="grid-2" style={{ marginTop: 18 }}>
@@ -225,6 +277,18 @@ export default function LiveWeather() {
           </ChartState>
         </SectionCard>
       </div>
+
+      <SectionCard title="Transparent formulas" icon={Gauge}>
+        <div className="formula-grid">
+          {formulas.map((item) => (
+            <div className="formula-card" key={item.symbol}>
+              <span>{item.symbol}</span>
+              <strong>{item.label}</strong>
+              <code>{item.formula}</code>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
     </div>
   );
 }

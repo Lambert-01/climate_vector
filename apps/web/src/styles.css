@@ -1262,6 +1262,138 @@ tbody tr:hover td { background: var(--teal-50); }
   margin-top: 5px;
 }
 
+.auto-insight-grid {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.auto-insight {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 13px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.auto-insight.high { border-left: 4px solid var(--red-500); }
+.auto-insight.medium { border-left: 4px solid var(--amber-500); }
+.auto-insight.low { border-left: 4px solid var(--green-500); }
+
+.auto-insight svg {
+  color: var(--teal-700);
+  margin-top: 1px;
+}
+
+.auto-insight strong,
+.auto-insight span {
+  display: block;
+}
+
+.auto-insight strong {
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.auto-insight span {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.signal-panel {
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.signal-pill {
+  border: 1px solid var(--border-light);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 11px 12px;
+}
+
+.signal-pill div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.signal-pill span {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.signal-pill strong {
+  font-size: 13px;
+}
+
+.signal-meter {
+  height: 7px;
+  background: #e6eff1;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 9px;
+}
+
+.signal-meter i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0d9488, #2563eb);
+}
+
+.formula-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+.formula-card {
+  border: 1px solid var(--border-light);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 13px;
+  min-width: 0;
+}
+
+.formula-card span,
+.formula-card strong,
+.formula-card code {
+  display: block;
+}
+
+.formula-card span {
+  color: #8a5f0a;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .06em;
+}
+
+.formula-card strong {
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.formula-card code {
+  margin-top: 8px;
+  padding: 7px;
+  border-radius: 6px;
+  background: #eef5f5;
+  color: var(--teal-900);
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+
 /* ─── Loading spinner ────────────────────────────────────────────────────────── */
 .spinner {
   display: flex;
@@ -1302,6 +1434,7 @@ tbody tr:hover td { background: var(--teal-50); }
   .live-now-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .live-now-card.primary { grid-column: span 2; }
   .weather-day-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .formula-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
@@ -1317,6 +1450,7 @@ tbody tr:hover td { background: var(--teal-50); }
   .live-now-grid { grid-template-columns: 1fr; }
   .live-now-card.primary { grid-column: span 1; }
   .weather-day-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .formula-grid { grid-template-columns: 1fr; }
   .page { padding: 16px; }
 }
   .topbar-mission { display: none; }

@@ -49,6 +49,16 @@ def test_public_data_endpoint_returns_district_features() -> None:
     assert "not validated mosquito outcome predictions" in payload["model_note"]
 
 
+def test_live_weather_endpoint_returns_modelled_insights() -> None:
+    client = TestClient(app)
+    response = client.get("/api/live-weather/district/gasabo?days=7")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["current"]["components"]["lcsi"] >= 0
+    assert payload["current"]["insights"]
+    assert payload["model"]["version"] == "lcsi-v1"
+
+
 def test_local_dev_cors_preflight_allows_127_frontend() -> None:
     client = TestClient(app)
     response = client.options(

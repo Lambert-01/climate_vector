@@ -133,17 +133,50 @@ def _weather_label(code: int | None) -> str:
 
 
 def _nowcast_score(current: dict, daily: dict | None = None) -> float:
-    temp = _float(current.get("temperature_2m")) or 0
-    rh = _float(current.get("relative_humidity_2m")) or 0
-    rain = _float(current.get("precipitation")) or 0
-    seven_day_rain = 0.0
-    if daily:
-        seven_day_rain = sum(_float(v) or 0 for v in daily.get("precipitation_sum", [])[:7])
+    return _forecast_components(current, daily)["lcsi"]
 
-    temp_score = max(0, 1 - abs(temp - 26) / 12)
-    humidity_score = min(1, max(0, (rh - 45) / 40))
-    rain_score = min(1, (rain * 0.35) + (seven_day_rain / 65))
-    return round(max(0, min(1, 0.45 * temp_score + 0.25 * humidity_score + 0.30 * rain_score)), 3)
+
+def _bounded(value: float) -> float:
+    return max(0.0, min(1.0, value))
+
+
+def _forecast_components(current: dict, daily: dict | None = None, hourly: dict | None = None) -> dict[str, float]:
+    temp = _float(current.get("temperature_2m")) or 0.0
+    rh = _float(current.get("relative_humidity_2m")) or 0.0
+    dewpoint = _float(current.get("dew_point_2m") or current.get("dewpoint_2m")) or max(temp - 5.0, 0.0)
+    wind = _float(current.get("wind_speed_10m")) or 0.0
+
+    rain7 = 0.0
+    et07 = 0.0
+    if daily:
+        rain7 = sum(_float(v) or 0 for v in daily.get("precipitation_sum", [])[:7])
+        et07 = sum(_float(v) or 0 for v in daily.get("et0_fao_evapotranspiration", [])[:7])
+
+    rain48 = 0.0
+    if hourly:
+        rain48 = sum(_float(v) or 0 for v in hourly.get("precipitation", [])[:48])
+
+    s_temp = math.exp(-((temp - 26.0) / 7.0) ** 2)
+    s_humidity = _bounded((rh - 50.0) / 35.0)
+    s_rain = _bounded((1 - math.exp(-rain7 / 35.0)) * math.exp(-max(0.0, rain7 - 110.0) / 80.0))
+    s_balance = _bounded(1 / (1 + math.exp(-((rain7 - et07) - 5.0) / 18.0)))
+    s_dewpoint = _bounded((dewpoint - 12.0) / 10.0)
+    lcsi = _bounded(0.32 * s_temp + 0.22 * s_humidity + 0.26 * s_rain + 0.12 * s_balance + 0.08 * s_dewpoint)
+    field_window = _bounded(0.45 * lcsi + 0.35 * _bounded(rain48 / 25.0) + 0.20 * _bounded(1 - wind / 28.0))
+
+    return {
+        "temperature_suitability": round(s_temp, 3),
+        "humidity_suitability": round(s_humidity, 3),
+        "rainfall_suitability": round(s_rain, 3),
+        "moisture_balance_suitability": round(s_balance, 3),
+        "dewpoint_suitability": round(s_dewpoint, 3),
+        "rainfall_7d_mm": round(rain7, 2),
+        "rainfall_48h_mm": round(rain48, 2),
+        "et0_7d_mm": round(et07, 2),
+        "moisture_balance_7d_mm": round(rain7 - et07, 2),
+        "lcsi": round(lcsi, 3),
+        "field_window_index": round(field_window, 3),
+    }
 
 
 def _risk_level(score: float) -> str:
@@ -152,6 +185,67 @@ def _risk_level(score: float) -> str:
     if score >= 0.45:
         return "medium"
     return "low"
+
+
+def _insights(location: dict, components: dict[str, float], level: str) -> list[dict[str, str]]:
+    district = str(location.get("district") or location.get("name"))
+    insights: list[dict[str, str]] = []
+    if level == "high":
+        insights.append(
+            {
+                "type": "field_priority",
+                "level": "high",
+                "title": "Field verification priority",
+                "detail": f"{district}: warm and wet forecast conditions support habitat follow-up.",
+            }
+        )
+    elif level == "medium":
+        insights.append(
+            {
+                "type": "watch",
+                "level": "medium",
+                "title": "Watch window",
+                "detail": f"{district}: climate signal is moderate; review after next rainfall update.",
+            }
+        )
+    else:
+        insights.append(
+            {
+                "type": "stable",
+                "level": "low",
+                "title": "Lower climate signal",
+                "detail": f"{district}: current forecast is less supportive of near-term habitat activation.",
+            }
+        )
+
+    if components["rainfall_48h_mm"] >= 10:
+        insights.append(
+            {
+                "type": "rainfall",
+                "level": "high",
+                "title": "Rainfall trigger",
+                "detail": "Recent/forecast rain can activate temporary breeding habitats.",
+            }
+        )
+    if components["moisture_balance_7d_mm"] >= 12:
+        insights.append(
+            {
+                "type": "habitat",
+                "level": "medium",
+                "title": "Moisture persistence",
+                "detail": "Rainfall exceeds evapotranspiration, supporting short-term water persistence.",
+            }
+        )
+    if components["field_window_index"] >= 0.62:
+        insights.append(
+            {
+                "type": "operations",
+                "level": "medium",
+                "title": "Field window",
+                "detail": "Conditions are suitable for larval habitat inspection and site validation.",
+            }
+        )
+    return insights[:4]
 
 
 def _open_meteo(params: dict[str, object]) -> dict:
@@ -204,7 +298,9 @@ def _fallback_payload(location: dict, days: int = 7) -> dict:
 
 def _current_row(location: dict, payload: dict) -> dict:
     current = payload.get("current", {})
-    score = _nowcast_score(current, payload.get("daily"))
+    components = _forecast_components(current, payload.get("daily"), payload.get("hourly"))
+    score = components["lcsi"]
+    level = _risk_level(score)
     return {
         "id": location["id"],
         "name": location["name"],
@@ -220,7 +316,28 @@ def _current_row(location: dict, payload: dict) -> dict:
         "weather_code": current.get("weather_code"),
         "condition": _weather_label(current.get("weather_code")),
         "nowcast_score": score,
-        "risk_level": _risk_level(score),
+        "risk_level": level,
+        "field_window_index": components["field_window_index"],
+        "components": components,
+        "insights": _insights(location, components, level),
+    }
+
+
+def _model_spec() -> dict[str, object]:
+    return {
+        "name": "Live Climate Suitability Index",
+        "version": "lcsi-v1",
+        "scope": "Forecast-based mosquito habitat and field-verification screening only.",
+        "governance": "Not a validated mosquito abundance, resistance, or malaria prediction.",
+        "formulas": [
+            {"symbol": "S_T", "label": "Temperature", "formula": "exp(-((T-26)/7)^2)"},
+            {"symbol": "S_H", "label": "Humidity", "formula": "clip((RH-50)/35, 0, 1)"},
+            {"symbol": "S_R", "label": "Rainfall", "formula": "(1-exp(-R7/35))*exp(-max(0,R7-110)/80)"},
+            {"symbol": "S_B", "label": "Moisture balance", "formula": "sigmoid(((R7-ET0_7)-5)/18)"},
+            {"symbol": "S_D", "label": "Dewpoint", "formula": "clip((D-12)/10, 0, 1)"},
+            {"symbol": "LCSI", "label": "Live suitability", "formula": "0.32S_T+0.22S_H+0.26S_R+0.12S_B+0.08S_D"},
+            {"symbol": "FWI", "label": "Field window", "formula": "0.45LCSI+0.35clip(R48/25)+0.20clip(1-W/28)"},
+        ],
     }
 
 
@@ -251,6 +368,7 @@ def live_weather_districts(limit: int = 30) -> dict:
         "source": "Open-Meteo",
         "source_status": source_status,
         "source_url": "https://open-meteo.com/",
+        "model": _model_spec(),
         "items": items,
     }
 
@@ -280,6 +398,7 @@ def live_weather_district(district: str, days: int = 7) -> dict:
     return {
         "source": "Open-Meteo",
         "source_status": source_status,
+        "model": _model_spec(),
         "location": location,
         "current": _current_row(location, payload),
         "hourly": payload.get("hourly", {}),
@@ -311,6 +430,7 @@ def live_weather_site(site_id: str, days: int = 7) -> dict:
     return {
         "source": "Open-Meteo",
         "source_status": source_status,
+        "model": _model_spec(),
         "location": location,
         "current": _current_row(location, payload),
         "hourly": payload.get("hourly", {}),
