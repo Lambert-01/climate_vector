@@ -53,9 +53,9 @@ PUBLIC_SOURCES = [
         "source_id": "chirps",
         "source_name": "CHIRPS rainfall",
         "local_path": "data/external/climate/chirps_daily",
-        "use_now": "not_downloaded_yet",
-        "model_use": "high-resolution rainfall history, anomalies, seasonality, and drought/wetness context",
-        "limitation": "download/extraction for Rwanda is still needed before dashboard or model use",
+        "use_now": "partial",
+        "model_use": "high-resolution rainfall history, anomalies, seasonality, and wetness context",
+        "limitation": "sample daily GeoTIFFs downloaded; full study period and Rwanda clipping/extraction still needed",
     },
     {
         "source_id": "worldclim",
