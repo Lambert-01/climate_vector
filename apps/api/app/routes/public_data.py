@@ -40,12 +40,13 @@ def district_public_features() -> dict:
 
 @router.get("/public-data/era5")
 def era5_available_summary() -> dict:
+    monthly_cds = read_csv("data/processed/era5_land_rwanda_monthly_2020_2026.csv")
     return {
         "summary": read_csv("data/processed/era5_land_available_summary.csv"),
         "validation": read_csv("data/processed/era5_land_file_validation.csv"),
-        "monthly": read_csv("outputs/tables/era5_land_monthly_summary.csv"),
+        "monthly": monthly_cds or read_csv("outputs/tables/era5_land_monthly_summary.csv"),
         "daily_preview": read_csv("data/processed/era5_land_rwanda_daily_summary.csv")[:120],
-        "model_note": "ERA5-Land gridded climate summaries support climate suitability screening; not validated mosquito outcome prediction.",
+        "model_note": "ERA5-Land gridded climate summaries support climate suitability screening; monthly data is preferred for fast climate-context integration and is not validated mosquito outcome prediction.",
     }
 
 
@@ -58,7 +59,12 @@ def era5_daily(limit: int = 500) -> dict:
 
 @router.get("/public-data/era5/monthly")
 def era5_monthly() -> dict:
-    return {"items": read_csv("outputs/tables/era5_land_monthly_summary.csv")}
+    rows = read_csv("data/processed/era5_land_rwanda_monthly_2020_2026.csv")
+    return {
+        "items": rows or read_csv("outputs/tables/era5_land_monthly_summary.csv"),
+        "source": "ERA5-Land monthly means from Copernicus CDS",
+        "coverage": "Rwanda bounding-box mean",
+    }
 
 
 @router.get("/public-data/summary")
