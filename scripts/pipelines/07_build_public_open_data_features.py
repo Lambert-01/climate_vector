@@ -52,7 +52,7 @@ PUBLIC_SOURCES = [
     {
         "source_id": "chirps",
         "source_name": "CHIRPS rainfall",
-        "local_path": "data/external/chirps",
+        "local_path": "data/external/climate/chirps_daily",
         "use_now": "not_downloaded_yet",
         "model_use": "high-resolution rainfall history, anomalies, seasonality, and drought/wetness context",
         "limitation": "download/extraction for Rwanda is still needed before dashboard or model use",
@@ -329,6 +329,7 @@ def write_report(
         f"- District-level public climate feature rows created: {len(district_features):,}.",
         f"- WorldClim archives catalogued: {len(worldclim_manifest):,}.",
         f"- ERA5-Land processed summaries available: {len(era5_summary):,}.",
+        f"- Open-data download manifest: `outputs/tables/open_data_download_manifest.csv` if generated.",
         "",
         "## Extracted Tables",
         "",
