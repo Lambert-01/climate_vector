@@ -55,6 +55,7 @@ function statusVariant(value) {
 
 export default function Overview() {
   const { data: stats, loading: statsLoading, error: statsError } = useFetch(api.stats);
+  const { data: dbStatus, loading: dbLoading, error: dbError } = useFetch(api.databaseStatus);
   const { data: readiness, loading: readinessLoading, error: readinessError } = useFetch(api.readiness);
   const { data: climate, loading: climateLoading, error: climateError } = useFetch(api.climateSummary);
   const { data: publicSources, loading: sourcesLoading, error: sourcesError } = useFetch(api.publicDataSources);
@@ -137,6 +138,14 @@ export default function Overview() {
         />
       )}
 
+      {dbError && (
+        <AlertBanner
+          type="error"
+          title="Database connection issue"
+          message={dbError}
+        />
+      )}
+
       <div className="stats-grid">
         <StatCard
           icon={Activity}
@@ -170,17 +179,17 @@ export default function Overview() {
 
       <div className="overview-model-strip">
         <div className="model-strip-item">
+          <Database size={18} />
+          <div>
+            <span>Operational database</span>
+            <strong>{dbLoading ? "Checking..." : dbStatus?.connected ? "Connected to DB" : "Not connected"}</strong>
+          </div>
+        </div>
+        <div className="model-strip-item">
           <CheckCircle2 size={18} />
           <div>
             <span>Evidence available now</span>
             <strong>{availableReadiness.length} usable evidence groups</strong>
-          </div>
-        </div>
-        <div className="model-strip-item">
-          <Database size={18} />
-          <div>
-            <span>GBIF mosquito context</span>
-            <strong>{fmt(gbif?.count)} public occurrence records</strong>
           </div>
         </div>
         <div className="model-strip-item">
@@ -191,10 +200,10 @@ export default function Overview() {
           </div>
         </div>
         <div className="model-strip-item">
-          <ClipboardList size={18} />
+          <Database size={18} />
           <div>
-            <span>Pilot validation needs</span>
-            <strong>{validationNeeds.length} fields treated as work package</strong>
+            <span>GBIF mosquito context</span>
+            <strong>{fmt(gbif?.count)} public occurrence records</strong>
           </div>
         </div>
       </div>

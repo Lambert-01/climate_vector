@@ -13,36 +13,38 @@ router = APIRouter(tags=["dashboard"])
 
 @router.get("/dashboard/stats")
 async def dashboard_stats(db: AsyncSession = Depends(get_db)) -> dict:
-    try:
-        site_count = (await db.execute(select(func.count()).select_from(Site))).scalar_one()
-        obs_count = (await db.execute(select(func.count()).select_from(MosquitoObservation))).scalar_one()
-        res_count = (await db.execute(select(func.count()).select_from(ResistanceTestReplicate))).scalar_one()
-        alert_count = (await db.execute(
-            select(func.count()).select_from(Alert).where(Alert.status == "active")
-        )).scalar_one()
-        if site_count == 0 and obs_count == 0 and res_count == 0:
-            raise RuntimeError("empty database; use current-data CSV fallback")
-        return {
-            "sites": site_count,
-            "mosquito_observations": obs_count,
-            "resistance_tests": res_count,
-            "active_alerts": alert_count,
-            "source": "db",
-        }
-    except Exception:
-        # Fallback to CSV when DB is not yet seeded
-        readiness = read_csv("data/processed/data_readiness_summary.csv")
-        mosquito_rows = read_csv("data/processed/mosquito_ecology_preliminary.csv")
-        site_rows = read_csv("data/sites/sites.csv")
-        sites = {row.get("site_raw", "").strip().lower() for row in mosquito_rows if row.get("site_raw")}
-        return {
-            "sites": len(site_rows) or len(sites),
-            "mosquito_observations": len(mosquito_rows),
-            "resistance_tests": len(read_csv("data/processed/resistance_test_replicates_preliminary.csv")),
-            "active_alerts": 0,
-            "readiness_items": len(readiness),
-            "source": "csv",
-        }
+    site_count = (await db.execute(select(func.count()).select_from(Site))).scalar_one()
+    obs_count = (await db.execute(select(func.count()).select_from(MosquitoObservation))).scalar_one()
+    res_count = (await db.execute(select(func.count()).select_from(ResistanceTestReplicate))).scalar_one()
+    alert_count = (await db.execute(
+        select(func.count()).select_from(Alert).where(Alert.status == "active")
+    )).scalar_one()
+    return {
+        "sites": site_count,
+        "mosquito_observations": obs_count,
+        "resistance_tests": res_count,
+        "active_alerts": alert_count,
+        "source": "db",
+    }
+
+
+@router.get("/dashboard/database-status")
+async def database_status(db: AsyncSession = Depends(get_db)) -> dict:
+    await db.execute(text("select 1"))
+    counts = {
+        "sites": (await db.execute(select(func.count()).select_from(Site))).scalar_one(),
+        "mosquito_observations": (await db.execute(select(func.count()).select_from(MosquitoObservation))).scalar_one(),
+        "resistance_test_replicates": (
+            await db.execute(select(func.count()).select_from(ResistanceTestReplicate))
+        ).scalar_one(),
+        "alerts": (await db.execute(select(func.count()).select_from(Alert))).scalar_one(),
+    }
+    return {
+        "connected": True,
+        "source": "db",
+        "counts": counts,
+        "operational_data_ready": counts["mosquito_observations"] > 0 and counts["resistance_test_replicates"] > 0,
+    }
 
 
 @router.get("/dashboard/readiness")

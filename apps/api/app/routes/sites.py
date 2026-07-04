@@ -25,17 +25,8 @@ class SiteIn(BaseModel):
 
 @router.get("/sites")
 async def list_sites(db: AsyncSession = Depends(get_db)) -> dict:
-    current_data_sites = read_csv("data/sites/sites.csv")
-    if current_data_sites:
-        return {"items": current_data_sites, "source": "current_data_csv"}
-    try:
-        rows = (await db.execute(select(Site))).scalars().all()
-        if rows:
-            return {"items": [_site_dict(s) for s in rows], "source": "db"}
-    except Exception:
-        pass
-    # CSV fallback
-    return {"items": [], "source": "empty"}
+    rows = (await db.execute(select(Site).order_by(Site.district, Site.site_name))).scalars().all()
+    return {"items": [_site_dict(s) for s in rows], "source": "db"}
 
 
 @router.get("/sites/coordinate-candidates")

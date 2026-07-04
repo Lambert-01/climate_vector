@@ -14,6 +14,7 @@ async function req(path, options = {}) {
 export const api = {
   health: () => req("/health"),
   stats: () => req("/dashboard/stats"),
+  databaseStatus: () => req("/dashboard/database-status"),
   readiness: () => req("/dashboard/readiness"),
   missingDataSources: () => req("/readiness/missing-data-sources"),
   climateSummary: () => req("/dashboard/climate-summary"),
