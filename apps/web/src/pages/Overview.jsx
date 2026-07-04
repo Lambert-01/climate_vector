@@ -47,7 +47,7 @@ function fmt(value) {
 
 function statusVariant(value) {
   const text = String(value ?? "");
-  if (text === "yes" || text.includes("ready")) return "green";
+  if (text === "yes" || text.includes("ready") || text.includes("usable") || text.includes("validated")) return "green";
   if (text === "partial" || text.includes("context")) return "amber";
   if (text.includes("not")) return "red";
   return "blue";
