@@ -30,9 +30,11 @@ async def dashboard_stats(db: AsyncSession = Depends(get_db)) -> dict:
     except Exception:
         # Fallback to CSV when DB is not yet seeded
         readiness = read_csv("data/processed/data_readiness_summary.csv")
+        mosquito_rows = read_csv("data/processed/mosquito_ecology_preliminary.csv")
+        sites = {row.get("site_raw", "").strip().lower() for row in mosquito_rows if row.get("site_raw")}
         return {
-            "sites": 2,
-            "mosquito_observations": len(read_csv("data/processed/mosquito_ecology_preliminary.csv")),
+            "sites": len(sites),
+            "mosquito_observations": len(mosquito_rows),
             "resistance_tests": len(read_csv("data/processed/resistance_test_replicates_preliminary.csv")),
             "active_alerts": 0,
             "readiness_items": len(readiness),
@@ -47,5 +49,5 @@ def dashboard_readiness() -> dict:
 
 @router.get("/dashboard/climate-summary")
 def climate_summary() -> dict:
-    rows = read_nasa_power_csv("data/climate/kigali_test_2021_2025.csv")
-    return {"items": rows[-90:]}
+    rows = read_nasa_power_csv("data/external/nasa_power/gasabo_nasa_power_2021_2025.csv")
+    return {"district": "gasabo", "items": rows[-90:]}

@@ -30,5 +30,5 @@ def climate_district(district: str, days: int = 90) -> dict:
 
 @router.get("/climate/kigali")
 def climate_kigali(days: int = 90) -> dict:
-    rows = read_nasa_power_csv("data/climate/kigali_test_2021_2025.csv")
-    return {"items": rows[-days:]}
+    rows = read_nasa_power_csv("data/external/nasa_power/gasabo_nasa_power_2021_2025.csv")
+    return {"district": "gasabo", "items": rows[-days:]}

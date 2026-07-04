@@ -1,132 +1,50 @@
-# Rwanda Climate-Vector Intelligence System
+# Rwanda Climate-Vector Intelligence Prototype
 
-Professional Proof-of-Concept workspace for a climate-informed mosquito ecology, insecticide-resistance, and decision-support system for Rwanda.
+This workspace is being restarted around the data that is available now.
 
-The current product is a **Climate-Vector Intelligence Prototype** built with the data currently available: preliminary mosquito ecology records, preliminary resistance-test records, public climate/environment datasets, and a transparent mathematical suitability proxy. It is not a validated prediction system yet.
+The project uses:
 
-## Stack
+- `data/raw/IR_data.xls`
+- `data/raw/mosquito_behavior_raw.xls`
+- useful public climate, environment, population, boundary, and mosquito-occurrence data in `data/external/`
+- the concept note in `docs/concept_note_original.doc`
 
-- Python data engine: `packages/climate_vector`
-- Python API: `apps/api` using FastAPI
-- React frontend: `apps/web` using Vite + React
-- Database design: `database/schema.sql` for PostgreSQL/PostGIS
-- Data workflow: `data/raw -> data/interim -> data/processed`
+The goal is a professional proof-of-concept for a climate-informed mosquito ecology and insecticide-exposure decision-support system for Rwanda. The system must be honest: it can produce descriptive analytics, climate suitability indices, public-data context, provisional maps, readiness scoring, and pilot planning. It must not claim validated prediction of mosquito abundance, insecticide resistance, or malaria outcomes until missing field/lab variables are collected.
 
-## Current Build Status
+## Active Plan
 
-Implemented:
-
-- Clean monorepo structure.
-- Raw `.xls` extraction using standard-library Python.
-- First-pass mosquito ecology table.
-- First-pass resistance-test table from `IR_data.xls`.
-- Data readiness summary.
-- Descriptive summary tables.
-- Static HTML dashboard.
-- FastAPI skeleton.
-- React/Vite frontend skeleton.
-- PostgreSQL/PostGIS-ready schema.
-- Data dictionaries.
-- Implementation master plan.
-- Public/open-data feature extraction from NASA POWER, GBIF, WorldClim inventory, ERA5-Land summary, and geospatial source inventory.
-- Current-data solution blueprint for NCST/Nexa Proof-of-Concept framing.
-- Missing-data source guide with public substitutes and pilot strategy.
-- Provisional site-coordinate map and validation workflow.
-- District-level mathematical suitability proxy dashboard.
-
-Not implemented yet:
-
-- Site-level climate/environment extraction.
-- Validated resistance classification.
-- Validated prediction models.
-- Malaria early warning.
-
-## Project Structure
+Read the current implementation plan:
 
 ```text
-apps/
-  api/                  FastAPI backend
-  web/                  React frontend
+docs/current/current_data_implementation_plan.md
+```
 
-packages/
-  climate_vector/       Python data engine
+## Clean Data Structure
 
-scripts/
-  pipelines/            Reproducible data pipelines
-
+```text
 data/
-  raw/                  Original PI/lecturer files
-  external/             Open climate/environment/population data
-  interim/              Generated intermediate files
-  processed/            Generated dashboard/model-ready files
+  raw/                  PI/lecturer datasets only
+  external/             public covariate data kept because it can help the model
+  interim/              regenerated temporary extraction tables
+  processed/            regenerated model/dashboard-ready tables
 
 docs/
-  implementation/       Master implementation plan
-  architecture/         Full stack architecture
-  proposal/             NCST/Nexa proof-of-concept framing and current-data blueprint
-  data_audits/          Dataset assessments
-  data_dictionary/      Data dictionaries
+  concept_note_original.doc
+  current/              active current-data implementation plan
 
-database/
-  schema.sql            PostgreSQL/PostGIS schema
+outputs/
+  reports/              regenerated reports
+  tables/               regenerated summary tables
 ```
 
-## Run Current Python Pipeline
+## System Stack
 
-```bash
-python3 scripts/pipelines/01_ingest_raw_excel.py
-python3 scripts/pipelines/02_build_processed_tables.py
-python3 scripts/pipelines/03_build_static_dashboard.py
-python3 scripts/pipelines/05_validate_model_readiness.py
-python3 scripts/pipelines/06_build_gap_resolution_package.py
-python3 scripts/pipelines/07_build_public_open_data_features.py
-```
-
-Static report:
-
-```text
-outputs/reports/static_dashboard.html
-outputs/reports/model_readiness_validation.md
-outputs/reports/public_data_exploitation_summary.md
-```
-
-Public/open-data tables now generated:
-
-```text
-outputs/tables/public_data_sources_inventory.csv
-outputs/tables/worldclim_archives_manifest.csv
-data/processed/gbif_mosquito_occurrences_rwanda.csv
-data/processed/public_data_district_features.csv
-data/processed/era5_land_available_summary.csv
-```
-
-Proposal blueprint:
-
-```text
-docs/proposal/current_data_solution_blueprint.md
-docs/proposal/nexa_poc_data_strategy.md
-```
-
-## Run API Later
-
-After installing API dependencies:
-
-```bash
-cd apps/api
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-
-## Run React Frontend Later
-
-After installing Node dependencies:
-
-```bash
-cd apps/web
-npm install
-npm run dev
-```
+- Python data engine and modelling pipelines
+- FastAPI backend
+- React/Vite frontend
+- PostgreSQL/PostGIS-ready database design
+- Public climate/environment data integration
 
 ## Scientific Rule
 
-Current outputs are descriptive and readiness-focused. Do not claim validated mosquito abundance, resistance, or malaria prediction until missing dates, GPS coordinates, resistance denominators/protocols, control mortality, field counts, sampling effort, positive/negative observations, and health/action outcomes are confirmed.
+This is a current-data proof-of-concept. Missing exact sample dates, official GPS, mosquito counts, sampling effort, positive/negative habitat observations, resistance denominators, control mortality, assay protocol, and malaria/intervention outcomes remain future pilot or PI-confirmation variables.
