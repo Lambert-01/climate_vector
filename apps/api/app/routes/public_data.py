@@ -47,3 +47,13 @@ def era5_available_summary() -> dict:
 def public_data_summary() -> dict:
     path = ROOT / "outputs" / "reports" / "public_data_exploitation_summary.md"
     return {"markdown": path.read_text(encoding="utf-8") if path.exists() else ""}
+
+
+@router.get("/public-data/download-manifest")
+def open_data_download_manifest() -> dict:
+    return {"items": read_csv("outputs/tables/open_data_download_manifest.csv")}
+
+
+@router.get("/public-data/planned-sources")
+def open_data_planned_sources() -> dict:
+    return {"items": read_csv("outputs/tables/open_data_planned_sources.csv")}

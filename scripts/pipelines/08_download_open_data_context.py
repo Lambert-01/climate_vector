@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import csv
 import gzip
+import json
+import os
 import shutil
 import ssl
+import subprocess
 import urllib.error
 import urllib.request
 from datetime import date, timedelta
@@ -20,6 +23,18 @@ RWANDA_BBOX = {
     "south": -3.0,
     "west": 28.8,
     "east": 30.9,
+}
+
+WHO_HDX_KEEP_FILENAMES = {
+    "air_pollution_indicators_rwa.csv",
+    "environment_and_health_indicators_rwa.csv",
+    "health_indicators_rwa.csv",
+    "health_systems_indicators_rwa.csv",
+    "health_workforce_indicators_rwa.csv",
+    "malaria_indicators_rwa.csv",
+    "neglected_tropical_diseases_indicators_rwa.csv",
+    "water_sanitation_and_hygiene_wash_indicators_rwa.csv",
+    "world_health_statistics_indicators_rwa.csv",
 }
 
 
@@ -106,6 +121,98 @@ def download_srtm_if_missing() -> dict[str, object]:
     return _download_row("srtm_opentopography", url, destination, ok, status)
 
 
+def download_hdx_who_metadata() -> dict[str, object]:
+    destination = EXTERNAL / "resistance_context" / "who_data_for_rwa_package.json"
+    url = "https://data.humdata.org/api/3/action/package_show?id=who-data-for-rwa"
+    if destination.exists():
+        return _download_row("who_hdx_rwanda_metadata", url, destination, True, "already_exists")
+    ok, status = download_url(url, destination, timeout=90)
+    if ok:
+        try:
+            payload = json.loads(destination.read_text(encoding="utf-8"))
+            if not payload.get("success", False):
+                return _download_row("who_hdx_rwanda_metadata", url, destination, False, "api_success_false")
+        except Exception as exc:
+            return _download_row("who_hdx_rwanda_metadata", url, destination, False, f"json_parse_failed: {exc}")
+    else:
+        destination.unlink(missing_ok=True)
+    return _download_row("who_hdx_rwanda_metadata", url, destination, ok, status)
+
+
+def download_hdx_who_csv_resources() -> list[dict[str, object]]:
+    metadata_path = EXTERNAL / "resistance_context" / "who_data_for_rwa_package.json"
+    rows: list[dict[str, object]] = []
+    if not metadata_path.exists():
+        rows.append(
+            {
+                "dataset": "who_hdx_rwanda_csv_resources",
+                "status": "metadata_missing",
+                "success": False,
+                "url": "",
+                "local_path": str(metadata_path.relative_to(ROOT)),
+                "size_mb": 0,
+            }
+        )
+        return rows
+    payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+    resources = payload.get("result", {}).get("resources", [])
+    out_dir = EXTERNAL / "resistance_context" / "who_hdx"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for resource in resources:
+        url = resource.get("url") or ""
+        fmt = str(resource.get("format") or "").lower()
+        if "csv" not in fmt and not url.lower().endswith(".csv"):
+            continue
+        filename = url.rsplit("/", 1)[-1] or f"{resource.get('id', 'resource')}.csv"
+        if filename not in WHO_HDX_KEEP_FILENAMES:
+            rows.append(
+                {
+                    "dataset": "who_hdx_rwanda_csv_resource",
+                    "status": "skipped_not_project_relevant",
+                    "success": False,
+                    "url": url,
+                    "local_path": str((out_dir / filename).relative_to(ROOT)),
+                    "size_mb": 0,
+                }
+            )
+            continue
+        destination = out_dir / filename
+        if destination.exists():
+            rows.append(_download_row("who_hdx_rwanda_csv_resource", url, destination, True, "already_exists"))
+            continue
+        ok, status = download_with_curl(url, destination, timeout=45)
+        if not ok:
+            destination.unlink(missing_ok=True)
+        rows.append(_download_row("who_hdx_rwanda_csv_resource", url, destination, ok, status))
+    return rows
+
+
+def download_with_curl(url: str, destination: Path, timeout: int = 45) -> tuple[bool, str]:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        "curl",
+        "-L",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--max-time",
+        str(timeout),
+        "-A",
+        "climate-vector-rwanda-poc/1.0",
+        "-o",
+        str(destination),
+        url,
+    ]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as exc:
+        message = (exc.stderr or exc.stdout or "").strip()
+        return False, f"curl_failed: {message[:160]}"
+    except subprocess.TimeoutExpired:
+        return False, "curl_timeout"
+    return True, "downloaded_curl"
+
+
 def build_planned_rows() -> list[dict[str, object]]:
     return [
         {
@@ -145,10 +252,17 @@ def build_planned_rows() -> list[dict[str, object]]:
         },
         {
             "dataset": "who_malaria_context",
-            "status": "planned_current_resource_link_needed",
+            "status": "metadata_attempted_resource_download_needs_review",
             "local_path": "data/external/resistance_context",
-            "reason": "HDX/WHO resource URLs can change and should be selected from the current resource page.",
-            "safe_next_step": "Add current CSV resource URLs after manual confirmation.",
+            "reason": "HDX/WHO resource URLs can change and may be protected by anti-bot checks in browser routes.",
+            "safe_next_step": "Inspect package metadata and add exact CSV resource URLs that are relevant to malaria/context indicators.",
+        },
+        {
+            "dataset": "worldclim_cmip6",
+            "status": "planned_large_download_choose_scenario_first",
+            "local_path": "data/external/worldclim_cmip6",
+            "reason": "CMIP6 has many GCM/scenario/period combinations; downloading all would be wasteful.",
+            "safe_next_step": "Choose 1-2 GCMs, SSP245 and SSP585, and one future period for proof-of-concept scenario maps.",
         },
     ]
 
@@ -219,9 +333,13 @@ def write_report(download_rows: list[dict[str, object]], planned_rows: list[dict
 
 def main() -> None:
     ensure_layout()
+    chirps_start = date.fromisoformat(os.getenv("CHIRPS_START", "2024-01-01"))
+    chirps_days = int(os.getenv("CHIRPS_DAYS", "31"))
     download_rows: list[dict[str, object]] = []
-    download_rows.extend(download_chirps_sample(date(2024, 1, 1), days=7))
+    download_rows.extend(download_chirps_sample(chirps_start, days=chirps_days))
     download_rows.append(download_srtm_if_missing())
+    download_rows.append(download_hdx_who_metadata())
+    download_rows.extend(download_hdx_who_csv_resources())
     planned_rows = build_planned_rows()
 
     write_csv(

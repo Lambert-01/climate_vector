@@ -105,6 +105,14 @@ PUBLIC_SOURCES = [
         "model_use": "roads, water bodies, settlements, agriculture and accessibility context",
         "limitation": "requires feature extraction and QA of volunteered geographic information",
     },
+    {
+        "source_id": "who_hdx_rwanda",
+        "source_name": "WHO / HDX Rwanda health indicators",
+        "local_path": "data/external/resistance_context/who_hdx",
+        "use_now": "yes_context_only",
+        "model_use": "national health, malaria, environment, WASH, and health-system context indicators",
+        "limitation": "background context only; does not replace project-specific malaria cases, resistance assays, or intervention data",
+    },
 ]
 
 
