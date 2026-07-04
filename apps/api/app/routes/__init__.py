@@ -1,4 +1,4 @@
-from app.routes import alerts, climate, dashboard, modeling, mosquito, readiness, resistance, sites, summaries
+from app.routes import alerts, climate, dashboard, modeling, mosquito, public_data, readiness, resistance, sites, summaries
 
 __all__ = [
     "alerts",
@@ -6,6 +6,7 @@ __all__ = [
     "dashboard",
     "modeling",
     "mosquito",
+    "public_data",
     "readiness",
     "resistance",
     "sites",

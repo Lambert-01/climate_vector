@@ -26,6 +26,7 @@ Implemented:
 - PostgreSQL/PostGIS-ready schema.
 - Data dictionaries.
 - Implementation master plan.
+- Public/open-data feature extraction from NASA POWER, GBIF, WorldClim inventory, ERA5-Land summary, and geospatial source inventory.
 
 Not implemented yet:
 
@@ -72,12 +73,27 @@ database/
 python3 scripts/pipelines/01_ingest_raw_excel.py
 python3 scripts/pipelines/02_build_processed_tables.py
 python3 scripts/pipelines/03_build_static_dashboard.py
+python3 scripts/pipelines/05_validate_model_readiness.py
+python3 scripts/pipelines/06_build_gap_resolution_package.py
+python3 scripts/pipelines/07_build_public_open_data_features.py
 ```
 
 Static report:
 
 ```text
 outputs/reports/static_dashboard.html
+outputs/reports/model_readiness_validation.md
+outputs/reports/public_data_exploitation_summary.md
+```
+
+Public/open-data tables now generated:
+
+```text
+outputs/tables/public_data_sources_inventory.csv
+outputs/tables/worldclim_archives_manifest.csv
+data/processed/gbif_mosquito_occurrences_rwanda.csv
+data/processed/public_data_district_features.csv
+data/processed/era5_land_available_summary.csv
 ```
 
 ## Run API Later
@@ -103,4 +119,3 @@ npm run dev
 ## Scientific Rule
 
 Current outputs are descriptive and readiness-focused. Do not claim validated mosquito abundance, resistance, or malaria prediction until missing dates, GPS coordinates, resistance denominators/protocols, control mortality, field counts, sampling effort, positive/negative observations, and health/action outcomes are confirmed.
-

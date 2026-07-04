@@ -38,6 +38,17 @@ def test_modeling_endpoint_returns_district_signals() -> None:
     assert {"district", "suitability_index", "vectorial_capacity_proxy", "risk_level"}.issubset(first)
 
 
+def test_public_data_endpoint_returns_district_features() -> None:
+    client = TestClient(app)
+    response = client.get("/api/public-data/district-features")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["items"]
+    first = payload["items"][0]
+    assert {"district", "climate_records", "rainfall_mean_daily_mm", "gbif_occurrence_count"}.issubset(first)
+    assert "not validated mosquito outcome predictions" in payload["model_note"]
+
+
 def test_local_dev_cors_preflight_allows_127_frontend() -> None:
     client = TestClient(app)
     response = client.options(
