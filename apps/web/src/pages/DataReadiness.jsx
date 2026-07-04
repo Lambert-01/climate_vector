@@ -2,7 +2,7 @@ import React from "react";
 import { CheckCircle, Database, XCircle } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { AlertBanner, Badge, ReadinessList, SectionCard, Spinner } from "../components/UI";
+import { AlertBanner, Badge, ChartState, DataTable, ReadinessList, SectionCard, Spinner } from "../components/UI";
 
 const MISSING_ITEMS = [
   { item: "Full sample dates (month + year per row)", priority: "high" },
@@ -21,9 +21,11 @@ const PRIORITY_BADGE = { high: "red", medium: "amber", low: "green" };
 
 export default function DataReadiness() {
   const { data, loading } = useFetch(api.readiness);
+  const { data: missingSources, loading: mL, error: mError } = useFetch(api.missingDataSources);
 
   const items = data?.items ?? [];
   const ready = items.filter((i) => String(i.ready).toLowerCase() === "true").length;
+  const sourceRows = missingSources?.items ?? [];
 
   return (
     <div className="page">
@@ -77,6 +79,26 @@ export default function DataReadiness() {
               </div>
             ))}
           </div>
+        </SectionCard>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <SectionCard title="Where To Get Missing Data" icon={Database}>
+          <ChartState loading={mL} error={mError} rows={sourceRows} empty="No missing-data source guide generated yet.">
+            <DataTable
+              rows={sourceRows}
+              maxRows={20}
+              columns={[
+                "priority",
+                "missing_item",
+                "responsible_partner",
+                "where_to_get",
+                "acceptable_file",
+                "dashboard_use",
+                "can_model_without_it",
+              ]}
+            />
+          </ChartState>
         </SectionCard>
       </div>
 

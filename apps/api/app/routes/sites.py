@@ -35,6 +35,15 @@ async def list_sites(db: AsyncSession = Depends(get_db)) -> dict:
     return {"items": read_csv("data/sites/sites.csv")}
 
 
+@router.get("/sites/coordinate-candidates")
+def site_coordinate_candidates() -> dict:
+    rows = read_csv("data/processed/site_coordinate_candidates.csv")
+    return {
+        "items": rows,
+        "model_note": "Provisional district-centroid coordinates for map discussion only; not official site GPS.",
+    }
+
+
 @router.get("/sites/{site_id}")
 async def get_site(site_id: str, db: AsyncSession = Depends(get_db)) -> dict:
     site = await db.get(Site, site_id)

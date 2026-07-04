@@ -13,9 +13,11 @@ export const api = {
   health: () => req("/health"),
   stats: () => req("/dashboard/stats"),
   readiness: () => req("/dashboard/readiness"),
+  missingDataSources: () => req("/readiness/missing-data-sources"),
   climateSummary: () => req("/dashboard/climate-summary"),
 
   sites: () => req("/sites"),
+  siteCoordinateCandidates: () => req("/sites/coordinate-candidates"),
   site: (id) => req(`/sites/${id}`),
 
   mosquitoRecords: (limit = 100) => req(`/mosquito/records?limit=${limit}`),

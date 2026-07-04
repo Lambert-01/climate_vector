@@ -1,119 +1,181 @@
-import React, { useEffect, useRef } from "react";
-import { Map, MapPin } from "lucide-react";
+import React, { useEffect, useMemo, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { Database, Map, MapPin } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, DataTable, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
+
+function asNumber(value) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function markerColor(quality) {
+  return String(quality).includes("validated") ? "#22c55e" : "#f59e0b";
+}
 
 function RwandaMap({ sites }) {
   const mapRef = useRef(null);
   const instanceRef = useRef(null);
+  const layerRef = useRef(null);
 
   useEffect(() => {
     if (instanceRef.current || !mapRef.current) return;
-    const L = window.L;
-    if (!L) return;
 
-    const map = L.map(mapRef.current).setView([-1.94, 29.87], 8);
+    const map = L.map(mapRef.current, { scrollWheelZoom: false }).setView([-1.94, 29.87], 8);
     instanceRef.current = map;
+    layerRef.current = L.layerGroup().addTo(map);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap contributors",
+      attribution: "OpenStreetMap contributors",
       maxZoom: 18,
     }).addTo(map);
 
-    // Rwanda approximate bounds overlay
-    const rwandaBounds = [[-2.84, 28.86], [-1.05, 30.9]];
+    const rwandaBounds = [
+      [-2.84, 28.86],
+      [-1.05, 30.9],
+    ];
     L.rectangle(rwandaBounds, { color: "#0d9488", weight: 1.5, fill: false, dashArray: "4" }).addTo(map);
 
-    return () => { map.remove(); instanceRef.current = null; };
+    setTimeout(() => map.invalidateSize(), 50);
+    return () => {
+      map.remove();
+      instanceRef.current = null;
+      layerRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
-    const L = window.L;
-    if (!L || !instanceRef.current) return;
     const map = instanceRef.current;
+    const layer = layerRef.current;
+    if (!map || !layer) return;
 
-    sites?.forEach((site) => {
-      const lat = parseFloat(site.latitude);
-      const lng = parseFloat(site.longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        const icon = L.divIcon({
-          className: "",
-          html: `<div style="width:12px;height:12px;background:#0d9488;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
-          iconSize: [12, 12],
-          iconAnchor: [6, 6],
-        });
-        L.marker([lat, lng], { icon })
-          .addTo(map)
-          .bindPopup(`<strong>${site.site_name}</strong><br/>${site.district ?? ""}`);
-      }
+    layer.clearLayers();
+    const points = [];
+
+    sites.forEach((site) => {
+      const lat = asNumber(site.latitude);
+      const lng = asNumber(site.longitude);
+      if (lat === null || lng === null) return;
+
+      const color = markerColor(site.coordinate_quality);
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="width:14px;height:14px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 1px 5px rgba(0,0,0,.35)"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+      });
+      L.marker([lat, lng], { icon })
+        .addTo(layer)
+        .bindPopup(
+          `<strong>${site.site_name}</strong><br/>${site.district ?? ""}<br/><small>${String(site.coordinate_quality).replace(/_/g, " ")}</small>`
+        );
+      points.push([lat, lng]);
     });
+
+    if (points.length) {
+      map.fitBounds(points, { padding: [24, 24], maxZoom: 9 });
+    }
+    setTimeout(() => map.invalidateSize(), 50);
   }, [sites]);
 
   return <div ref={mapRef} className="map-container" />;
 }
 
 export default function Sites() {
-  const { data, loading } = useFetch(api.sites);
-  const sites = data?.items ?? [];
+  const { data, loading, error } = useFetch(api.sites);
+  const { data: candidates, loading: cL, error: cError } = useFetch(api.siteCoordinateCandidates);
+
+  const rawSites = data?.items ?? [];
+  const candidateRows = candidates?.items ?? [];
+  const mappedSites = useMemo(() => {
+    const validSites = rawSites
+      .map((site) => ({
+        site_id: site.site_id ?? site.site_name,
+        site_name: site.site_name ?? site.site_id,
+        district: site.district,
+        province: site.province,
+        latitude: site.latitude,
+        longitude: site.longitude,
+        coordinate_quality: site.coordinate_quality ?? "validated",
+        coordinate_source: site.coordinate_source ?? "site_registry",
+        records: site.records ?? "",
+      }))
+      .filter((site) => asNumber(site.latitude) !== null && asNumber(site.longitude) !== null);
+
+    if (validSites.length) return validSites;
+
+    return candidateRows.map((site) => ({
+      site_id: site.site_name,
+      site_name: site.site_name,
+      district: site.district,
+      province: "",
+      latitude: site.candidate_latitude,
+      longitude: site.candidate_longitude,
+      coordinate_quality: site.coordinate_quality,
+      coordinate_source: site.coordinate_source,
+      records: site.records,
+    }));
+  }, [rawSites, candidateRows]);
+
+  const provisional = mappedSites.filter((s) => String(s.coordinate_quality).includes("provisional")).length;
+  const validated = mappedSites.length - provisional;
 
   return (
     <div className="page">
       <div className="page-header">
         <h2>Sentinel Sites</h2>
-        <p>Registered mosquito surveillance sites across Rwanda</p>
+        <p>Site registry, provisional coordinate candidates, and national mapping view</p>
       </div>
 
-      <div className="grid-2" style={{ marginBottom: 20 }}>
+      <SectionCard title="Site Coordinate Coverage" icon={Database}>
+        <MetricStrip
+          items={[
+            { label: "Mapped locations", value: loading || cL ? "..." : mappedSites.length },
+            { label: "Validated GPS", value: loading || cL ? "..." : validated },
+            { label: "Provisional candidates", value: loading || cL ? "..." : provisional },
+            { label: "PI action", value: provisional ? "GPS needed" : "Review" },
+          ]}
+        />
+      </SectionCard>
+
+      <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
         <SectionCard title="Site Map" icon={Map}>
           <div className="card-body">
-            {loading ? <Spinner /> : <RwandaMap sites={sites} />}
-            <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>
-              GPS coordinates pending PI confirmation. Map shows placeholder positions.
-            </p>
+            <ChartState loading={loading || cL} error={error || cError} rows={mappedSites} empty="No mappable site coordinates available.">
+              <RwandaMap sites={mappedSites} />
+              <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>
+                Amber markers are provisional district-centroid candidates. They are useful for discussion, but PI must provide official site GPS before site-level modelling.
+              </p>
+            </ChartState>
           </div>
         </SectionCard>
 
-        <SectionCard title="Site Registry" icon={MapPin}>
-          {loading ? (
-            <Spinner />
-          ) : (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Site</th>
-                    <th>District</th>
-                    <th>Province</th>
-                    <th>GPS</th>
-                    <th>Quality</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sites.map((s, i) => (
-                    <tr key={i}>
-                      <td><strong>{s.site_name ?? s.site_id}</strong></td>
-                      <td>{s.district ?? "—"}</td>
-                      <td>{s.province ?? "—"}</td>
-                      <td>
-                        {s.latitude && s.longitude
-                          ? `${parseFloat(s.latitude).toFixed(4)}, ${parseFloat(s.longitude).toFixed(4)}`
-                          : <Badge variant="red">Missing</Badge>}
-                      </td>
-                      <td>
-                        <Badge variant={s.coordinate_quality === "validated" ? "green" : "amber"}>
-                          {s.coordinate_quality ?? "unconfirmed"}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                  {!sites.length && (
-                    <tr><td colSpan={5} style={{ textAlign: "center", color: "var(--text-muted)", padding: 24 }}>No sites registered yet.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+        <SectionCard title="Map Data Status" icon={MapPin}>
+          <DataTable
+            rows={mappedSites}
+            maxRows={30}
+            columns={["site_name", "district", "records", "latitude", "longitude", "coordinate_quality", "coordinate_source"]}
+          />
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Original Site Registry" icon={MapPin}>
+        <DataTable
+          rows={rawSites}
+          maxRows={50}
+          columns={["site_id", "site_name", "district", "province", "latitude", "longitude", "coordinate_quality"]}
+        />
+      </SectionCard>
+
+      <div style={{ marginTop: 20 }}>
+        <SectionCard title="PI Coordinate Candidates To Validate" icon={MapPin}>
+          <DataTable
+            rows={candidateRows}
+            maxRows={50}
+            columns={["site_name", "district", "records", "candidate_latitude", "candidate_longitude", "coordinate_quality", "pi_action"]}
+          />
         </SectionCard>
       </div>
     </div>

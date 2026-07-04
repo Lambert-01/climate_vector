@@ -353,6 +353,8 @@ tbody td {
   border-bottom: 1px solid var(--border-light);
   color: var(--text-primary);
   vertical-align: middle;
+  max-width: 420px;
+  overflow-wrap: anywhere;
 }
 
 tbody tr:last-child td { border-bottom: none; }
