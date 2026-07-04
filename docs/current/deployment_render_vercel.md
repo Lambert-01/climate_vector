@@ -33,7 +33,7 @@ apps/api/
 Backend command:
 
 ```bash
-cd apps/api && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port $PORT
 ```
 
 The Render docs for FastAPI use a Python web service with `pip install -r requirements.txt` and `uvicorn ... --host 0.0.0.0 --port $PORT`. This repo uses the same pattern, adjusted for the monorepo path.
@@ -51,7 +51,7 @@ apps/web/
 Build command:
 
 ```bash
-cd apps/web && npm install && npm run build
+npm run web:build
 ```
 
 Output directory:
@@ -95,7 +95,7 @@ Name: rcvis-api
 Runtime: Python
 Root Directory: leave blank
 Build Command: pip install -r apps/api/requirements.txt
-Start Command: cd apps/api && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+Start Command: uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port $PORT
 ```
 
 4. Add environment variables:
@@ -127,13 +127,24 @@ https://YOUR-RENDER-SERVICE.onrender.com/api/dashboard/stats
 ## Vercel Setup
 
 1. In Vercel, import the same GitHub repository.
-2. Keep the repo root as the Vercel root. The included `vercel.json` sets the monorepo build:
+2. Recommended: keep the repo root as the Vercel root. The included root `vercel.json` sets the monorepo build:
 
 ```text
 Framework Preset: Vite
 Root Directory: leave blank
-Build Command: cd apps/web && npm install && npm run build
+Install Command: npm install
+Build Command: npm run web:build
 Output Directory: apps/web/dist
+```
+
+If your Vercel project root is already set to `apps/web`, use this instead:
+
+```text
+Framework Preset: Vite
+Root Directory: apps/web
+Install Command: npm install
+Build Command: npm run build
+Output Directory: dist
 ```
 
 3. Add the frontend environment variable:
