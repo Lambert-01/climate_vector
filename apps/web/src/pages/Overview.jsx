@@ -38,6 +38,7 @@ export default function Overview() {
   const { data: publicSources, loading: pL, error: pError } = useFetch(api.publicDataSources);
   const { data: publicFeatures, loading: fL, error: fError } = useFetch(api.publicDistrictFeatures);
   const { data: gbif } = useFetch(() => api.publicGbif(1));
+  const { data: missingSources, loading: mL, error: mError } = useFetch(api.missingDataSources);
 
   const climateRows = (climate?.items ?? []).slice(-60).map((r) => ({
     date: r.DATE ?? r.date ?? "",
@@ -46,6 +47,7 @@ export default function Overview() {
   }));
 
   const sourceRows = publicSources?.items ?? [];
+  const missingRows = missingSources?.items ?? [];
   const publicFeatureRows = publicFeatures?.items ?? [];
   const loadedSources = sourceRows.filter((s) => Number(s.file_count ?? 0) > 0).length;
   const pendingSources = sourceRows.filter((s) => s.use_now === "not_downloaded_yet").length;
@@ -120,6 +122,21 @@ export default function Overview() {
                 </Badge>
                 <div>{Number(source.file_count ?? 0).toLocaleString()} files</div>
                 <div className="coverage-note">{source.model_use}</div>
+              </div>
+            ))}
+          </div>
+        </ChartState>
+      </SectionCard>
+
+      <SectionCard title="Critical Missing Data: Where To Get It" icon={AlertTriangle}>
+        <ChartState loading={mL} error={mError} rows={missingRows} empty="No missing-data source guide loaded.">
+          <div className="coverage-list">
+            {missingRows.slice(0, 6).map((row) => (
+              <div className="coverage-row" key={row.missing_item}>
+                <div className="coverage-name">{row.missing_item}</div>
+                <Badge variant={row.priority === "critical" ? "red" : "amber"}>{row.priority}</Badge>
+                <div>{row.responsible_partner}</div>
+                <div className="coverage-note">{row.where_to_get}</div>
               </div>
             ))}
           </div>

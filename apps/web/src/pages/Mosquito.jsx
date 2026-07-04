@@ -16,6 +16,18 @@ import { AlertBanner, ChartState, DataTable, SectionCard } from "../components/U
 
 const COLORS = ["#0d9488", "#0b6b77", "#2dd4bf", "#14b8a6", "#5eead4", "#99f6e4"];
 
+function cleanRecord(row) {
+  return {
+    source_row_id: row.source_row_id ?? row.observation_id ?? "—",
+    district: row.district_raw ?? row.district ?? "—",
+    site: row.site_raw ?? row.site_name ?? row.visit_id ?? "—",
+    species: row.anopheles_species_raw ?? row.species_clean ?? row.species_raw ?? "—",
+    breeding_site_type: row.breeding_site_type_raw ?? row.habitat_type ?? "—",
+    collection_date: row.collection_date ?? row.visit_date ?? [row.day_only, row.month, row.year].filter(Boolean).join("/") || "missing",
+    quality_flag: row.quality_flag ?? "needs_review",
+  };
+}
+
 function BarChartCard({ title, icon, data, loading, error, dataKey = "count", nameKey = "value" }) {
   return (
     <SectionCard title={title} icon={icon}>
@@ -56,6 +68,7 @@ export default function Mosquito() {
   const { data: bySpecies, loading: sL, error: sError } = useFetch(api.mosquitoBySpecies);
   const { data: byBreeding, loading: bL, error: bError } = useFetch(api.mosquitoByBreedingSite);
   const { data: records, loading: rL, error: rError } = useFetch(() => api.mosquitoRecords(200));
+  const tableRows = (records?.items ?? []).map(cleanRecord);
 
   return (
     <div className="page">
@@ -77,10 +90,10 @@ export default function Mosquito() {
       </div>
 
       <SectionCard title="Mosquito Records (first 200)" icon={Activity}>
-        <ChartState loading={rL} error={rError} rows={records?.items ?? []} empty="No mosquito records loaded.">
+        <ChartState loading={rL} error={rError} rows={tableRows} empty="No mosquito records loaded.">
           <DataTable
-            rows={records?.items ?? []}
-            columns={["source_row_id", "district_raw", "site_raw", "anopheles_species_raw", "breeding_site_type_raw", "quality_flag"]}
+            rows={tableRows}
+            columns={["source_row_id", "district", "site", "species", "breeding_site_type", "collection_date", "quality_flag"]}
           />
         </ChartState>
       </SectionCard>

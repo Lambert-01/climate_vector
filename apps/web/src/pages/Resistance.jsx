@@ -16,6 +16,20 @@ import { AlertBanner, ChartState, DataTable, SectionCard } from "../components/U
 
 const COLORS = ["#f97316", "#ef4444", "#f59e0b", "#fb923c", "#fbbf24", "#fca5a5"];
 
+function cleanRecord(row) {
+  return {
+    source_row_id: row.source_row_id ?? row.replicate_id ?? "—",
+    district: row.district_raw ?? row.district ?? "—",
+    site: row.site_raw ?? row.site_id ?? "—",
+    insecticide: row.insecticide_tested_raw ?? row.insecticide_tested ?? "—",
+    concentration: row.concentration_label_raw ?? row.concentration_label ?? "—",
+    dead_24h: row.number_dead_24h ?? "—",
+    denominator: row.number_exposed || "missing",
+    control_mortality: row.control_mortality || "missing",
+    quality_flag: row.quality_flag ?? "needs_review",
+  };
+}
+
 export default function Resistance() {
   const { data: deathSummary, loading: dL, error: dError } = useFetch(api.resistanceDeathSummary);
   const { data: byDistrict, loading: distL, error: distError } = useFetch(api.resistanceByDistrict);
@@ -27,6 +41,7 @@ export default function Resistance() {
     max: parseFloat(r.max ?? 0),
     records: parseInt(r.records ?? 0),
   }));
+  const tableRows = (records?.items ?? []).map(cleanRecord);
 
   return (
     <div className="page">
@@ -106,10 +121,10 @@ export default function Resistance() {
 
       <div style={{ marginTop: 20 }}>
         <SectionCard title="Resistance Records (first 200)" icon={FlaskConical}>
-          <ChartState loading={rL} error={rError} rows={records?.items ?? []} empty="No resistance records loaded.">
+          <ChartState loading={rL} error={rError} rows={tableRows} empty="No resistance records loaded.">
             <DataTable
-              rows={records?.items ?? []}
-              columns={["source_row_id", "district_raw", "site_raw", "insecticide_tested_raw", "concentration_label_raw", "number_dead_24h", "mortality_rate_raw", "quality_flag"]}
+              rows={tableRows}
+              columns={["source_row_id", "district", "site", "insecticide", "concentration", "dead_24h", "denominator", "control_mortality", "quality_flag"]}
             />
           </ChartState>
         </SectionCard>
