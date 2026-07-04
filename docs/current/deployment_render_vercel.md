@@ -14,8 +14,8 @@ Render
   https://your-api.onrender.com
         |
         v
-CSV current-data MVP files now
-PostgreSQL/Neon later when persistent user data is needed
+Neon PostgreSQL when migrated and seeded
+CSV current-data fallback if database is empty
 ```
 
 ## What Goes Where
@@ -51,13 +51,13 @@ apps/web/
 Build command:
 
 ```bash
-npm run build
+cd apps/web && npm install && npm run build
 ```
 
 Output directory:
 
 ```text
-dist
+apps/web/dist
 ```
 
 Vercel environment variables are configured per project/environment. For Vite, public build-time variables must use the `VITE_` prefix.
@@ -76,6 +76,7 @@ Do commit:
 
 - source code
 - `render.yaml`
+- `vercel.json`
 - `data/processed/*.csv`
 - `data/sites/*.csv`
 - `outputs/tables/*.csv`
@@ -112,7 +113,9 @@ DATABASE_URL=postgresql://...
 DATABASE_SYNC_URL=postgresql://...
 ```
 
-For the MVP, the API can operate from the committed CSV extracts even before database seeding.
+Use the Neon connection strings already prepared locally, but keep them only in Render environment variables. Never commit `.env`.
+
+For the MVP, the API can operate from the committed CSV extracts even before database seeding. For the stronger production demo, migrate and seed Neon before connecting Vercel.
 
 5. After deployment, test:
 
@@ -124,14 +127,13 @@ https://YOUR-RENDER-SERVICE.onrender.com/api/dashboard/stats
 ## Vercel Setup
 
 1. In Vercel, import the same GitHub repository.
-2. Set:
+2. Keep the repo root as the Vercel root. The included `vercel.json` sets the monorepo build:
 
 ```text
 Framework Preset: Vite
-Root Directory: apps/web
-Build Command: npm run build
-Output Directory: dist
-Install Command: npm install
+Root Directory: leave blank
+Build Command: cd apps/web && npm install && npm run build
+Output Directory: apps/web/dist
 ```
 
 3. Add the frontend environment variable:
@@ -156,16 +158,35 @@ VITE_API_BASE=https://YOUR-RENDER-SERVICE.onrender.com/api
 - Render free services may sleep after inactivity, so first API load can be slow.
 - Vercel environment variable changes require a redeploy.
 - CORS must include the exact Vercel domain in `API_CORS_ORIGINS`.
+- If Vercel gives preview domains, add them to `API_CORS_ORIGINS` too, separated by commas.
 - Do not upload raw PI Excel files to public GitHub.
 - Do not claim validated malaria prediction; this is a current-data MVP ready for pilot validation.
+
+## Neon Migration And Seed
+
+Run this locally before or after Render deployment when you want the API to use the database instead of CSV fallback:
+
+```bash
+cd /Users/apple/climate_vector_project
+source .venv/bin/activate
+alembic upgrade head
+python3 scripts/pipelines/04_seed_neon.py
+```
+
+Then restart the API and check:
+
+```text
+https://YOUR-RENDER-SERVICE.onrender.com/api/dashboard/stats
+```
+
+If the database is unavailable, the API should still serve the current-data CSV extracts.
 
 ## Later Upgrade
 
 After the MVP demo works:
 
-1. Add Neon/PostgreSQL.
-2. Run Alembic migrations.
-3. Seed processed CSVs into database tables.
-4. Add authentication.
-5. Add action logging and user roles.
-6. Add real GPS/date/effort/protocol data from the pilot.
+1. Add authentication.
+2. Add action logging and user roles.
+3. Add field verification forms.
+4. Add real GPS/date/effort/protocol data from the pilot.
+5. Refit the modelling layer with validated outcome fields.

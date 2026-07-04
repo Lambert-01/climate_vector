@@ -15,7 +15,7 @@ from sqlalchemy import func, select  # noqa: E402
 from sqlalchemy.dialects.postgresql import insert  # noqa: E402
 
 from app.core.database import AsyncSessionLocal  # noqa: E402
-from app.models import ClimateDaily, FieldVisit, MosquitoObservation, ResistanceTestReplicate, Site  # noqa: E402
+from app.models import Alert, ClimateDaily, FieldVisit, MosquitoObservation, ResistanceTestReplicate, Site  # noqa: E402
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -79,6 +79,13 @@ def site_id(value: str | None) -> str | None:
     return value.lower().replace(" ", "_").replace("/", "_")
 
 
+def title_label(value: str | None) -> str | None:
+    value = clean_text(value)
+    if not value:
+        return None
+    return " ".join(part[:1].upper() + part[1:].lower() for part in value.split())
+
+
 async def bulk_upsert(
     session,
     model,
@@ -104,7 +111,6 @@ async def seed(dry_run: bool = False) -> dict[str, int]:
     mosquito_rows = read_csv(ROOT / "data" / "processed" / "mosquito_ecology_preliminary.csv")
     resistance_rows = read_csv(ROOT / "data" / "processed" / "resistance_test_replicates_preliminary.csv")
     site_rows = read_csv(ROOT / "data" / "sites" / "sites.csv")
-    climate_rows = read_nasa_power_csv(ROOT / "data" / "climate" / "kigali_test_2021_2025.csv")
 
     sites: dict[str, dict] = {}
 
@@ -114,13 +120,13 @@ async def seed(dry_run: bool = False) -> dict[str, int]:
             continue
         sites[sid] = {
             "site_id": sid,
-            "site_name": clean_text(row.get("site_id")) or sid,
-            "district": None,
-            "province": None,
+            "site_name": clean_text(row.get("site_name")) or title_label(row.get("site_id")) or sid,
+            "district": clean_text(row.get("district")),
+            "province": clean_text(row.get("province")),
             "latitude": as_float(row.get("latitude")),
             "longitude": as_float(row.get("longitude")),
-            "coordinate_source": "site_registry_csv",
-            "coordinate_quality": "unconfirmed",
+            "coordinate_source": clean_text(row.get("coordinate_source")) or "current_data_site_registry",
+            "coordinate_quality": clean_text(row.get("coordinate_quality")) or "provisional_requires_pi_gps",
         }
 
     for row in mosquito_rows + resistance_rows:
@@ -199,22 +205,66 @@ async def seed(dry_run: bool = False) -> dict[str, int]:
         )
 
     climate_daily: list[dict] = []
-    for row in climate_rows:
-        year = as_int(row.get("YEAR"))
-        doy = as_int(row.get("DOY"))
-        if not (year and doy):
-            continue
-        climate_daily.append(
-            {
-                "location_id": "kigali_reference",
-                "date": date(year, 1, 1) + timedelta(days=doy - 1),
-                "rainfall_mm": as_float(row.get("PRECTOTCORR")),
-                "tmean_c": as_float(row.get("T2M")),
-                "tmin_c": as_float(row.get("T2M_MIN")),
-                "tmax_c": as_float(row.get("T2M_MAX")),
-                "relative_humidity": as_float(row.get("RH2M")),
-            }
-        )
+    climate_dir = ROOT / "data" / "external" / "nasa_power"
+    for path in sorted(climate_dir.glob("*_nasa_power_*.csv")):
+        district_key = path.name.split("_nasa_power")[0]
+        for row in read_nasa_power_csv(path):
+            year = as_int(row.get("YEAR"))
+            doy = as_int(row.get("DOY"))
+            if not (year and doy):
+                continue
+            climate_daily.append(
+                {
+                    "location_id": district_key,
+                    "date": date(year, 1, 1) + timedelta(days=doy - 1),
+                    "rainfall_mm": as_float(row.get("PRECTOTCORR")),
+                    "tmean_c": as_float(row.get("T2M")),
+                    "tmin_c": as_float(row.get("T2M_MIN")),
+                    "tmax_c": as_float(row.get("T2M_MAX")),
+                    "relative_humidity": as_float(row.get("RH2M")),
+                }
+            )
+
+    district_counts: dict[str, int] = {}
+    site_counts: dict[str, int] = {}
+    rainfall_by_district: dict[str, float] = {}
+    for row in mosquito_rows:
+        district = clean_text(row.get("district_raw"))
+        if district:
+            district_counts[district.lower()] = district_counts.get(district.lower(), 0) + 1
+    for row in site_rows:
+        district = clean_text(row.get("district"))
+        if district:
+            site_counts[district.lower()] = site_counts.get(district.lower(), 0) + 1
+    for row in read_csv(ROOT / "data" / "processed" / "public_data_district_features.csv"):
+        district = clean_text(row.get("district"))
+        if district:
+            rainfall_by_district[district.lower()] = as_float(row.get("rainfall_mean_daily_mm")) or 0.0
+
+    alert_candidates = []
+    for district_key, record_count in district_counts.items():
+        rainfall = rainfall_by_district.get(district_key, 0.0)
+        mapped_sites = site_counts.get(district_key, 0)
+        score = record_count * 0.65 + rainfall * 35 + mapped_sites * 8
+        alert_candidates.append((score, district_key, record_count, rainfall, mapped_sites))
+    alert_candidates.sort(reverse=True)
+    alerts = [
+        {
+            "alert_id": f"current-data-{index:03d}",
+            "alert_date": date.today(),
+            "district": title_label(district_key),
+            "risk_level": "high" if index <= 2 else "medium",
+            "risk_reason": f"{record_count} PI ecology records, {mapped_sites} mapped sites, {rainfall:.2f} mm/day rainfall proxy",
+            "rule_or_model_version": "field-verification-priority-v1",
+            "uncertainty_level": "managed",
+            "issued_by": None,
+            "approved_by": None,
+            "status": "pending_review" if index <= 3 else "acknowledged",
+            "alert_expiry_date": None,
+            "recommended_action": "Prioritize site GPS validation and targeted larval/resistance follow-up",
+        }
+        for index, (_, district_key, record_count, rainfall, mapped_sites) in enumerate(alert_candidates[:5], start=1)
+    ]
 
     async with AsyncSessionLocal() as session:
         await bulk_upsert(session, Site, list(sites.values()), ["site_id"])
@@ -222,6 +272,7 @@ async def seed(dry_run: bool = False) -> dict[str, int]:
         await bulk_upsert(session, MosquitoObservation, mosquito_observations, ["observation_id"])
         await bulk_upsert(session, ResistanceTestReplicate, resistance_replicates, ["replicate_id"])
         await bulk_upsert(session, ClimateDaily, climate_daily, ["location_id", "date"])
+        await bulk_upsert(session, Alert, alerts, ["alert_id"])
 
         if dry_run:
             await session.rollback()
@@ -235,6 +286,7 @@ async def seed(dry_run: bool = False) -> dict[str, int]:
             (MosquitoObservation, "mosquito_observations"),
             (ResistanceTestReplicate, "resistance_test_replicates"),
             (ClimateDaily, "climate_daily"),
+            (Alert, "alerts"),
         ]:
             counts[key] = (await session.execute(select(func.count()).select_from(model))).scalar_one()
         return counts
