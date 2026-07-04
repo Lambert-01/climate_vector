@@ -1,0 +1,12 @@
+file,status,message,size_mb,hourly_records,daily_records,date_start,date_end,variables_found,variables_interpreted,missing_core_variables
+era5_land_rwanda_2020_01.nc,ok,,3.147,744,31,2020-01-01,2020-01-31,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2020_02.nc,ok,,2.952,696,29,2020-02-01,2020-02-29,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2020_03.nc,ok,,3.269,744,31,2020-03-01,2020-03-31,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2020_04.nc,ok,,3.247,720,30,2020-04-01,2020-04-30,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2020_05.nc,ok,,2.934,744,31,2020-05-01,2020-05-31,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2020_06.nc,ok,,2.537,720,30,2020-06-01,2020-06-30,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2020_07.nc,ok,,2.498,744,31,2020-07-01,2020-07-31,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2020_08.nc,ok,,2.599,744,31,2020-08-01,2020-08-31,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2020_09.nc,ok,,2.723,720,30,2020-09-01,2020-09-30,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2020_10.nc,ok,,3.038,744,31,2020-10-01,2020-10-31,"d2m,ro,sro,t2m,tp","2m_dewpoint_temperature,runoff,surface_runoff,2m_temperature,total_precipitation",
+era5_land_rwanda_2025_01.nc,ok,,3.036,744,31,2025-01-01,2025-01-31,"d2m,ro,swvl1,t2m,tp","2m_dewpoint_temperature,runoff,volumetric_soil_water_layer_1,2m_temperature,total_precipitation",

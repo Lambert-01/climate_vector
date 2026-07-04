@@ -112,13 +112,13 @@ def combine_daily_summary(raw_dir: Path, output_path: Path, source_files: list[P
         if d2m is not None:
             daily["dewpoint_c"] = kelvin_to_celsius(d2m).resample({time_dim: "1D"}).mean()
         if tp is not None:
-            daily["rainfall_mm"] = (tp * 1000).resample({time_dim: "1D"}).sum()
+            daily["rainfall_mm"] = (tp * 1000).resample({time_dim: "1D"}).max()
         if swvl1 is not None:
             daily["soil_water_layer1_m3_m3"] = swvl1.resample({time_dim: "1D"}).mean()
         if ro is not None:
-            daily["runoff_mm"] = (ro * 1000).resample({time_dim: "1D"}).sum()
+            daily["runoff_mm"] = (ro * 1000).resample({time_dim: "1D"}).max()
         if sro is not None:
-            daily["surface_runoff_mm"] = (sro * 1000).resample({time_dim: "1D"}).sum()
+            daily["surface_runoff_mm"] = (sro * 1000).resample({time_dim: "1D"}).max()
 
         if not daily:
             ds.close()

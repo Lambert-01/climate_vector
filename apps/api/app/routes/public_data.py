@@ -40,7 +40,25 @@ def district_public_features() -> dict:
 
 @router.get("/public-data/era5")
 def era5_available_summary() -> dict:
-    return {"items": read_csv("data/processed/era5_land_available_summary.csv")}
+    return {
+        "summary": read_csv("data/processed/era5_land_available_summary.csv"),
+        "validation": read_csv("data/processed/era5_land_file_validation.csv"),
+        "monthly": read_csv("outputs/tables/era5_land_monthly_summary.csv"),
+        "daily_preview": read_csv("data/processed/era5_land_rwanda_daily_summary.csv")[:120],
+        "model_note": "ERA5-Land gridded climate summaries support climate suitability screening; not validated mosquito outcome prediction.",
+    }
+
+
+@router.get("/public-data/era5/daily")
+def era5_daily(limit: int = 500) -> dict:
+    rows = read_csv("data/processed/era5_land_rwanda_daily_summary.csv")
+    safe_limit = max(1, min(limit, 5000))
+    return {"count": len(rows), "items": rows[:safe_limit]}
+
+
+@router.get("/public-data/era5/monthly")
+def era5_monthly() -> dict:
+    return {"items": read_csv("outputs/tables/era5_land_monthly_summary.csv")}
 
 
 @router.get("/public-data/summary")

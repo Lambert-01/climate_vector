@@ -1,2 +1,2 @@
-dataset,records,date_start,date_end,rainfall_total_mm,rainfall_mean_daily_mm,temperature_mean_c,data_use
-era5_land_rwanda_2021_01_daily_summary,31,2021-01-01,2021-01-31,1724.02,55.614,19.172,national gridded climate test layer; expand before use as operational baseline
+dataset,records,valid_files,date_start,date_end,rainfall_total_mm,rainfall_mean_daily_mm,temperature_mean_c,dewpoint_mean_c,coverage,data_use
+era5_land_rwanda_daily_summary,336,11,2020-01-01,2025-01-31,1935.22,5.76,19.823,14.061,Rwanda bounding-box mean,gridded climate reanalysis covariate for suitability screening and field-planning context

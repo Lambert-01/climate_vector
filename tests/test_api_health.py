@@ -59,6 +59,18 @@ def test_live_weather_endpoint_returns_modelled_insights() -> None:
     assert payload["model"]["version"] == "lcsi-v1"
 
 
+def test_era5_public_endpoint_returns_converted_tables() -> None:
+    client = TestClient(app)
+    response = client.get("/api/public-data/era5")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["summary"]
+    assert payload["validation"]
+    assert payload["monthly"]
+    assert payload["daily_preview"]
+    assert "gridded climate summaries" in payload["model_note"]
+
+
 def test_local_dev_cors_preflight_allows_127_frontend() -> None:
     client = TestClient(app)
     response = client.options(
