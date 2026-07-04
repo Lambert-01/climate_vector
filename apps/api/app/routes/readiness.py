@@ -14,48 +14,64 @@ SOURCE_GUIDANCE = {
         "responsible_partner": "PI / field coordinator",
         "acceptable_file": "CSV or Excel: site_name, district, latitude, longitude, coordinate_source, coordinate_quality.",
         "dashboard_use": "Validated site maps, site-level climate extraction, spatial risk modelling.",
+        "public_substitute": "Administrative boundaries and district centroids can support district maps only.",
+        "proposal_strategy": "Budget a 1-2 week GPS validation sprint for sentinel sites during the proof-of-concept pilot.",
     },
     "full date: day, month, year": {
         "where_to_get": "Original field collection sheets, Kobo/ODK exports, lab receiving logbooks, trap deployment/retrieval logs.",
         "responsible_partner": "PI / data manager / field team",
         "acceptable_file": "CSV or Excel: sample_id, site_name, collection_date, collection_method.",
         "dashboard_use": "Rainfall/temperature lags, seasonality, forecasting, time-series figures.",
+        "public_substitute": "Public climate data supplies weather dates, but cannot recover field collection dates.",
+        "proposal_strategy": "Treat date recovery as retrospective data curation, then collect all new pilot observations using a digital form with required date fields.",
     },
     "mosquito count or abundance per sample": {
         "where_to_get": "Trap count forms, larval dipping records, adult collection logbooks, lab species-count sheets.",
         "responsible_partner": "Entomology lab / field surveillance team",
         "acceptable_file": "CSV or Excel: sample_id, species, life_stage, count.",
         "dashboard_use": "Abundance graphs, negative-binomial/GAM models, hotspot ranking.",
+        "public_substitute": "GBIF/VectorBase provides supporting historical occurrence evidence, not standardized abundance.",
+        "proposal_strategy": "Use current records descriptively and make standardized mosquito counts a core pilot outcome.",
     },
     "sampling effort and method": {
         "where_to_get": "Field protocols, trap-night records, dipping effort logs, number of collectors/hours.",
         "responsible_partner": "Field coordinator / entomology team",
         "acceptable_file": "CSV or Excel: sample_id, method, effort_type, effort_value.",
         "dashboard_use": "Fair comparison between sites, effort-adjusted abundance models.",
+        "public_substitute": "No public substitute. Sampling effort is study-specific.",
+        "proposal_strategy": "Add mandatory effort fields to the pilot digital surveillance form and SOP.",
     },
     "positive and negative habitat status": {
         "where_to_get": "Larval habitat inspection forms, breeding-site survey sheets, negative-site survey logs.",
         "responsible_partner": "Field ecology team",
         "acceptable_file": "CSV or Excel: survey_id, site_name, date, habitat_type, habitat_positive.",
         "dashboard_use": "Presence/absence maps, occurrence models, validation of suitability signals.",
+        "public_substitute": "Land cover, elevation, rainfall, and satellite layers can identify suitable habitats but cannot confirm positive/negative larval status.",
+        "proposal_strategy": "Design the pilot to sample both positive and negative habitats so the model can learn true occurrence.",
     },
     "number exposed denominator": {
         "where_to_get": "WHO/CDC susceptibility test bench sheets, bottle/bioassay replicate forms, lab notebooks.",
         "responsible_partner": "Entomology lab / resistance-testing lead",
         "acceptable_file": "CSV or Excel: replicate_id, insecticide, number_exposed, number_dead_24h.",
         "dashboard_use": "Mortality rates and resistance-status classification.",
+        "public_substitute": "No safe public substitute. Do not assume 25 unless the lab confirms it.",
+        "proposal_strategy": "Use existing resistance rows as preliminary signals and prospectively collect denominator-confirmed assay results.",
     },
     "control mortality and protocol": {
         "where_to_get": "WHO/CDC assay records, control tube/bottle sheets, lab SOPs, species confirmation sheets.",
         "responsible_partner": "Entomology lab / resistance-testing lead",
         "acceptable_file": "CSV or Excel: replicate_id, protocol, control_mortality, species, test_date.",
         "dashboard_use": "Abbott correction, valid/invalid assay flag, final resistance interpretation.",
+        "public_substitute": "No safe public substitute because assay validity is laboratory-specific.",
+        "proposal_strategy": "Make protocol, control mortality, and validity flags mandatory in the resistance pilot module.",
     },
     "insecticide class, timing, dose/frequency, and field location": {
         "where_to_get": "RAB/agriculture extension records, farm pesticide-use surveys, agro-dealer logs, district crop-protection records.",
         "responsible_partner": "RAB / district agriculture office / PI exposure survey team",
         "acceptable_file": "CSV or Excel: site, date, insecticide, chemical_class, dose_or_frequency, field_latitude, field_longitude.",
         "dashboard_use": "Agricultural exposure score and resistance selection-pressure model.",
+        "public_substitute": "Land-cover and cropland layers can proxy agricultural context, but not chemical exposure intensity.",
+        "proposal_strategy": "Run a short farmer/agro-dealer pesticide-use survey around sentinel sites during the pilot.",
     },
 }
 
@@ -80,6 +96,8 @@ def missing_data_sources() -> dict[str, object]:
                 "responsible_partner": guide.get("responsible_partner", "PI / project data manager"),
                 "acceptable_file": guide.get("acceptable_file", "Structured CSV or Excel with stable row IDs."),
                 "dashboard_use": guide.get("dashboard_use", "Improves validation and modelling readiness."),
+                "public_substitute": guide.get("public_substitute", "No confirmed public substitute."),
+                "proposal_strategy": guide.get("proposal_strategy", "Collect through the proof-of-concept pilot."),
             }
         )
     return {

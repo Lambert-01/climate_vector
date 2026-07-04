@@ -93,6 +93,8 @@ export default function DataReadiness() {
                 "missing_item",
                 "responsible_partner",
                 "where_to_get",
+                "public_substitute",
+                "proposal_strategy",
                 "acceptable_file",
                 "dashboard_use",
                 "can_model_without_it",
