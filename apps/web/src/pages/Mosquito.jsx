@@ -17,13 +17,14 @@ import { AlertBanner, ChartState, DataTable, SectionCard } from "../components/U
 const COLORS = ["#0d9488", "#0b6b77", "#2dd4bf", "#14b8a6", "#5eead4", "#99f6e4"];
 
 function cleanRecord(row) {
+  const dateParts = [row.day_only, row.month, row.year].filter(Boolean).join("/");
   return {
     source_row_id: row.source_row_id ?? row.observation_id ?? "—",
     district: row.district_raw ?? row.district ?? "—",
     site: row.site_raw ?? row.site_name ?? row.visit_id ?? "—",
     species: row.anopheles_species_raw ?? row.species_clean ?? row.species_raw ?? "—",
     breeding_site_type: row.breeding_site_type_raw ?? row.habitat_type ?? "—",
-    collection_date: row.collection_date ?? row.visit_date ?? [row.day_only, row.month, row.year].filter(Boolean).join("/") || "missing",
+    collection_date: row.collection_date ?? row.visit_date ?? dateParts || "missing",
     quality_flag: row.quality_flag ?? "needs_review",
   };
 }
