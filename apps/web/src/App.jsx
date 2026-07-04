@@ -1,12 +1,13 @@
 import React from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, BrainCircuit, Cloud, Database, FlaskConical, Home, Map, Radar } from "lucide-react";
+import { Activity, AlertTriangle, BrainCircuit, Cloud, CloudSun, Database, FlaskConical, Home, Map, Radar } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import Overview from "./pages/Overview.jsx";
 import Sites from "./pages/Sites.jsx";
 import Mosquito from "./pages/Mosquito.jsx";
 import Resistance from "./pages/Resistance.jsx";
 import Climate from "./pages/Climate.jsx";
+import LiveWeather from "./pages/LiveWeather.jsx";
 import Alerts from "./pages/Alerts.jsx";
 import DataReadiness from "./pages/DataReadiness.jsx";
 import Modeling from "./pages/Modeling.jsx";
@@ -17,6 +18,7 @@ const PAGE_META = {
   "/mosquito": { title: "Mosquito Surveillance", sub: "Ecology, species context, and habitats", icon: Activity },
   "/resistance": { title: "Resistance Intelligence", sub: "Insecticide assay signal review", icon: FlaskConical },
   "/climate": { title: "Climate Intelligence", sub: "District rainfall and temperature signals", icon: Cloud },
+  "/live-weather": { title: "Live Weather", sub: "Open-Meteo nowcast and field window", icon: CloudSun },
   "/modeling": { title: "Risk Engine", sub: "Suitability and priority scoring", icon: BrainCircuit },
   "/alerts": { title: "Response Board", sub: "Signal review and action workflow", icon: AlertTriangle },
   "/data-readiness": { title: "Data Control", sub: "Readiness and validation queue", icon: Database },
@@ -63,6 +65,7 @@ export default function App() {
           <Route path="/mosquito" element={<Mosquito />} />
           <Route path="/resistance" element={<Resistance />} />
           <Route path="/climate" element={<Climate />} />
+          <Route path="/live-weather" element={<LiveWeather />} />
           <Route path="/modeling" element={<Modeling />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/data-readiness" element={<DataReadiness />} />

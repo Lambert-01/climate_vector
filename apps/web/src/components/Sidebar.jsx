@@ -7,6 +7,7 @@ import {
   BrainCircuit,
   CheckCircle2,
   Cloud,
+  CloudSun,
   Database,
   FlaskConical,
   Home,
@@ -35,6 +36,7 @@ const NAV_GROUPS = [
     label: "Climate To Action",
     items: [
       { to: "/climate", label: "Climate Context", icon: Cloud, hint: "30 districts" },
+      { to: "/live-weather", label: "Live Weather", icon: CloudSun, hint: "nowcast" },
       { to: "/modeling", label: "Priority Engine", icon: BrainCircuit, hint: "screening" },
       { to: "/alerts", label: "Response Board", icon: AlertTriangle, hint: "review flow" },
     ],

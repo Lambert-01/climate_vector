@@ -40,6 +40,9 @@ export const api = {
   climateDistricts: () => req("/climate/districts"),
   climateDistrict: (d, days = 90) => req(`/climate/district/${d}?days=${days}`),
   climateKigali: (days = 90) => req(`/climate/kigali?days=${days}`),
+  liveWeatherDistricts: (limit = 30) => req(`/live-weather/districts?limit=${limit}`),
+  liveWeatherDistrict: (district, days = 7) => req(`/live-weather/district/${district}?days=${days}`),
+  liveWeatherSite: (siteId, days = 7) => req(`/live-weather/site/${siteId}?days=${days}`),
 
   modelingReadiness: () => req("/modeling/readiness"),
   districtRisk: (days = 30) => req(`/modeling/district-risk?days=${days}`),
