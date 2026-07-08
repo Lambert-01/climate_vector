@@ -661,6 +661,110 @@ tbody tr:hover td { background: var(--teal-50); }
 .alert-banner-body strong { display: block; font-size: 13px; font-weight: 700; }
 .alert-banner-body p { font-size: 12.5px; margin-top: 2px; opacity: .85; }
 
+/* ─── Executive interpretation panels ───────────────────────────────────────── */
+.interpretation-panel {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.interpretation-head {
+  display: grid;
+  gap: 6px;
+  padding: 17px 18px;
+  color: #fff;
+}
+
+.interpretation-head span {
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .78;
+}
+
+.interpretation-head strong {
+  font-size: 21px;
+  line-height: 1.2;
+  max-width: 980px;
+}
+
+.interpretation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border-light);
+}
+
+.interpretation-item {
+  min-width: 0;
+  background: #fff;
+  padding: 14px 16px;
+}
+
+.interpretation-item span,
+.interpretation-item strong,
+.interpretation-item small {
+  display: block;
+}
+
+.interpretation-item span {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.interpretation-item strong {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.35;
+  margin-top: 6px;
+}
+
+.interpretation-item small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 6px;
+}
+
+.interpretation-foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.interpretation-foot svg {
+  color: var(--teal-500);
+  flex-shrink: 0;
+}
+
+.interpretation-panel.tone-teal .interpretation-head {
+  background: linear-gradient(135deg, #0b3d42, #0d9488);
+}
+
+.interpretation-panel.tone-blue .interpretation-head {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+}
+
+.interpretation-panel.tone-amber .interpretation-head {
+  background: linear-gradient(135deg, #78350f, #d97706);
+}
+
+.interpretation-panel.tone-red .interpretation-head {
+  background: linear-gradient(135deg, #7f1d1d, #dc2626);
+}
+
 /* ─── Risk level colors ──────────────────────────────────────────────────────── */
 .risk-high   { color: var(--red-500); }
 .risk-medium { color: var(--amber-500); }

@@ -24,7 +24,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
+import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard } from "../components/UI";
 
 const COLORS = ["#0d9488", "#2563eb", "#f59e0b", "#7c3aed", "#ef4444", "#14b8a6", "#64748b"];
 
@@ -137,6 +137,8 @@ export default function Arboviral() {
     suitability: n(r.climate_suitability_index),
     level: r.suitability_level,
   }));
+  const aedesLevel = title(aedesPrep.level ?? "context");
+  const rvfLevel = title(rvfWatch.level ?? "monitor");
 
   return (
     <div className="page ops-page">
@@ -176,6 +178,30 @@ export default function Arboviral() {
           </div>
         </div>
       </section>
+
+      <InterpretationPanel
+        title="Preparedness interpretation"
+        verdict={`Aedes-borne readiness is ${aedesLevel}; RVF One Health status is ${rvfLevel}. Treat both as screening intelligence until field and case data are approved.`}
+        tone={aedesPrep.level === "high" || rvfWatch.level === "watch" ? "red" : "teal"}
+        confidence={`Data confidence index: ${Math.round(n(confidenceData.overall_index) * 100)}%. Current evidence is suitable for planning, not official alerting.`}
+        items={[
+          {
+            label: "Aedes signal",
+            value: `${intelSummary.aedes_records ?? 0} public records`,
+            note: aedesPrep.recommended_action ?? "Prioritize urban/peri-urban Aedes surveillance.",
+          },
+          {
+            label: "RVF signal",
+            value: `${intelSummary.culex_records ?? 0} Culex records`,
+            note: rvfWatch.recommended_action ?? "Coordinate One Health review when rainfall rises.",
+          },
+          {
+            label: "Governance",
+            value: "No fake case dashboard",
+            note: "Official arboviral/febrile illness outcomes require formal access.",
+          },
+        ]}
+      />
 
       <ChartState loading={iL} error={iError} rows={validationCards} empty="No validated dataset bundle loaded.">
         <div className="dataset-command-grid">

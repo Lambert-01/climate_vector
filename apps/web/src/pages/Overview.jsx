@@ -30,6 +30,7 @@ import {
   Badge,
   ChartState,
   DataTable,
+  InterpretationPanel,
   MetricStrip,
   SectionCard,
   StatCard,
@@ -99,6 +100,8 @@ export default function Overview() {
     }));
   const intelSummary = intelligence?.summary ?? {};
   const actionRows = intelligence?.action_queue ?? [];
+  const formalGaps = intelSummary.formal_or_required_sources ?? 0;
+  const executiveTone = formalGaps > 0 ? "amber" : "teal";
 
   return (
     <div className="page overview-redesign">
@@ -147,6 +150,30 @@ export default function Overview() {
           message={dbError}
         />
       )}
+
+      <InterpretationPanel
+        title="Executive interpretation"
+        verdict="The platform is strong as a preparedness and field-verification system; it should not yet be presented as an official outbreak forecaster."
+        tone={executiveTone}
+        confidence={`${intelSummary.ready_or_usable_sources ?? 0} ready/usable sources; ${formalGaps} formal-access gap remains for validated disease outcomes.`}
+        items={[
+          {
+            label: "Current strength",
+            value: "Regional climate-vector intelligence is operational",
+            note: "NASA, GBIF, PI datasets, sentinel coordinates, and validation registry are connected.",
+          },
+          {
+            label: "Policy use now",
+            value: "Prioritize field verification and partner data requests",
+            note: "Use outputs for preparedness planning, surveillance design, and funding demonstration.",
+          },
+          {
+            label: "Validation next",
+            value: "Official arboviral outcomes and Aedes/Culex pilot data",
+            note: "These unlock formal prediction, threshold calibration, and national reporting.",
+          },
+        ]}
+      />
 
       <div className="stats-grid">
         <StatCard
