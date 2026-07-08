@@ -1796,6 +1796,7 @@ tbody tr:hover td { background: var(--teal-50); }
   .decision-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .intel-command { grid-template-columns: 1fr; }
   .dataset-command-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .interpretation-grid { grid-template-columns: 1fr; }
   .action-row { grid-template-columns: 76px minmax(0, 1fr); }
   .action-row small { grid-column: 2; }
 }
