@@ -1791,3 +1791,13 @@ The system should therefore be presented as both:
 - a research infrastructure that can become a validated regional climate-health early-warning platform.
 
 That is the right balance for the application, for the PhD, and for national policy use.
+
+---
+
+## 41. Implementation Assurance Note
+
+The next development cycle should protect this direction with disciplined implementation control. Every new feature should be checked against three questions: does it support arboviral preparedness, does it use real or clearly labelled data, and does it help a policy or surveillance user make a better decision? If a feature does not satisfy those questions, it should not enter the main dashboard.
+
+The system should also maintain a clear separation between operational interface and technical method. Policy users need concise evidence, confidence, source status, and action. Researchers need reproducible methods, assumptions, and validation logic. The same platform can support both audiences, but the information density must be different.
+
+For the application, the final message should be confident: the team already has a working foundation, real current datasets, public climate and vector context, lecturer-provided sentinel coordinates, and a realistic upgrade pathway. The remaining work is not to invent data, but to validate, govern, integrate, and operationalize evidence.
