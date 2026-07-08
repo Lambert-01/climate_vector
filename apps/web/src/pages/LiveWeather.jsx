@@ -27,7 +27,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, MetricStrip, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
 
 function n(value, fallback = 0) {
   return Number.parseFloat(value ?? fallback) || fallback;
@@ -166,6 +166,30 @@ export default function LiveWeather() {
           ]}
         />
       </SectionCard>
+
+      <InterpretationPanel
+        title="Live-weather interpretation"
+        verdict="Live weather improves timing: it helps decide when to inspect habitats, deploy teams, or review wetness signals, not whether an outbreak is occurring."
+        tone={current?.risk_level === "high" ? "red" : current?.risk_level === "medium" ? "amber" : "teal"}
+        confidence={`Source status: ${sourceStatus}. Use with regional climate context and field verification.`}
+        items={[
+          {
+            label: "Current district",
+            value: title(current?.district ?? selected),
+            note: `${current ? Math.round(n(current.nowcast_score) * 100) : 0}% nowcast score for field-window review.`,
+          },
+          {
+            label: "48h wetness",
+            value: `${rain48.toFixed(1)} mm rain`,
+            note: "Supports larval habitat inspection planning.",
+          },
+          {
+            label: "Regional link",
+            value: `${intelligence?.summary?.high_climate_context_points ?? 0} high climate points`,
+            note: "Use live Rwanda signals alongside Great Lakes wetness context.",
+          },
+        ]}
+      />
 
       <div className="live-now-grid">
         <div className="live-now-card primary">
