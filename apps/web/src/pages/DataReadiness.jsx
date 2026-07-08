@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle, ClipboardCheck, Database, XCircle } from "lucide-react";
+import { CheckCircle, ClipboardCheck, Database, Users, XCircle } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import { Badge, ChartState, DataTable, MetricStrip, ReadinessList, SectionCard, Spinner } from "../components/UI";
@@ -23,11 +23,13 @@ export default function DataReadiness() {
   const { data, loading } = useFetch(api.readiness);
   const { data: missingSources, loading: mL, error: mError } = useFetch(api.missingDataSources);
   const { data: validation, loading: vL, error: vError } = useFetch(api.publicValidation);
+  const { data: governance, loading: gL, error: gError } = useFetch(api.arboviralPartnerGovernance);
 
   const items = data?.items ?? [];
   const ready = items.filter((i) => String(i.ready).toLowerCase() === "true").length;
   const sourceRows = missingSources?.items ?? [];
   const validationRows = validation?.items ?? [];
+  const governanceRows = governance?.items ?? [];
   const readySources = validationRows.filter((row) =>
     ["usable", "validated", "downloaded"].some((key) => String(row.status ?? "").includes(key))
   ).length;
@@ -135,6 +137,49 @@ export default function DataReadiness() {
                 "can_model_without_it",
               ]}
             />
+          </ChartState>
+        </SectionCard>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <SectionCard title="Partner data governance" icon={Users}>
+          <ChartState loading={gL} error={gError} rows={governanceRows} empty="Partner governance not loaded.">
+            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
+              {governanceRows.map((row) => (
+                <div
+                  key={row.dataset}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(180px, 1.3fr) minmax(120px, .7fr) minmax(0, 1fr) minmax(0, 1.2fr)",
+                    gap: 12,
+                    alignItems: "center",
+                    padding: "12px 14px",
+                    background: "var(--surface-2)",
+                    border: "1px solid var(--border-light)",
+                    borderRadius: "var(--radius-sm)",
+                    fontSize: 12.5,
+                  }}
+                >
+                  <div>
+                    <strong style={{ display: "block", fontSize: 13, marginBottom: 2 }}>{row.dataset}</strong>
+                    <span style={{ color: "var(--text-muted)" }}>{row.partner}</span>
+                  </div>
+                  <Badge
+                    variant={
+                      row.governance_status === "integrated" || row.governance_status === "validated"
+                        ? "green"
+                        : row.governance_status === "partial" || row.governance_status === "pilot_required"
+                        ? "amber"
+                        : "red"
+                    }
+                  >
+                    {String(row.governance_status).replace(/_/g, " ")}
+                  </Badge>
+                  <span style={{ color: "var(--text-secondary)", lineHeight: 1.4 }}>{row.required_for}</span>
+                  <span style={{ color: "var(--teal-700)", fontWeight: 500 }}>{row.next_step}</span>
+                </div>
+              ))}
+            </div>
           </ChartState>
         </SectionCard>
       </div>

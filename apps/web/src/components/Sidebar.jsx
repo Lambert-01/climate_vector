@@ -116,8 +116,8 @@ export default function Sidebar() {
             <strong>13k+</strong>
           </div>
           <div>
-            <span>Sites</span>
-            <strong>30</strong>
+            <span>Sentinels</span>
+            <strong>33</strong>
           </div>
         </div>
         <div className="sidebar-badge">

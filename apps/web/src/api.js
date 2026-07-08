@@ -59,8 +59,12 @@ export const api = {
   publicSummary: () => req("/public-data/summary"),
 
   arboviralOverview: () => req("/arboviral/overview"),
+  arboviralIntelligence: () => req("/arboviral/intelligence"),
   arboviralClimate: () => req("/arboviral/great-lakes-climate"),
   arboviralVectors: () => req("/arboviral/vector-occurrences"),
   arboviralDiseaseProfiles: () => req("/arboviral/disease-profiles"),
   arboviralReadiness: () => req("/arboviral/readiness"),
+  arboviralScoring: () => req("/arboviral/scoring"),
+  arboviralVectorTaxonomy: () => req("/arboviral/vector-taxonomy"),
+  arboviralPartnerGovernance: () => req("/arboviral/partner-governance"),
 };

@@ -101,28 +101,30 @@ export default function Overview() {
     <div className="page overview-redesign">
       <section className="overview-hero">
         <div className="overview-hero-main">
-          <div className="eyebrow">African Great Lakes preparedness build</div>
-          <h2>Arboviral disease intelligence prototype</h2>
+          <div className="eyebrow">ArboRisk-GL · African Great Lakes preparedness build</div>
+          <h2>Climate-informed arboviral preparedness and vector intelligence</h2>
           <p>
-            A professional proof-of-concept using the two PI datasets, public climate layers,
-            regional vector occurrence context, and validated operational evidence for action review.
+            A working climate-vector preparedness intelligence system ready for formal validation, regional expansion,
+            and partner integration. Integrates Rwanda PI entomological datasets, lecturer-provided sentinel coordinates,
+            NASA POWER Great Lakes climate, GBIF vector occurrence context, and environmental layers to support
+            field verification and preparedness planning.
           </p>
           <div className="hero-badges">
             <Badge variant="green">Ready for proposal demo</Badge>
-            <Badge variant="amber">Descriptive, not validated prediction</Badge>
+            <Badge variant="amber">Preparedness, not confirmed prediction</Badge>
             <Badge variant="blue">Pilot validation built in</Badge>
           </div>
         </div>
         <div className="overview-hero-side">
           <div className="scope-item">
             <ShieldCheck size={18} />
-            <span>What we can claim</span>
-            <strong>Evidence integration and surveillance prioritization</strong>
+            <span>Mission</span>
+            <strong>Transform fragmented vector, climate, environmental, and readiness data into policy-ready intelligence for arboviral disease preparedness</strong>
           </div>
           <div className="scope-item">
             <Target size={18} />
-            <span>What we do next</span>
-            <strong>Validate Aedes/Culex surveillance, case data, livestock signals, GPS, and protocols during pilot</strong>
+            <span>Phase 2 — funded pilot</span>
+            <strong>Validate with Aedes/Culex surveillance, RBC/MoH case data, livestock/RVF signals, GPS confirmation, and partner action logs</strong>
           </div>
         </div>
       </section>

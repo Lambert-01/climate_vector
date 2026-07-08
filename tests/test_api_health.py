@@ -104,6 +104,20 @@ def test_arboviral_overview_returns_great_lakes_context() -> None:
     assert "not confirmed outbreak predictions" in payload["governance"]
 
 
+def test_arboviral_intelligence_returns_validated_dataset_bundle() -> None:
+    client = TestClient(app)
+    response = client.get("/api/arboviral/intelligence")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["summary"]["sentinel_sites"] >= 33
+    assert payload["summary"]["mapped_sentinel_sites"] >= 33
+    assert payload["summary"]["great_lakes_climate_points"] >= 7
+    assert payload["data_validation_cards"]
+    assert payload["action_queue"]
+    assert payload["source_registry"]
+    assert payload["sentinel_quality"]["coordinate_source"] == "Map- 33 sentinel.xls WKT"
+
+
 def test_arboviral_vector_occurrences_include_aedes_context() -> None:
     client = TestClient(app)
     response = client.get("/api/arboviral/vector-occurrences")
