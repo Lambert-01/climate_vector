@@ -2,7 +2,7 @@ import React from "react";
 import { CheckCircle, ClipboardCheck, Database, Globe2, MapPin, Users, XCircle } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, MetricStrip, ReadinessList, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, ReadinessList, SectionCard, Spinner } from "../components/UI";
 
 const MISSING_ITEMS = [
   { item: "Full sample dates (month + year per row)", priority: "high" },
@@ -61,6 +61,30 @@ export default function DataReadiness() {
           ]}
         />
       </SectionCard>
+
+      <InterpretationPanel
+        title="Data-readiness interpretation"
+        verdict="The evidence base is strong enough for a professional MVP and funding proposal, but official disease and local arboviral vector validation remain the scientific gate."
+        tone={(summary.formal_or_required_sources ?? 0) > 0 ? "amber" : "teal"}
+        confidence={`${summary.ready_or_usable_sources ?? readySources} ready/usable sources; ${summary.formal_or_required_sources ?? 0} formal-access source remains unresolved.`}
+        items={[
+          {
+            label: "Use now",
+            value: "Preparedness, mapping, climate-vector screening",
+            note: "Supported by PI data, NASA, GBIF, sentinel coordinates, and environmental layers.",
+          },
+          {
+            label: "Do not fake",
+            value: "Arboviral case outcomes",
+            note: "RBC/MoH access is required before incidence or outbreak modelling.",
+          },
+          {
+            label: "Pilot target",
+            value: "Fill validation fields",
+            note: "Aedes/Culex surveillance, GPS confirmation, protocol metadata, and partner action logs.",
+          },
+        ]}
+      />
 
       <div className="grid-2">
         <SectionCard title="Validated dataset bundle" icon={Globe2}>
