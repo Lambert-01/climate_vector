@@ -24,7 +24,9 @@ function cleanRecord(row) {
     district: row.district_raw ?? row.district ?? "—",
     site: row.site_raw ?? row.site_name ?? row.visit_id ?? "—",
     species: row.anopheles_species_raw ?? row.species_clean ?? row.species_raw ?? "—",
+    breeding_source: row.origin_larvae_collection_raw ?? row.breeding_source_context ?? row.breeding_site_type_raw ?? row.habitat_type ?? "—",
     breeding_site_type: row.breeding_site_type_raw ?? row.habitat_type ?? "—",
+    source_file: row.source_dataset ?? "mosquito_behavior_raw.xls",
     collection_date: (row.collection_date ?? row.visit_date ?? dateParts) || dayLabel,
     quality_flag: row.quality_flag ?? "needs_review",
   };
@@ -81,7 +83,7 @@ export default function Mosquito() {
     ["pi_mosquito_behavior", "gbif_vector_occurrences", "chirps_daily", "worldclim_baseline"].includes(row.source_id)
   );
   const topDistrict = districtRows[0]?.value ?? "—";
-  const topHabitat = breedingRows[0]?.value ?? "—";
+  const topBreedingSource = breedingRows[0]?.value ?? "—";
   const vectorContext = intelligence?.vector_context?.items ?? [];
   const taxonomyRows = taxonomy?.items ?? [];
 
@@ -90,7 +92,7 @@ export default function Mosquito() {
       <div className="ops-header">
         <div>
           <div className="eyebrow">Regional vector evidence</div>
-          <h2>Aedes, Culex, Anopheles and Rwanda ecology PoC</h2>
+          <h2>Aedes/Culex arboviral focus with Anopheles surveillance context</h2>
         </div>
         <div className="hero-badges">
           <Badge variant="green">PI ecology loaded</Badge>
@@ -123,7 +125,7 @@ export default function Mosquito() {
           {
             label: "Rwanda PoC",
             value: `${records?.total ?? tableRows.length} PI ecology rows`,
-            note: "Shows habitat and field data infrastructure already exists.",
+            note: "From mosquito_behavior_raw.xls: larval origin, breeding source/type, district, site, and agricultural exposure.",
           },
           {
             label: "Field next",
@@ -135,14 +137,14 @@ export default function Mosquito() {
 
       <div className="insight-grid">
         <div className="insight-card"><MapPin size={17} /><span>Top district</span><strong>{topDistrict}</strong></div>
-        <div className="insight-card"><Droplets size={17} /><span>Dominant habitat</span><strong>{topHabitat}</strong></div>
+        <div className="insight-card"><Droplets size={17} /><span>Dominant breeding source</span><strong>{topBreedingSource}</strong></div>
         <div className="insight-card"><Activity size={17} /><span>Dominant species context</span><strong>{speciesRows[0]?.value ?? "—"}</strong></div>
       </div>
 
       <div className="grid-3" style={{ marginBottom: 20 }}>
         <BarChartCard title="District distribution" icon={MapPin} data={districtRows} loading={dL} error={dError} />
         <BarChartCard title="Species context" icon={Activity} data={speciesRows} loading={sL} error={sError} />
-        <BarChartCard title="Habitat distribution" icon={Droplets} data={breedingRows} loading={bL} error={bError} />
+        <BarChartCard title="Breeding source distribution" icon={Droplets} data={breedingRows} loading={bL} error={bError} />
       </div>
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
@@ -169,9 +171,15 @@ export default function Mosquito() {
 
       <SectionCard title="Rwanda PI ecology record explorer" icon={Activity}>
         <ChartState loading={rL} error={rError} rows={tableRows} empty="No mosquito records loaded.">
+          <div className="source-note">
+            <strong>Data source</strong>
+            <span>data/raw/mosquito_behavior_raw.xls → data/processed/mosquito_ecology_preliminary.csv</span>
+            <small>Raw columns include Date, Site, District, Origin larvae collection, Types breeding sites, and agricultural insecticide-use fields.</small>
+            <small>Dashboard label uses “breeding source” to reflect larval-source context from the PI dataset.</small>
+          </div>
           <DataTable
             rows={tableRows}
-            columns={["source_row_id", "district", "site", "species", "breeding_site_type", "collection_date"]}
+            columns={["source_row_id", "source_file", "district", "site", "species", "breeding_source", "breeding_site_type", "collection_date"]}
           />
         </ChartState>
       </SectionCard>

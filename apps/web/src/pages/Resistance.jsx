@@ -18,7 +18,9 @@ const COLORS = ["#f97316", "#ef4444", "#f59e0b", "#fb923c", "#fbbf24", "#fca5a5"
 
 function cleanRecord(row) {
   return {
-    source_row_id: row.source_row_id ?? row.replicate_id ?? "—",
+    replicate_id: row.replicate_id ?? "—",
+    source_row_id: row.source_row_id ?? "—",
+    source_file: row.source_dataset ?? "IR_data.xls",
     district: row.district_raw ?? row.district ?? "—",
     site: row.site_raw ?? row.site_id ?? "—",
     insecticide: row.insecticide_tested_raw ?? row.insecticide_tested ?? "—",
@@ -45,6 +47,12 @@ export default function Resistance() {
     records: parseInt(r.records ?? 0),
   }));
   const tableRows = (records?.items ?? []).map(cleanRecord);
+  const provenance = deathSummary?.provenance ?? {
+    raw_file: "data/raw/IR_data.xls",
+    processed_table: "data/processed/resistance_test_replicates_preliminary.csv",
+    calculation: "Grouped by insecticide tested; mean/min/max computed from 24h dead count.",
+    interpretation_limit: "Descriptive only until lab metadata are confirmed.",
+  };
   const districtRows = byDistrict?.items ?? [];
   const evidenceRows = (validation?.items ?? []).filter((row) =>
     ["pi_ir_data", "who_hdx_context", "pi_mosquito_behavior"].includes(row.source_id)
@@ -96,8 +104,8 @@ export default function Resistance() {
         items={[
           {
             label: "Evidence now",
-            value: `${records?.total ?? tableRows.length} assay rows`,
-            note: "Useful for screening and identifying lab metadata needs.",
+            value: `${records?.total ?? tableRows.length} assay rows from IR_data.xls`,
+            note: "These are PI-provided replicate rows, not internet/public data.",
           },
           {
             label: "Main gap",
@@ -196,6 +204,12 @@ export default function Resistance() {
 
       <SectionCard title="Insecticide summary from PI IR dataset" icon={FlaskConical}>
         <ChartState loading={dL} error={dError} rows={deathSummary?.items ?? []} empty="No death summary table rows loaded.">
+          <div className="source-note">
+            <strong>Data source</strong>
+            <span>{provenance.raw_file} → {provenance.processed_table}</span>
+            <small>{provenance.calculation}</small>
+            <small>{provenance.interpretation_limit}</small>
+          </div>
           <DataTable
             rows={deathSummary?.items ?? []}
             columns={["insecticide_tested_raw", "records", "mean", "min", "max"]}
@@ -208,7 +222,7 @@ export default function Resistance() {
           <ChartState loading={rL} error={rError} rows={tableRows} empty="No resistance records loaded.">
             <DataTable
               rows={tableRows}
-              columns={["source_row_id", "district", "site", "insecticide", "concentration", "dead_24h"]}
+              columns={["replicate_id", "source_row_id", "source_file", "district", "site", "insecticide", "concentration", "dead_24h"]}
             />
           </ChartState>
         </SectionCard>

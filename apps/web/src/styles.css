@@ -1665,3 +1665,105 @@ tbody tr:hover td { background: #f0fdf9; }
   .page-hero { padding: 22px 20px; }
   .page-hero h2 { font-size: 22px; }
 }
+
+/* ─── Provenance and executive interpretation ───────────────────────────────── */
+.interpretation-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.interpretation-head {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+  color: #fff;
+  background: linear-gradient(135deg, #0b3d42, #0d9488);
+}
+.interpretation-head span {
+  font-size: 10.5px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .8;
+}
+.interpretation-head strong { font-size: 20px; line-height: 1.25; }
+.interpretation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  background: var(--border-light);
+  gap: 1px;
+}
+.interpretation-item {
+  background: #fff;
+  padding: 15px 18px;
+  min-width: 0;
+}
+.interpretation-item span,
+.interpretation-item strong,
+.interpretation-item small { display: block; }
+.interpretation-item span {
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 850;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.interpretation-item strong {
+  margin-top: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.35;
+}
+.interpretation-item small {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.interpretation-foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 18px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+}
+.interpretation-foot svg { color: var(--teal-500); flex-shrink: 0; }
+.interpretation-panel.tone-blue .interpretation-head { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+.interpretation-panel.tone-amber .interpretation-head { background: linear-gradient(135deg, #78350f, #d97706); }
+.interpretation-panel.tone-red .interpretation-head { background: linear-gradient(135deg, #7f1d1d, #dc2626); }
+
+.source-note {
+  margin: 14px 16px 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(13, 148, 136, .22);
+  background: var(--teal-50);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 4px;
+}
+.source-note strong {
+  color: var(--teal-900);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.source-note span {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 750;
+}
+.source-note small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+  .interpretation-grid { grid-template-columns: 1fr; }
+}

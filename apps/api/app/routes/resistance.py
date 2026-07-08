@@ -62,6 +62,14 @@ async def resistance_death_summary(db: AsyncSession = Depends(get_db)) -> dict:
             for insecticide, count, mean, minimum, maximum in rows
         ],
         "source": "db",
+        "provenance": {
+            "raw_file": "data/raw/IR_data.xls",
+            "raw_export": "data/interim/raw_excel_exports/IR_data_sheet1.csv",
+            "processed_table": "data/processed/resistance_test_replicates_preliminary.csv",
+            "database_table": "resistance_test_replicates",
+            "calculation": "Grouped by insecticide_tested; records=count of replicate rows; mean/min/max computed from number_dead_24h.",
+            "interpretation_limit": "Descriptive only until denominator, WHO/CDC protocol, control mortality, dates, GPS, and species confirmation are confirmed by PI/lab.",
+        },
     }
 
 
@@ -80,7 +88,10 @@ async def resistance_by_district(db: AsyncSession = Depends(get_db)) -> dict:
 def _res_dict(r: ResistanceTestReplicate) -> dict:
     return {
         "replicate_id": r.replicate_id,
+        "source_dataset": "IR_data.xls",
+        "source_row_id": r.source_row_id,
         "district": r.district,
+        "site_id": r.site_id,
         "species_raw": r.species_raw,
         "insecticide_tested": r.insecticide_tested,
         "concentration_label": r.concentration_label,

@@ -73,12 +73,15 @@ async def mosquito_by_breeding_site(db: AsyncSession = Depends(get_db)) -> dict:
 def _obs_dict(r: MosquitoObservation, visit: FieldVisit | None = None, site: Site | None = None) -> dict:
     return {
         "observation_id": r.observation_id,
+        "source_dataset": "mosquito_behavior_raw.xls",
         "source_row_id": r.observation_id.replace("raw-mosquito-", ""),
         "visit_id": r.visit_id,
         "site_id": site.site_id if site else None,
         "site_name": site.site_name if site else None,
         "district": site.district if site else None,
         "habitat_type": visit.habitat_type if visit else None,
+        "breeding_source_context": visit.habitat_type if visit else None,
+        "raw_source_note": "Raw Excel includes 'Origin larvae collection' and 'Types breeding sites'; current DB stores 'Types breeding sites' as habitat_type.",
         "visit_date": str(visit.visit_date) if visit and visit.visit_date else None,
         "quality_flag": visit.quality_flag if visit else None,
         "life_stage": r.life_stage,
