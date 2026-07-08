@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, MetricStrip, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
 
 const COLORS = {
   high: "#ef4444",
@@ -87,6 +87,30 @@ export default function Modeling() {
           ]}
         />
       </SectionCard>
+
+      <InterpretationPanel
+        title="Model interpretation"
+        verdict="The current model layer is fit for preparedness prioritization and field-verification planning, not formal arboviral incidence forecasting."
+        tone="amber"
+        confidence="Confidence is pilot-grade because official outcomes, local Aedes/Culex surveillance, and One Health validation data are still pending."
+        items={[
+          {
+            label: "Regional output",
+            value: `Aedes ${titleCase(aedesPrep.level ?? "context")} · RVF ${titleCase(rvfWatch.level ?? "monitor")}`,
+            note: "Good for prioritizing where to verify first.",
+          },
+          {
+            label: "Rwanda PoC",
+            value: `${high} high-priority districts`,
+            note: "District scores are screening outputs using available covariates.",
+          },
+          {
+            label: "Unlocks later",
+            value: "Validated early-action thresholds",
+            note: "Requires official outcomes and prospective vector surveillance.",
+          },
+        ]}
+      />
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <SectionCard title="Great Lakes climate-vector suitability" icon={Globe2}>

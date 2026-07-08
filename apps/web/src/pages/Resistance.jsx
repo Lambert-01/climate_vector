@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
+import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard } from "../components/UI";
 
 const COLORS = ["#f97316", "#ef4444", "#f59e0b", "#fb923c", "#fbbf24", "#fca5a5"];
 
@@ -87,6 +87,30 @@ export default function Resistance() {
           ]}
         />
       </SectionCard>
+
+      <InterpretationPanel
+        title="Vector-control interpretation"
+        verdict="The IR dataset is useful as vector-control intelligence, but protocol and denominator confirmation are required before policy classification of susceptibility or resistance."
+        tone="amber"
+        confidence="Preliminary laboratory context only; do not convert to official resistance status without PI/lab confirmation."
+        items={[
+          {
+            label: "Evidence now",
+            value: `${records?.total ?? tableRows.length} assay rows`,
+            note: "Useful for screening and identifying lab metadata needs.",
+          },
+          {
+            label: "Main gap",
+            value: "Protocol, denominator, control mortality",
+            note: "These determine whether assay interpretation is scientifically defensible.",
+          },
+          {
+            label: "Policy use",
+            value: "Prepare intervention readiness discussion",
+            note: "Frame as vector-control context, not final resistance certification.",
+          },
+        ]}
+      />
 
       <div className="insight-grid">
         <div className="insight-card"><TestTube2 size={17} /><span>Largest test group</span><strong>{topInsecticide}</strong></div>

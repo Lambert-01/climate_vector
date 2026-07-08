@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
+import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard } from "../components/UI";
 
 const COLORS = ["#0d9488", "#0b6b77", "#2dd4bf", "#14b8a6", "#5eead4", "#99f6e4"];
 
@@ -108,6 +108,30 @@ export default function Mosquito() {
           ]}
         />
       </SectionCard>
+
+      <InterpretationPanel
+        title="Vector interpretation"
+        verdict="The system now separates arboviral vectors from legacy malaria-vector infrastructure: Aedes/Culex guide the pivot, while Rwanda Anopheles ecology proves surveillance capacity."
+        tone="teal"
+        confidence="Regional GBIF occurrence is context-only; local Aedes/Culex field surveillance is the validation step."
+        items={[
+          {
+            label: "Arboviral focus",
+            value: `${intelligence?.summary?.aedes_records ?? 0} Aedes · ${intelligence?.summary?.culex_records ?? 0} Culex`,
+            note: "Supports dengue/chikungunya/Zika/yellow fever and RVF preparedness framing.",
+          },
+          {
+            label: "Rwanda PoC",
+            value: `${records?.total ?? tableRows.length} PI ecology rows`,
+            note: "Shows habitat and field data infrastructure already exists.",
+          },
+          {
+            label: "Field next",
+            value: "Ovitraps, containers, adult traps",
+            note: "Needed to convert context into local arboviral vector evidence.",
+          },
+        ]}
+      />
 
       <div className="insight-grid">
         <div className="insight-card"><MapPin size={17} /><span>Top district</span><strong>{topDistrict}</strong></div>
