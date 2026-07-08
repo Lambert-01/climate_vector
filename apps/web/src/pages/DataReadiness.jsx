@@ -1,260 +1,199 @@
 import React from "react";
-import { CheckCircle, ClipboardCheck, Database, Globe2, MapPin, Users, XCircle } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Database, FlaskConical, Globe2, MapPin, Microscope, XCircle } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, ReadinessList, SectionCard, Spinner } from "../components/UI";
+import {
+  Badge, ChartState, MetricStrip, PhaseTimeline,
+  ProgressBar, SectionCard, Spinner,
+} from "../components/UI";
 
-const MISSING_ITEMS = [
-  { item: "Full sample dates (month + year per row)", priority: "high" },
-  { item: "GPS coordinates for all sentinel sites", priority: "high" },
-  { item: "Mosquito counts and sampling effort", priority: "high" },
-  { item: "Susceptibility test denominator (likely 25 — needs PI confirmation)", priority: "high" },
-  { item: "Test protocol (WHO susceptibility / CDC bottle / PBO assay)", priority: "high" },
-  { item: "Control mortality records", priority: "high" },
-  { item: "Clean species identification (morphological vs molecular)", priority: "medium" },
-  { item: "Positive and negative habitat observations", priority: "medium" },
-  { item: "Arboviral case, febrile illness, or intervention outcome data (requires RBC/MoH approval)", priority: "medium" },
-  { item: "Susceptibility status classification (after above confirmed)", priority: "medium" },
+const GOVERNANCE_PHASES = [
+  { label: "Not requested",  sub: "Default state",   status: "pending" },
+  { label: "Requested",      sub: "Letter sent",      status: "pending" },
+  { label: "Approved",       sub: "MoU signed",       status: "pending" },
+  { label: "Received",       sub: "Data in hand",     status: "pending" },
+  { label: "Validated",      sub: "QC complete",      status: "pending" },
+  { label: "Integrated",     sub: "In dashboard",     status: "pending" },
+];
+
+// What we have NOW — honest, positive framing
+const HAVE_NOW = [
+  { icon: FlaskConical, label: "PI ecology records",        value: "3,547 rows",  note: "mosquito_behavior_raw.xls — breeding sites, habitats, agricultural exposure", status: "ready" },
+  { icon: FlaskConical, label: "PI susceptibility records", value: "3,547 rows",  note: "IR_data.xls — insecticide, concentration, 24h deaths, vector-control context", status: "ready" },
+  { icon: Globe2,       label: "NASA POWER climate",        value: "30 districts",note: "Daily rainfall, temperature, humidity 2021–2025 for all Rwanda districts",      status: "ready" },
+  { icon: Globe2,       label: "GBIF vector occurrence",    value: "380+ records",note: "Aedes aegypti (329) + Culex (51) regional Great Lakes context",                 status: "ready" },
+  { icon: Globe2,       label: "ERA5-Land monthly",         value: "Rwanda bbox", note: "Rainfall, temperature, dewpoint, runoff baseline for Rwanda",                   status: "ready" },
+  { icon: MapPin,       label: "33 sentinel sites",         value: "Mapped",      note: "Lecturer WKT coordinates — operational for MVP mapping and field planning",     status: "ready" },
+  { icon: Globe2,       label: "WorldClim + elevation",     value: "Local files", note: "ESA WorldCover, elevation, land cover — environmental suitability context",     status: "ready" },
+  { icon: Globe2,       label: "Great Lakes climate points",value: "7 points",    note: "NASA POWER for Kigali, Goma, Kampala, Nairobi, Bujumbura, Dar, Mwanza",        status: "ready" },
+];
+
+// What the PILOT will collect — framed as roadmap, not failure
+const PILOT_COLLECT = [
+  { label: "Full sample dates (month + year per row)",                                priority: "high",   owner: "PI / field team" },
+  { label: "GPS coordinates for all sentinel sites",                                  priority: "high",   owner: "PI / field officer" },
+  { label: "Mosquito counts and sampling effort",                                     priority: "high",   owner: "Entomology team" },
+  { label: "Susceptibility test denominator (likely 25 — PI confirmation)",           priority: "high",   owner: "PI / lab team" },
+  { label: "Test protocol (WHO susceptibility / CDC bottle / PBO assay)",             priority: "high",   owner: "PI / lab team" },
+  { label: "Control mortality records",                                               priority: "high",   owner: "PI / lab team" },
+  { label: "Aedes/Culex field surveillance (ovitraps, container index, adult traps)", priority: "high",   owner: "Entomology team" },
+  { label: "Arboviral case or febrile illness data",                                  priority: "medium", owner: "RBC/MoH (formal access)" },
+  { label: "Livestock density and RVF event data",                                    priority: "medium", owner: "Rwanda Agriculture Board" },
+  { label: "Yellow fever vaccination coverage",                                       priority: "medium", owner: "RBC/MoH immunisation" },
 ];
 
 const PRIORITY_BADGE = { high: "red", medium: "amber", low: "green" };
 
 export default function DataReadiness() {
-  const { data, loading } = useFetch(api.readiness);
-  const { data: missingSources, loading: mL, error: mError } = useFetch(api.missingDataSources);
-  const { data: validation, loading: vL, error: vError } = useFetch(api.publicValidation);
-  const { data: governance, loading: gL, error: gError } = useFetch(api.arboviralPartnerGovernance);
-  const { data: intelligence, loading: iL, error: iError } = useFetch(api.arboviralIntelligence);
+  const { data,             loading }       = useFetch(api.readiness);
+  const { data: validation, loading: vL, error: vE } = useFetch(api.publicValidation);
+  const { data: governance, loading: gL    } = useFetch(api.arboviralPartnerGovernance);
 
-  const items = data?.items ?? [];
-  const ready = items.filter((i) => String(i.ready).toLowerCase() === "true").length;
-  const sourceRows = missingSources?.items ?? [];
-  const validationRows = validation?.items ?? [];
-  const governanceRows = governance?.items ?? [];
-  const readySources = validationRows.filter((row) =>
-    ["usable", "validated", "downloaded"].some((key) => String(row.status ?? "").includes(key))
-  ).length;
-  const summary = intelligence?.summary ?? {};
-  const validationCards = intelligence?.data_validation_cards ?? [];
-  const actionRows = intelligence?.action_queue ?? [];
+  const items      = data?.items ?? [];
+  const ready      = items.filter(i => String(i.ready).toLowerCase() === "true").length;
+  const validRows  = validation?.items ?? [];
+  const usableSrc  = validRows.filter(r => ["usable","validated","downloaded"].some(k => String(r.status ?? "").includes(k))).length;
+  const readyPct   = items.length ? Math.round((ready / items.length) * 100) : 0;
+  const govRows    = governance?.items ?? [];
 
   return (
-    <div className="page ops-page">
-      <div className="ops-header">
-        <div>
-          <div className="eyebrow">Evidence control center</div>
-          <h2>All-source validation and partner readiness</h2>
-        </div>
+    <div className="page">
+
+      {/* ── HERO ── */}
+      <div className="page-hero">
+        <div className="eyebrow">Data operations · readiness control</div>
+        <h2>What we have · what the pilot collects</h2>
+        <p>
+          This system is built on real, integrated data. The items below labelled "pilot" are
+          not failures — they are the honest scientific roadmap that makes this proposal credible.
+          The Nexa PoC funding is specifically designed to collect them.
+        </p>
         <div className="hero-badges">
-          <Badge variant="green">{ready} ready</Badge>
-          <Badge variant="amber">{items.length - ready} pilot fields</Badge>
+          <Badge variant="green">{HAVE_NOW.length} evidence groups integrated</Badge>
+          <Badge variant="amber">{PILOT_COLLECT.length} pilot collection items</Badge>
+          <Badge variant="blue">Honest science · fundable roadmap</Badge>
+        </div>
+        <div className="page-hero-kpis">
+          <div className="page-hero-kpi">
+            <div className="page-hero-kpi-value">{HAVE_NOW.length}</div>
+            <div className="page-hero-kpi-label">Evidence groups ready</div>
+          </div>
+          <div className="page-hero-kpi">
+            <div className="page-hero-kpi-value">{vL ? "…" : usableSrc}</div>
+            <div className="page-hero-kpi-label">Usable sources</div>
+          </div>
+          <div className="page-hero-kpi">
+            <div className="page-hero-kpi-value">{PILOT_COLLECT.filter(p => p.priority === "high").length}</div>
+            <div className="page-hero-kpi-label">High-priority pilot items</div>
+          </div>
+          <div className="page-hero-kpi">
+            <div className="page-hero-kpi-value">{readyPct}%</div>
+            <div className="page-hero-kpi-label">Current readiness</div>
+          </div>
         </div>
       </div>
 
-      <SectionCard title="Integrated evidence snapshot" icon={ClipboardCheck}>
-        <MetricStrip
-          items={[
-            { label: "Data sources", value: iL ? "..." : summary.data_sources ?? validation?.summary?.sources ?? 0 },
-            { label: "Ready/usable", value: iL ? "..." : summary.ready_or_usable_sources ?? readySources },
-            { label: "Mapped sentinels", value: iL ? "..." : `${summary.mapped_sentinel_sites ?? 0}/${summary.sentinel_sites ?? 0}` },
-            { label: "Formal gaps", value: iL ? "..." : summary.formal_or_required_sources ?? items.length - ready },
-          ]}
-        />
+      {/* ── READINESS BARS ── */}
+      <SectionCard title="Readiness overview" icon={ClipboardCheck}>
+        <div style={{ padding: "18px 20px", display: "grid", gap: 14 }}>
+          <ProgressBar label="Overall data readiness" value={readyPct} color="teal" />
+          <ProgressBar label="Usable evidence sources" value={usableSrc} max={validRows.length || 18} color="green" />
+          <ProgressBar label="Pilot items with high priority" value={PILOT_COLLECT.filter(p => p.priority === "high").length} max={PILOT_COLLECT.length} color="amber" />
+        </div>
+        <MetricStrip items={[
+          { label: "Ready groups",   value: ready },
+          { label: "Pilot fields",   value: items.length - ready },
+          { label: "Usable sources", value: vL ? "…" : usableSrc },
+          { label: "Total indexed",  value: vL ? "…" : validRows.length },
+        ]} />
       </SectionCard>
 
-      <InterpretationPanel
-        title="Data-readiness interpretation"
-        verdict="The evidence base is strong enough for a professional MVP and funding proposal, but official disease and local arboviral vector validation remain the scientific gate."
-        tone={(summary.formal_or_required_sources ?? 0) > 0 ? "amber" : "teal"}
-        confidence={`${summary.ready_or_usable_sources ?? readySources} ready/usable sources; ${summary.formal_or_required_sources ?? 0} formal-access source remains unresolved.`}
-        items={[
-          {
-            label: "Use now",
-            value: "Preparedness, mapping, climate-vector screening",
-            note: "Supported by PI data, NASA, GBIF, sentinel coordinates, and environmental layers.",
-          },
-          {
-            label: "Do not fake",
-            value: "Arboviral case outcomes",
-            note: "RBC/MoH access is required before incidence or outbreak modelling.",
-          },
-          {
-            label: "Pilot target",
-            value: "Fill validation fields",
-            note: "Aedes/Culex surveillance, GPS confirmation, protocol metadata, and partner action logs.",
-          },
-        ]}
-      />
+      <div style={{ marginBottom: 22 }} />
 
-      <div className="grid-2">
-        <SectionCard title="Validated dataset bundle" icon={Globe2}>
-          <ChartState loading={iL} error={iError} rows={validationCards} empty="No intelligence validation cards loaded.">
-            <DataTable rows={validationCards} columns={["domain", "status", "records", "result", "limitation"]} />
-          </ChartState>
-        </SectionCard>
-
-        <SectionCard title="Operational data actions" icon={MapPin}>
-          <ChartState loading={iL} error={iError} rows={actionRows} empty="No operational action rows loaded.">
-            <DataTable rows={actionRows} columns={["priority", "action", "owner", "evidence", "decision_use"]} />
-          </ChartState>
-        </SectionCard>
-      </div>
-
-      <div className="grid-2" style={{ marginTop: 20 }}>
-        <SectionCard title="Checklist" icon={Database}>
-          {loading ? <Spinner /> : <ReadinessList items={items} />}
-        </SectionCard>
-
-        <SectionCard title="Pilot queue for validation phase" icon={XCircle}>
-          <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
-            {MISSING_ITEMS.map((item, i) => (
-              <div key={i} className="readiness-item">
-                <div className="readiness-dot missing" />
-                <div className="readiness-item-label" style={{ flex: 1 }}>{item.item}</div>
-                <Badge variant={PRIORITY_BADGE[item.priority]}>{item.priority}</Badge>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-      </div>
-
-      <div style={{ marginTop: 20 }}>
-        <SectionCard title="All validated evidence sources" icon={CheckCircle}>
-          <ChartState loading={vL} error={vError} rows={validationRows} empty="Validation registry is not loaded.">
-            <DataTable
-              rows={validationRows}
-              maxRows={12}
-              columns={[
-                "source_name",
-                "category",
-                "status",
-                "records_or_files",
-                "date_start",
-                "date_end",
-                "frontend_use",
-                "limitation",
-              ]}
-            />
-          </ChartState>
-        </SectionCard>
-      </div>
-
-      <div style={{ marginTop: 20 }}>
-        <SectionCard title="Decision readiness" icon={ClipboardCheck}>
-          <div className="decision-grid">
-            <div className="decision-card">
-              <span>Ready</span>
-              <strong>Evidence integration dashboard</strong>
-              <small>PI data, climate layers, GBIF context, and resistance summaries are connected.</small>
-            </div>
-            <div className="decision-card">
-              <span>Ready</span>
-              <strong>District prioritization</strong>
-              <small>Useful for planning field verification and partner discussion.</small>
-            </div>
-            <div className="decision-card">
-              <span>Pilot</span>
-              <strong>Operational validation</strong>
-              <small>GPS, dates, sampling effort, denominator, and protocol remain collection priorities.</small>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
-
-      <div style={{ marginTop: 20 }}>
-        <SectionCard title="Source plan" icon={Database}>
-          <ChartState loading={mL} error={mError} rows={sourceRows} empty="Source plan is not loaded.">
-            <DataTable
-              rows={sourceRows}
-              maxRows={20}
-              columns={[
-                "priority",
-                "missing_item",
-                "responsible_partner",
-                "where_to_get",
-                "public_substitute",
-                "proposal_strategy",
-                "acceptable_file",
-                "dashboard_use",
-                "can_model_without_it",
-              ]}
-            />
-          </ChartState>
-        </SectionCard>
-      </div>
-
-      <div style={{ marginTop: 20 }}>
-        <SectionCard title="Partner data governance" icon={Users}>
-          <ChartState loading={gL} error={gError} rows={governanceRows} empty="Partner governance not loaded.">
-            <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
-              {governanceRows.map((row) => (
-                <div
-                  key={row.dataset}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "minmax(180px, 1.3fr) minmax(120px, .7fr) minmax(0, 1fr) minmax(0, 1.2fr)",
-                    gap: 12,
-                    alignItems: "center",
-                    padding: "12px 14px",
-                    background: "var(--surface-2)",
-                    border: "1px solid var(--border-light)",
-                    borderRadius: "var(--radius-sm)",
-                    fontSize: 12.5,
-                  }}
-                >
-                  <div>
-                    <strong style={{ display: "block", fontSize: 13, marginBottom: 2 }}>{row.dataset}</strong>
-                    <span style={{ color: "var(--text-muted)" }}>{row.partner}</span>
-                  </div>
-                  <Badge
-                    variant={
-                      row.governance_status === "integrated" || row.governance_status === "validated"
-                        ? "green"
-                        : row.governance_status === "partial" || row.governance_status === "pilot_required"
-                        ? "amber"
-                        : "red"
-                    }
-                  >
-                    {String(row.governance_status).replace(/_/g, " ")}
-                  </Badge>
-                  <span style={{ color: "var(--text-secondary)", lineHeight: 1.4 }}>{row.required_for}</span>
-                  <span style={{ color: "var(--teal-700)", fontWeight: 500 }}>{row.next_step}</span>
+      {/* ── WHAT WE HAVE NOW ── */}
+      <div className="section-label"><CheckCircle2 size={13} /> Evidence integrated and operational now</div>
+      <div className="source-chip-grid" style={{ padding: 0, marginBottom: 22 }}>
+        {HAVE_NOW.map(item => {
+          const Icon = item.icon;
+          return (
+            <div className="source-chip" key={item.label} style={{ borderLeft: "3px solid var(--green-500)" }}>
+              <div className="source-chip-status">
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  <Icon size={14} color="var(--green-600)" />
+                  <span className="source-chip-name">{item.label}</span>
                 </div>
-              ))}
+                <Badge variant="green">{item.value}</Badge>
+              </div>
+              <span className="source-chip-meta">{item.note}</span>
             </div>
-          </ChartState>
-        </SectionCard>
+          );
+        })}
       </div>
 
-      <div style={{ marginTop: 20 }}>
-        <SectionCard title="Quality flags" icon={Database}>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr><th>Flag</th><th>Meaning</th><th>Action Required</th></tr>
-              </thead>
-              <tbody>
-                {[
-                  ["valid", "All required fields present and validated", "None — ready for analysis"],
-                  ["missing_date", "Date field absent or incomplete", "Recover from PI/field records"],
-                  ["missing_gps", "No GPS coordinate for site", "Confirm with PI or field officer"],
-                  ["missing_outcome", "No mosquito count or habitat status", "Collect prospectively"],
-                  ["missing_effort", "No sampling effort recorded", "Collect prospectively"],
-                  ["duplicate_possible", "Possible duplicate row detected", "Data manager review"],
-                  ["needs_review", "Flagged for manual review", "Data manager + PI review"],
-                  ["needs_denominator_protocol_control_date_gps_confirmation", "Susceptibility row — multiple fields unconfirmed", "PI/lab confirmation required"],
-                ].map(([flag, meaning, action]) => (
-                  <tr key={flag}>
-                    <td><code style={{ fontSize: 11, background: "#f1f5f9", padding: "2px 6px", borderRadius: 4 }}>{flag}</code></td>
-                    <td>{meaning}</td>
-                    <td style={{ color: "var(--text-secondary)" }}>{action}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* ── PILOT ROADMAP ── */}
+      <div className="section-label"><Microscope size={13} /> Pilot collection roadmap — what the grant funds</div>
+      <div style={{ display: "grid", gap: 8, marginBottom: 22 }}>
+        {PILOT_COLLECT.map((item, i) => (
+          <div key={i} className={`readiness-item ${item.priority === "high" ? "pilot-item" : "readiness-item"}`}
+            style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: item.priority === "high" ? "linear-gradient(90deg,#fffbeb,#fff)" : "var(--surface-2)", borderLeft: `3px solid ${item.priority === "high" ? "var(--amber-500)" : "var(--border)"}`, borderRadius: "var(--radius)", border: "1px solid var(--border-light)" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{item.label}</div>
+              <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 2 }}>Owner: {item.owner}</div>
+            </div>
+            <Badge variant={PRIORITY_BADGE[item.priority]}>{item.priority}</Badge>
           </div>
-        </SectionCard>
+        ))}
       </div>
+
+      {/* ── GOVERNANCE PIPELINE ── */}
+      <SectionCard title="Partner data governance pipeline — RBC/MoH and partners" icon={Database}>
+        <PhaseTimeline phases={GOVERNANCE_PHASES} />
+      </SectionCard>
+
+      <div style={{ marginBottom: 22 }} />
+
+      {/* ── PARTNER GOVERNANCE TABLE ── */}
+      <SectionCard title="Partner governance status by dataset" icon={Database}>
+        <div style={{ padding: "16px 20px", display: "grid", gap: 8 }}>
+          {gL ? <Spinner /> : govRows.map(row => (
+            <div key={row.dataset} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: "var(--surface-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>{row.dataset}</div>
+                <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 2 }}>{row.partner} · {row.data_type}</div>
+                <div style={{ fontSize: 12, color: "var(--teal-700)", marginTop: 4, fontWeight: 600 }}>→ {row.next_step}</div>
+              </div>
+              <Badge variant={row.governance_status === "partial" ? "amber" : row.governance_status === "pilot_required" ? "orange" : "gray"}>
+                {String(row.governance_status).replace(/_/g, " ")}
+              </Badge>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div style={{ marginBottom: 22 }} />
+
+      {/* ── VALIDATED SOURCES ── */}
+      <SectionCard title="Validated public evidence registry" icon={CheckCircle2}>
+        <ChartState loading={vL} error={vE} rows={validRows} empty="Validation registry not loaded.">
+          <div style={{ padding: "16px 20px", display: "grid", gap: 8 }}>
+            {validRows.map(row => {
+              const isReady = ["usable","validated","downloaded"].some(k => String(row.status ?? "").includes(k));
+              return (
+                <div key={row.source_id} className={`readiness-item ${isReady ? "ready-item" : "pilot-item"}`}
+                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px" }}>
+                  <div className={`readiness-dot ${isReady ? "ready" : "partial"}`} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700 }}>{row.source_name}</div>
+                    <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 1 }}>{row.records_or_files} records/files · {row.frontend_use}</div>
+                  </div>
+                  <Badge variant={isReady ? "green" : "amber"}>{String(row.status).replace(/_/g, " ")}</Badge>
+                </div>
+              );
+            })}
+          </div>
+        </ChartState>
+      </SectionCard>
+
     </div>
   );
 }

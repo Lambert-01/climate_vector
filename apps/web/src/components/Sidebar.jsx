@@ -21,37 +21,31 @@ const NAV_GROUPS = [
   {
     label: "Command",
     items: [
-      { to: "/", label: "Overview", icon: Home, hint: "MVP status" },
-      { to: "/arboviral", label: "Arboviral Prep", icon: Biohazard, hint: "Great Lakes" },
-      { to: "/data-readiness", label: "Data Control", icon: Database, hint: "Quality centre" },
+      { to: "/",             label: "Overview",       icon: Home,         hint: "MVP status",     pulse: true },
+      { to: "/arboviral",    label: "Arboviral Prep", icon: Biohazard,    hint: "Great Lakes" },
+      { to: "/data-readiness", label: "Data Control", icon: Database,     hint: "Quality centre" },
     ],
   },
   {
     label: "Evidence",
     items: [
-      { to: "/mosquito", label: "Vector Evidence", icon: Activity, hint: "PI + GBIF" },
-      { to: "/resistance", label: "Control Context", icon: FlaskConical, hint: "24h mortality" },
-      { to: "/sites", label: "Sites + Map", icon: Map, hint: "30 mapped" },
+      { to: "/mosquito",    label: "Vector Evidence", icon: Activity,     hint: "PI + GBIF" },
+      { to: "/resistance",  label: "Control Context", icon: FlaskConical, hint: "24h mortality" },
+      { to: "/sites",       label: "Sites + Map",     icon: Map,          hint: "33 sentinel" },
     ],
   },
   {
-    label: "Climate To Action",
+    label: "Climate to Action",
     items: [
-      { to: "/climate", label: "Climate Context", icon: Cloud, hint: "RWA + GL" },
-      { to: "/live-weather", label: "Live Weather", icon: CloudSun, hint: "nowcast" },
-      { to: "/modeling", label: "Priority Engine", icon: BrainCircuit, hint: "screening" },
-      { to: "/alerts", label: "Response Board", icon: AlertTriangle, hint: "review flow" },
+      { to: "/climate",      label: "Climate Context", icon: Cloud,         hint: "RWA + GL" },
+      { to: "/live-weather", label: "Live Weather",    icon: CloudSun,      hint: "nowcast" },
+      { to: "/modeling",     label: "Priority Engine", icon: BrainCircuit,  hint: "screening" },
+      { to: "/alerts",       label: "Response Board",  icon: AlertTriangle, hint: "review flow" },
     ],
   },
 ];
 
-const MVP_STEPS = [
-  "Readiness",
-  "Aedes",
-  "RVF",
-  "Climate",
-  "Response",
-];
+const MVP_STEPS = ["Readiness", "Aedes", "RVF", "Climate", "Response"];
 
 export default function Sidebar() {
   return (
@@ -59,28 +53,29 @@ export default function Sidebar() {
       <div className="sidebar-brand-panel">
         <div className="sidebar-logo-mark">
           <div className="sidebar-logo-icon">
-            <Shield size={18} color="#fff" />
+            <Shield size={17} color="#fff" />
           </div>
           <div className="sidebar-logo-text">
             <strong>ArboRisk-GL</strong>
-            <span>Arboviral intelligence</span>
+            <span>Arboviral intelligence · v1.0</span>
           </div>
         </div>
         <div className="sidebar-product-meta">
           <span>Great Lakes</span>
           <span>Preparedness</span>
+          <span>MVP</span>
         </div>
       </div>
 
       <div className="sidebar-mission">
         <div className="mission-title">
-          <Radar size={14} />
+          <Radar size={13} />
           MVP Modules
         </div>
         <div className="mission-steps">
           {MVP_STEPS.map((step) => (
             <div className="mission-step" key={step}>
-              <CheckCircle2 size={12} />
+              <CheckCircle2 size={11} />
               <span>{step}</span>
             </div>
           ))}
@@ -91,18 +86,19 @@ export default function Sidebar() {
         {NAV_GROUPS.map((group) => (
           <div className="nav-group" key={group.label}>
             <div className="sidebar-section-label">{group.label}</div>
-            {group.items.map(({ to, label, icon: Icon, hint }) => (
+            {group.items.map(({ to, label, icon: Icon, hint, pulse }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={to === "/"}
                 className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
               >
-                <Icon size={16} />
+                <Icon size={15} />
                 <span className="nav-copy">
                   <strong>{label}</strong>
                   <small>{hint}</small>
                 </span>
+                {pulse && <span className="nav-pulse" />}
               </NavLink>
             ))}
           </div>
@@ -116,12 +112,20 @@ export default function Sidebar() {
             <strong>13k+</strong>
           </div>
           <div>
-            <span>Sentinels</span>
+            <span>Sentinel sites</span>
             <strong>33</strong>
+          </div>
+          <div>
+            <span>GL points</span>
+            <strong>7</strong>
+          </div>
+          <div>
+            <span>Evidence layers</span>
+            <strong>18</strong>
           </div>
         </div>
         <div className="sidebar-badge">
-          <BarChart3 size={13} />
+          <BarChart3 size={12} />
           Field validation ready
         </div>
       </div>

@@ -42,6 +42,7 @@ export const api = {
   climateDistricts: () => req("/climate/districts"),
   climateDistrict: (d, days = 90) => req(`/climate/district/${d}?days=${days}`),
   climateKigali: (days = 90) => req(`/climate/kigali?days=${days}`),
+
   liveWeatherDistricts: (limit = 30) => req(`/live-weather/districts?limit=${limit}`),
   liveWeatherDistrict: (district, days = 7) => req(`/live-weather/district/${district}?days=${days}`),
   liveWeatherSite: (siteId, days = 7) => req(`/live-weather/site/${siteId}?days=${days}`),
@@ -59,11 +60,11 @@ export const api = {
   publicSummary: () => req("/public-data/summary"),
 
   arboviralOverview: () => req("/arboviral/overview"),
-  arboviralIntelligence: () => req("/arboviral/intelligence"),
   arboviralClimate: () => req("/arboviral/great-lakes-climate"),
   arboviralVectors: () => req("/arboviral/vector-occurrences"),
   arboviralDiseaseProfiles: () => req("/arboviral/disease-profiles"),
   arboviralReadiness: () => req("/arboviral/readiness"),
+  arboviralIntelligence: () => req("/arboviral/intelligence"),
   arboviralScoring: () => req("/arboviral/scoring"),
   arboviralVectorTaxonomy: () => req("/arboviral/vector-taxonomy"),
   arboviralPartnerGovernance: () => req("/arboviral/partner-governance"),

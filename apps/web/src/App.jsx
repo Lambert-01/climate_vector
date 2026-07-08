@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FlaskConical, Home, Map, Radar } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FlaskConical, Home, Map as MapIcon, Radar } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import Overview from "./pages/Overview.jsx";
 import Sites from "./pages/Sites.jsx";
@@ -14,16 +14,16 @@ import Modeling from "./pages/Modeling.jsx";
 import Arboviral from "./pages/Arboviral.jsx";
 
 const PAGE_META = {
-  "/": { title: "Arboviral Command View", sub: "Great Lakes climate-vector preparedness intelligence", icon: Home },
-  "/arboviral": { title: "Arboviral Preparedness", sub: "Aedes, Culex, RVF, and Great Lakes regional context", icon: Biohazard },
-  "/sites": { title: "Regional Spatial Operations", sub: "Great Lakes points, Rwanda sentinel sites, coordinate quality, and map view", icon: Map },
-  "/mosquito": { title: "Regional Vector Evidence", sub: "Aedes, Culex, Anopheles, ecology, species context, and habitats", icon: Activity },
-  "/resistance": { title: "Vector Control Intelligence", sub: "Susceptibility context, intervention readiness, and validation needs", icon: FlaskConical },
-  "/climate": { title: "Great Lakes Climate Context", sub: "Regional rainfall, temperature, humidity, ERA5, and Rwanda district signals", icon: Cloud },
-  "/live-weather": { title: "Live Weather Operations", sub: "Open-Meteo nowcast, field windows, and climate-vector review", icon: CloudSun },
-  "/modeling": { title: "Preparedness Prioritization", sub: "Regional indices, Rwanda district screening, confidence, and next actions", icon: BrainCircuit },
-  "/alerts": { title: "Field Verification Board", sub: "Signal review, action queue, partner workflow, and response tracking", icon: AlertTriangle },
-  "/data-readiness": { title: "Evidence Control Center", sub: "All-source validation, partner governance, and pilot data queue", icon: Database },
+  "/":              { title: "Command Overview",        sub: "Great Lakes climate-vector preparedness intelligence", icon: Home },
+  "/arboviral":     { title: "Arboviral Preparedness",  sub: "Aedes · Culex · RVF · Great Lakes regional context",  icon: Biohazard },
+  "/sites":         { title: "Spatial Operations",      sub: "33 sentinel sites · coordinate status · map view",     icon: MapIcon },
+  "/mosquito":      { title: "Vector Evidence",         sub: "Ecology · species context · habitats",                 icon: Activity },
+  "/resistance":    { title: "Vector Control Context",  sub: "Susceptibility assay signal review",                   icon: FlaskConical },
+  "/climate":       { title: "Climate Context",         sub: "Rainfall · temperature · humidity · regional signals", icon: Cloud },
+  "/live-weather":  { title: "Live Weather",            sub: "Open-Meteo nowcast and field window",                  icon: CloudSun },
+  "/modeling":      { title: "Preparedness Priority",   sub: "Policy-facing prioritization and confidence",          icon: BrainCircuit },
+  "/alerts":        { title: "Response Board",          sub: "Signal review and action workflow",                    icon: AlertTriangle },
+  "/data-readiness":{ title: "Data Control",            sub: "Readiness · validation queue · governance",            icon: Database },
 };
 
 function Topbar() {
@@ -33,23 +33,25 @@ function Topbar() {
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <h1 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Icon size={18} style={{ color: "var(--teal-500)" }} />
+        <h1>
+          <Icon size={17} />
           {meta.title}
         </h1>
+        <div className="topbar-divider" />
         <p>{meta.sub}</p>
       </div>
       <div className="topbar-right">
+        <div className="topbar-status">
+          <span className="topbar-status-dot" />
+          System live
+        </div>
         <div className="topbar-mission">
-          <Radar size={13} />
+          <Radar size={12} />
           <span>Readiness</span>
           <span>Aedes</span>
           <span>RVF</span>
           <span>Climate</span>
-          <span>Response</span>
         </div>
-        <span className="badge badge-teal" style={{ fontSize: 11 }}>MVP</span>
-        <span className="badge badge-amber" style={{ fontSize: 11 }}>Pilot Next</span>
       </div>
     </header>
   );
@@ -62,17 +64,17 @@ export default function App() {
       <div className="main-content">
         <Topbar />
         <Routes>
-          <Route path="/" element={<Overview />} />
-          <Route path="/arboviral" element={<Arboviral />} />
-          <Route path="/sites" element={<Sites />} />
-          <Route path="/mosquito" element={<Mosquito />} />
-          <Route path="/resistance" element={<Resistance />} />
-          <Route path="/climate" element={<Climate />} />
-          <Route path="/live-weather" element={<LiveWeather />} />
-          <Route path="/modeling" element={<Modeling />} />
-          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/"              element={<Overview />} />
+          <Route path="/arboviral"     element={<Arboviral />} />
+          <Route path="/sites"         element={<Sites />} />
+          <Route path="/mosquito"      element={<Mosquito />} />
+          <Route path="/resistance"    element={<Resistance />} />
+          <Route path="/climate"       element={<Climate />} />
+          <Route path="/live-weather"  element={<LiveWeather />} />
+          <Route path="/modeling"      element={<Modeling />} />
+          <Route path="/alerts"        element={<Alerts />} />
           <Route path="/data-readiness" element={<DataReadiness />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*"              element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </div>

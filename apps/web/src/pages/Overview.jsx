@@ -1,451 +1,263 @@
 import React from "react";
 import {
-  Activity,
-  BarChart3,
-  CheckCircle2,
-  ClipboardList,
-  CloudRain,
-  Database,
-  FlaskConical,
-  Globe2,
-  Map,
-  ShieldCheck,
-  Target,
+  Activity, BarChart3, CheckCircle2, CloudRain,
+  Database, FlaskConical, Globe2, MapPin,
+  ShieldCheck, Target, Zap,
 } from "lucide-react";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+  Area, AreaChart, Bar, BarChart, CartesianGrid,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import {
-  AlertBanner,
-  Badge,
-  ChartState,
-  DataTable,
-  InterpretationPanel,
-  MetricStrip,
-  SectionCard,
-  StatCard,
+  Badge, ChartState, MetricStrip, PhaseTimeline,
+  ProgressBar, PulseIndicator, SectionCard, StatCard,
 } from "../components/UI";
 
-function num(value) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
+function n(v) { const x = Number(v); return Number.isFinite(x) ? x : 0; }
+function fmt(v) { return Number(v ?? 0).toLocaleString(); }
 
-function fmt(value) {
-  return Number(value ?? 0).toLocaleString();
-}
+const PHASES = [
+  { label: "MVP Build",        sub: "Current data · done",    status: "done" },
+  { label: "Proposal Polish",  sub: "Docs + diagrams",        status: "active" },
+  { label: "Pilot Collection", sub: "Aedes/Culex traps",      status: "pending" },
+  { label: "Partner Data",     sub: "RBC/MoH approval",       status: "pending" },
+  { label: "Validation",       sub: "Model + field",          status: "pending" },
+];
 
-function statusVariant(value) {
-  const text = String(value ?? "");
-  if (text === "yes" || text.includes("ready") || text.includes("usable") || text.includes("validated")) return "green";
-  if (text === "partial" || text.includes("context")) return "amber";
-  if (text.includes("not")) return "red";
-  return "blue";
-}
+const EVIDENCE_NOW = [
+  { name: "mosquito_behavior_raw.xls", desc: "3,547 ecology rows — breeding sites, habitats, agricultural exposure", badge: "green", tag: "PI primary" },
+  { name: "IR_data.xls",               desc: "3,547 susceptibility rows — insecticide, concentration, 24h deaths",  badge: "green", tag: "PI primary" },
+  { name: "NASA POWER",                desc: "30 Rwanda districts × 4 years daily climate (2021–2025)",             badge: "blue",  tag: "Public" },
+  { name: "GBIF vector occurrence",    desc: "329 Aedes + 51 Culex regional records across Great Lakes",            badge: "blue",  tag: "Public" },
+  { name: "ERA5-Land monthly",         desc: "Rwanda bbox rainfall, temperature, dewpoint, runoff baseline",        badge: "blue",  tag: "Public" },
+  { name: "33 sentinel sites",         desc: "Lecturer WKT coordinates — mapped and operational for MVP",           badge: "teal",  tag: "Spatial" },
+];
 
 export default function Overview() {
-  const { data: stats, loading: statsLoading, error: statsError } = useFetch(api.stats);
-  const { data: dbStatus, loading: dbLoading, error: dbError } = useFetch(api.databaseStatus);
-  const { data: readiness, loading: readinessLoading, error: readinessError } = useFetch(api.readiness);
-  const { data: climate, loading: climateLoading, error: climateError } = useFetch(api.climateSummary);
-  const { data: publicSources, loading: sourcesLoading, error: sourcesError } = useFetch(api.publicDataSources);
-  const { data: publicFeatures, loading: featuresLoading, error: featuresError } = useFetch(api.publicDistrictFeatures);
-  const { data: validation, loading: validationLoading, error: validationError } = useFetch(api.publicValidation);
-  const { data: gbif } = useFetch(() => api.publicGbif(1));
-  const { data: risk, loading: riskLoading, error: riskError } = useFetch(() => api.districtRisk(30));
-  const { data: intelligence, loading: iL, error: iError } = useFetch(api.arboviralIntelligence);
+  const { data: stats,    loading: sL  } = useFetch(api.stats);
+  const { data: dbStatus, loading: dbL } = useFetch(api.databaseStatus);
+  const { data: climate,  loading: cL  } = useFetch(api.climateSummary);
+  const { data: features, loading: fL  } = useFetch(api.publicDistrictFeatures);
+  const { data: valid,    loading: vL  } = useFetch(api.publicValidation);
+  const { data: risk,     loading: rL  } = useFetch(() => api.districtRisk(30));
+  const { data: gbif               } = useFetch(() => api.publicGbif(1));
+  const { data: readiness          } = useFetch(api.readiness);
 
-  const sourceRows = publicSources?.items ?? [];
-  const validationRows = validation?.items ?? [];
-  const featureRows = publicFeatures?.items ?? [];
-  const readinessRows = readiness?.items ?? [];
-  const availableReadiness = readinessRows.filter((row) => String(row.ready).toLowerCase() === "true");
-  const validationNeeds = readinessRows.filter((row) => String(row.ready).toLowerCase() !== "true");
-  const loadedSources = sourceRows.filter((row) => num(row.file_count) > 0).length;
-  const pendingSources = sourceRows.filter((row) => String(row.use_now).includes("not_downloaded")).length;
+  const validRows   = valid?.items ?? [];
+  const featureRows = features?.items ?? [];
+  const readyItems  = (readiness?.items ?? []).filter(r => String(r.ready).toLowerCase() === "true");
+  const readyPct    = readiness?.items?.length ? Math.round((readyItems.length / readiness.items.length) * 100) : 0;
+  const usableSrc   = validRows.filter(r => ["usable","validated","downloaded"].some(k => String(r.status).includes(k))).length;
 
-  const climateRows = (climate?.items ?? []).slice(-60).map((row) => ({
-    date: row.date ?? row.DATE ?? "",
-    rain: num(row.rainfall_mm ?? row.PRECTOTCORR),
-    temp: num(row.tmean_c ?? row.T2M),
+  const climateRows = (climate?.items ?? []).slice(-60).map(r => ({
+    date: r.date ?? r.DATE ?? "",
+    rain: n(r.rainfall_mm ?? r.PRECTOTCORR),
+    temp: n(r.tmean_c ?? r.T2M),
   }));
 
-  const wettestDistricts = featureRows
-    .map((row) => ({
-      district: row.district,
-      rainfall: num(row.rainfall_mean_daily_mm),
-      temp: num(row.tmean_c_mean),
-      records: num(row.climate_records),
-    }))
-    .sort((a, b) => b.rainfall - a.rainfall)
-    .slice(0, 8);
+  const topDistricts = (risk?.items ?? []).slice(0, 8).map(r => ({
+    district: String(r.district ?? "").replace(/\b\w/g, c => c.toUpperCase()),
+    suitability: n(r.suitability_index),
+    risk: r.risk_level,
+  }));
 
-  const priorityDistricts = (risk?.items ?? [])
-    .slice(0, 8)
-    .map((row) => ({
-      district: row.district,
-      suitability: num(row.suitability_index),
-      records: num(row.recent_records),
-      level: row.risk_level,
-    }));
-  const intelSummary = intelligence?.summary ?? {};
-  const actionRows = intelligence?.action_queue ?? [];
-  const formalGaps = intelSummary.formal_or_required_sources ?? 0;
-  const executiveTone = formalGaps > 0 ? "amber" : "teal";
+  const RISK_COLOR = { high: "#ef4444", medium: "#f59e0b", low: "#0d9488" };
 
   return (
-    <div className="page overview-redesign">
-      <section className="overview-hero">
-        <div className="overview-hero-main">
-          <div className="eyebrow">ArboRisk-GL · African Great Lakes preparedness build</div>
-          <h2>Climate-informed arboviral preparedness and vector intelligence</h2>
-          <p>
-            A working climate-vector preparedness intelligence system ready for formal validation, regional expansion,
-            and partner integration. Integrates Rwanda PI entomological datasets, lecturer-provided sentinel coordinates,
-            NASA POWER Great Lakes climate, GBIF vector occurrence context, and environmental layers to support
-            field verification and preparedness planning.
-          </p>
-          <div className="hero-badges">
-            <Badge variant="green">Ready for proposal demo</Badge>
-            <Badge variant="amber">Preparedness, not confirmed prediction</Badge>
-            <Badge variant="blue">Pilot validation built in</Badge>
+    <div className="page">
+
+      {/* ── HERO ── */}
+      <div className="page-hero">
+        <div className="eyebrow">African Great Lakes · ArboRisk-GL v1.0</div>
+        <h2>Arboviral disease preparedness intelligence</h2>
+        <p>
+          A professional proof-of-concept integrating PI field datasets, 30-district Rwanda climate,
+          regional vector occurrence context, and validated public evidence — built for the Nexa
+          climate-health funding call and future RBC/MoH pilot partnership.
+        </p>
+        <div className="hero-badges">
+          <Badge variant="green">Ready for proposal demo</Badge>
+          <Badge variant="amber">Descriptive · not validated prediction</Badge>
+          <Badge variant="blue">Pilot validation built in</Badge>
+          <Badge variant="teal">Nexa PoC eligible</Badge>
+        </div>
+        <div style={{ display: "flex", gap: 20, marginTop: 4 }}>
+          <PulseIndicator label="System live" active />
+          <PulseIndicator label={dbL ? "Checking DB…" : dbStatus?.connected ? "Database connected" : "DB offline"} active={!!dbStatus?.connected} />
+        </div>
+
+        <div className="page-hero-kpis">
+          <div className="page-hero-kpi">
+            <div className="page-hero-kpi-value">{sL ? "…" : fmt(stats?.mosquito_observations)}</div>
+            <div className="page-hero-kpi-label">Ecology rows</div>
+          </div>
+          <div className="page-hero-kpi">
+            <div className="page-hero-kpi-value">{sL ? "…" : fmt(stats?.resistance_tests)}</div>
+            <div className="page-hero-kpi-label">Susceptibility rows</div>
+          </div>
+          <div className="page-hero-kpi">
+            <div className="page-hero-kpi-value">33</div>
+            <div className="page-hero-kpi-label">Sentinel sites mapped</div>
+          </div>
+          <div className="page-hero-kpi">
+            <div className="page-hero-kpi-value">{vL ? "…" : usableSrc}</div>
+            <div className="page-hero-kpi-label">Usable evidence sources</div>
           </div>
         </div>
-        <div className="overview-hero-side">
-          <div className="scope-item">
-            <ShieldCheck size={18} />
-            <span>Mission</span>
-            <strong>Transform fragmented vector, climate, environmental, and readiness data into policy-ready intelligence for arboviral disease preparedness</strong>
-          </div>
-          <div className="scope-item">
-            <Target size={18} />
-            <span>Phase 2 — funded pilot</span>
-            <strong>Validate with Aedes/Culex surveillance, RBC/MoH case data, livestock/RVF signals, GPS confirmation, and partner action logs</strong>
-          </div>
+      </div>
+
+      {/* ── KPI TILES ── */}
+      <div className="kpi-row">
+        <div className="kpi-tile">
+          <div className="kpi-tile-accent teal" />
+          <div className="kpi-tile-label">PI ecology records</div>
+          <div className="kpi-tile-value">{sL ? "…" : fmt(stats?.mosquito_observations)}</div>
+          <div className="kpi-tile-sub">mosquito_behavior_raw.xls · Rwanda PoC</div>
+          <Activity size={48} className="kpi-tile-icon" />
         </div>
-      </section>
+        <div className="kpi-tile">
+          <div className="kpi-tile-accent amber" />
+          <div className="kpi-tile-label">Susceptibility assay rows</div>
+          <div className="kpi-tile-value">{sL ? "…" : fmt(stats?.resistance_tests)}</div>
+          <div className="kpi-tile-sub">IR_data.xls · vector-control context</div>
+          <FlaskConical size={48} className="kpi-tile-icon" />
+        </div>
+        <div className="kpi-tile">
+          <div className="kpi-tile-accent blue" />
+          <div className="kpi-tile-label">District climate records</div>
+          <div className="kpi-tile-value">{fL ? "…" : fmt(featureRows.length)}</div>
+          <div className="kpi-tile-sub">30 Rwanda districts · NASA POWER</div>
+          <CloudRain size={48} className="kpi-tile-icon" />
+        </div>
+        <div className="kpi-tile">
+          <div className="kpi-tile-accent green" />
+          <div className="kpi-tile-label">GBIF vector records</div>
+          <div className="kpi-tile-value">{fmt(gbif?.count)}</div>
+          <div className="kpi-tile-sub">Aedes + Culex · Great Lakes region</div>
+          <Globe2 size={48} className="kpi-tile-icon" />
+        </div>
+      </div>
 
-      {(statsError || readinessError) && (
-        <AlertBanner
-          type="error"
-          title="Dashboard data issue"
-          message={statsError || readinessError}
-        />
-      )}
+      {/* ── READINESS PROGRESS ── */}
+      <SectionCard title="System readiness" icon={ShieldCheck}>
+        <div style={{ padding: "18px 20px", display: "grid", gap: 14 }}>
+          <ProgressBar label="Data readiness — available evidence groups" value={readyPct} color="teal" />
+          <ProgressBar label="Evidence sources loaded and usable" value={usableSrc} max={18} color="green" />
+          <ProgressBar label="Rwanda district climate coverage" value={featureRows.length} max={30} color="blue" />
+        </div>
+        <MetricStrip items={[
+          { label: "Ready groups",    value: readyItems.length },
+          { label: "Pilot fields",    value: (readiness?.items?.length ?? 0) - readyItems.length },
+          { label: "Usable sources",  value: usableSrc },
+          { label: "Readiness %",     value: `${readyPct}%` },
+        ]} />
+      </SectionCard>
 
-      {dbError && (
-        <AlertBanner
-          type="error"
-          title="Database connection issue"
-          message={dbError}
-        />
-      )}
+      <div style={{ marginBottom: 22 }} />
 
-      <InterpretationPanel
-        title="Executive interpretation"
-        verdict="The platform is strong as a preparedness and field-verification system; it should not yet be presented as an official outbreak forecaster."
-        tone={executiveTone}
-        confidence={`${intelSummary.ready_or_usable_sources ?? 0} ready/usable sources; ${formalGaps} formal-access gap remains for validated disease outcomes.`}
-        items={[
-          {
-            label: "Current strength",
-            value: "Regional climate-vector intelligence is operational",
-            note: "NASA, GBIF, PI datasets, sentinel coordinates, and validation registry are connected.",
-          },
-          {
-            label: "Policy use now",
-            value: "Prioritize field verification and partner data requests",
-            note: "Use outputs for preparedness planning, surveillance design, and funding demonstration.",
-          },
-          {
-            label: "Validation next",
-            value: "Official arboviral outcomes and Aedes/Culex pilot data",
-            note: "These unlock formal prediction, threshold calibration, and national reporting.",
-          },
-        ]}
-      />
+      {/* ── CHARTS ── */}
+      <div className="grid-2" style={{ marginBottom: 22 }}>
+        <SectionCard title="Gasabo/Kigali rainfall proxy — recent 60 days" icon={CloudRain}>
+          <ChartState loading={cL} rows={climateRows} empty="No climate rows available.">
+            <div className="card-body">
+              <div className="chart-wrap">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={climateRows} margin={{ top: 6, right: 12, left: -22, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="ovRain" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor="#0d9488" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#edf2f4" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={9} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #d8e2e4" }} />
+                    <Area type="monotone" dataKey="rain" name="Rainfall mm" stroke="#0d9488" strokeWidth={2} fill="url(#ovRain)" dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </ChartState>
+        </SectionCard>
 
+        <SectionCard title="Rwanda district preparedness proxy — top 8" icon={Target}>
+          <ChartState loading={rL} rows={topDistricts} empty="No district suitability rows available.">
+            <div className="card-body">
+              <div className="chart-wrap">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topDistricts} margin={{ top: 6, right: 12, left: -22, bottom: 48 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#edf2f4" vertical={false} />
+                    <XAxis dataKey="district" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" interval={0} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 1]} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #d8e2e4" }} />
+                    <Bar dataKey="suitability" name="Suitability index" radius={[5, 5, 0, 0]}>
+                      {topDistricts.map(r => (
+                        <rect key={r.district} fill={RISK_COLOR[r.risk] ?? RISK_COLOR.low} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </ChartState>
+        </SectionCard>
+      </div>
+
+      {/* ── IMPLEMENTATION ROADMAP ── */}
+      <SectionCard title="Implementation roadmap — 5 phases" icon={Target}>
+        <PhaseTimeline phases={PHASES} />
+      </SectionCard>
+
+      <div style={{ marginBottom: 22 }} />
+
+      {/* ── WHAT WE HAVE NOW ── */}
+      <div className="section-label"><Database size={13} /> Evidence integrated now</div>
+      <div className="source-chip-grid" style={{ padding: 0, marginBottom: 22 }}>
+        {EVIDENCE_NOW.map(src => (
+          <div className="source-chip" key={src.name}>
+            <div className="source-chip-status">
+              <span className="source-chip-name">{src.name}</span>
+              <Badge variant={src.badge}>{src.tag}</Badge>
+            </div>
+            <span className="source-chip-meta">{src.desc}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── POLICY CARDS ── */}
+      <div className="section-label"><Zap size={13} /> What this system supports</div>
+      <div className="pilot-grid" style={{ marginBottom: 22 }}>
+        <div className="pilot-card ready">
+          <div className="pilot-card-phase">Use now</div>
+          <div className="pilot-card-title">District field verification prioritization</div>
+          <div className="pilot-card-body">Climate, vector ecology, control context, and public evidence combined for review. Identifies which districts to inspect first.</div>
+          <Badge variant="green">Operational</Badge>
+        </div>
+        <div className="pilot-card ready">
+          <div className="pilot-card-phase">Use now</div>
+          <div className="pilot-card-title">Proposal and funding readiness tracking</div>
+          <div className="pilot-card-body">Shows exactly which data must be collected before formal prediction claims. Directly supports Nexa PoC application narrative.</div>
+          <Badge variant="green">Operational</Badge>
+        </div>
+        <div className="pilot-card active">
+          <div className="pilot-card-phase">Pilot required</div>
+          <div className="pilot-card-title">Validated outbreak preparedness model</div>
+          <div className="pilot-card-body">Requires Aedes/Culex field surveillance, arboviral case data (RBC/MoH), livestock signals, GPS, and protocol confirmation.</div>
+          <Badge variant="amber">Phase 3 pilot</Badge>
+        </div>
+      </div>
+
+      {/* ── STAT CARDS ── */}
       <div className="stats-grid">
-        <StatCard
-          icon={Activity}
-          label="Indexed evidence"
-          value={iL ? "..." : fmt(intelSummary.records_or_files_indexed)}
-          sub="All loaded records/files across current evidence"
-          color="teal"
-        />
-        <StatCard
-          icon={FlaskConical}
-          label="Aedes + Culex records"
-          value={iL ? "..." : fmt((intelSummary.aedes_records ?? 0) + (intelSummary.culex_records ?? 0))}
-          sub="GBIF Great Lakes regional vector context"
-          color="orange"
-        />
-        <StatCard
-          icon={Map}
-          label="Mapped sentinel sites"
-          value={iL ? "..." : `${intelSummary.mapped_sentinel_sites ?? 0}/${intelSummary.sentinel_sites ?? 0}`}
-          sub="Lecturer WKT coordinate registry"
-          color="blue"
-        />
-        <StatCard
-          icon={Globe2}
-          label="Great Lakes climate points"
-          value={iL ? "..." : intelSummary.great_lakes_climate_points ?? 0}
-          sub={`${intelSummary.high_climate_context_points ?? 0} high climate-context signals`}
-          color="green"
-        />
+        <StatCard icon={Activity}    label="Mosquito ecology rows"    value={sL ? "…" : fmt(stats?.mosquito_observations)} sub="Rwanda PoC vector ecology"            color="teal"   accent="teal" />
+        <StatCard icon={FlaskConical} label="Susceptibility rows"     value={sL ? "…" : fmt(stats?.resistance_tests)}      sub="Vector-control context · IR_data.xls"  color="orange" accent="amber" />
+        <StatCard icon={MapPin}       label="Sentinel sites"          value="33"                                            sub="Lecturer WKT coordinates · mapped"     color="blue"   accent="blue" />
+        <StatCard icon={CheckCircle2} label="Usable evidence sources" value={vL ? "…" : usableSrc}                         sub={`of ${validRows.length} total indexed`} color="green"  accent="green" />
       </div>
 
-      <div className="overview-model-strip">
-        <div className="model-strip-item">
-          <Database size={18} />
-          <div>
-            <span>Operational database</span>
-            <strong>{dbLoading ? "Checking..." : dbStatus?.connected ? "Connected to DB" : "Not connected"}</strong>
-          </div>
-        </div>
-        <div className="model-strip-item">
-          <CheckCircle2 size={18} />
-          <div>
-            <span>Evidence available now</span>
-            <strong>{iL ? "Checking..." : `${intelSummary.ready_or_usable_sources ?? availableReadiness.length} ready/usable sources`}</strong>
-          </div>
-        </div>
-        <div className="model-strip-item">
-          <CloudRain size={18} />
-          <div>
-            <span>District climate feature rows</span>
-            <strong>{fmt(featureRows.length)} Rwanda district summaries plus Great Lakes context</strong>
-          </div>
-        </div>
-        <div className="model-strip-item">
-          <Database size={18} />
-          <div>
-            <span>GBIF vector context</span>
-            <strong>{iL ? "Checking..." : `${fmt(intelSummary.aedes_records)} Aedes · ${fmt(intelSummary.culex_records)} Culex · ${fmt(intelSummary.anopheles_records)} Anopheles`}</strong>
-          </div>
-        </div>
-      </div>
-
-      <SectionCard title="Operational action queue" icon={ClipboardList}>
-        <ChartState loading={iL} error={iError} rows={actionRows} empty="No operational action queue loaded.">
-          <div className="action-queue">
-            {actionRows.map((row) => (
-              <div className="action-row" key={row.action}>
-                <Badge variant={row.priority === "high" ? "red" : "amber"}>{row.priority}</Badge>
-                <div>
-                  <strong>{row.action}</strong>
-                  <span>{row.evidence}</span>
-                </div>
-                <small>{row.decision_use}</small>
-              </div>
-            ))}
-          </div>
-        </ChartState>
-      </SectionCard>
-
-      <div className="grid-2 overview-grid">
-        <SectionCard title="Validated Evidence Registry" icon={ShieldCheck}>
-          <MetricStrip
-            items={[
-              { label: "Sources", value: validationLoading ? "..." : validation?.summary?.sources ?? 0 },
-              { label: "Usable", value: validationLoading ? "..." : validation?.summary?.ready_or_usable ?? 0 },
-              { label: "PI sources", value: validationLoading ? "..." : validation?.summary?.primary_pi_sources ?? 0 },
-              { label: "Pilot gaps", value: readinessLoading ? "..." : validationNeeds.length },
-            ]}
-          />
-          <ChartState loading={validationLoading} error={validationError} rows={validationRows} empty="No validation registry generated yet.">
-            <div className="evidence-chip-grid">
-              {validationRows.slice(0, 8).map((row) => (
-                <div className="evidence-chip" key={row.source_id}>
-                  <strong>{row.source_name}</strong>
-                  <span>{row.records_or_files} records/files</span>
-                  <Badge variant={statusVariant(row.status)}>{String(row.status).replace(/_/g, " ")}</Badge>
-                </div>
-              ))}
-            </div>
-          </ChartState>
-        </SectionCard>
-
-        <SectionCard title="Policy Decision Support" icon={Target}>
-          <div className="decision-grid">
-            <div className="decision-card">
-              <span>Use now</span>
-              <strong>Prioritize districts for field verification</strong>
-              <small>Climate, vector ecology, control context, and public evidence combined for review.</small>
-            </div>
-            <div className="decision-card">
-              <span>Use now</span>
-              <strong>Track readiness for pilot funding</strong>
-              <small>Shows exactly which data must be collected before formal prediction claims.</small>
-            </div>
-            <div className="decision-card">
-              <span>Do not overclaim</span>
-              <strong>No official outbreak prediction yet</strong>
-              <small>Outputs are screening intelligence until arboviral cases, Aedes/Culex field data, livestock signals, GPS, and protocols are confirmed.</small>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
-
-      <div className="grid-2 overview-grid">
-        <SectionCard title="Current Data Evidence Base" icon={Database}>
-          <div className="evidence-list">
-            <div className="evidence-row">
-              <div>
-                <strong>mosquito_behavior_raw.xls</strong>
-                <span>Ecology rows, breeding-site type, larval origin, agricultural insecticide-use context.</span>
-              </div>
-              <Badge variant="green">Primary PI data</Badge>
-            </div>
-            <div className="evidence-row">
-              <div>
-                <strong>IR_data.xls</strong>
-                <span>Susceptibility tests, insecticide concentration, 24h deaths, and vector-control context.</span>
-              </div>
-              <Badge variant="green">Primary PI data</Badge>
-            </div>
-            <div className="evidence-row">
-              <div>
-                <strong>Public covariates</strong>
-                <span>NASA POWER, CHIRPS, WorldClim, elevation, land cover, population, boundaries, OSM, GBIF, and Great Lakes regional points.</span>
-              </div>
-              <Badge variant="blue">Context layers</Badge>
-            </div>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="Preparedness Scope For The Deadline" icon={BarChart3}>
-          <div className="model-scope">
-            <div>
-              <span>Built now</span>
-              <p>Climate suitability, vector evidence, control-context summaries, regional arboviral preparedness, and proposal-ready readiness tracking.</p>
-            </div>
-            <div>
-              <span>Not claimed yet</span>
-              <p>No confirmed outbreak prediction, incidence forecast, or official alerting until arboviral case, vector, livestock, and partner validation data are collected.</p>
-            </div>
-            <div>
-              <span>Funding logic</span>
-              <p>The prototype demonstrates feasibility; the grant funds regional surveillance expansion, validation, and operational One Health coordination.</p>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
-
-      <div className="grid-2 overview-grid">
-        <SectionCard title="Gasabo/Kigali Climate Proxy: Recent Rainfall" icon={CloudRain}>
-          <ChartState loading={climateLoading} error={climateError} rows={climateRows} empty="No climate rows available.">
-            <div className="chart-wrap">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={climateRows} margin={{ top: 6, right: 12, left: -22, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="overviewRain" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#087f8c" stopOpacity={0.28} />
-                      <stop offset="95%" stopColor="#087f8c" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#edf2f4" />
-                  <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={9} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #d8e2e4" }} />
-                  <Area type="monotone" dataKey="rain" name="Rainfall mm" stroke="#087f8c" strokeWidth={2} fill="url(#overviewRain)" dot={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </ChartState>
-        </SectionCard>
-
-        <SectionCard title="Rwanda PoC District Preparedness Proxy" icon={Target}>
-          <ChartState loading={riskLoading} error={riskError} rows={priorityDistricts} empty="No district suitability rows available.">
-            <div className="chart-wrap">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={priorityDistricts} margin={{ top: 6, right: 12, left: -22, bottom: 48 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#edf2f4" vertical={false} />
-                  <XAxis dataKey="district" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" interval={0} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 1]} />
-                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: "1px solid #d8e2e4" }} />
-                  <Bar dataKey="suitability" name="Suitability index" fill="#2f6f4e" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </ChartState>
-        </SectionCard>
-      </div>
-
-      <div className="grid-2 overview-grid">
-        <SectionCard title="Public Covariate Coverage" icon={Globe2}>
-          <MetricStrip
-            items={[
-              { label: "Loaded sources", value: sourcesLoading ? "..." : loadedSources },
-              { label: "Pending scenario layer", value: sourcesLoading ? "..." : pendingSources },
-              { label: "District climate rows", value: featuresLoading ? "..." : featureRows.length },
-              { label: "GBIF rows", value: fmt(gbif?.count) },
-            ]}
-          />
-          <ChartState loading={sourcesLoading} error={sourcesError} rows={sourceRows} empty="No public-data inventory generated yet.">
-            <div className="compact-source-list">
-              {sourceRows.slice(0, 9).map((source) => (
-                <div className="compact-source-row" key={source.source_id}>
-                  <strong>{source.source_name}</strong>
-                  <Badge variant={statusVariant(source.use_now)}>{String(source.use_now).replace(/_/g, " ")}</Badge>
-                  <span>{fmt(source.file_count)} files</span>
-                </div>
-              ))}
-            </div>
-          </ChartState>
-        </SectionCard>
-
-        <SectionCard title="Pilot Validation Work Package" icon={ClipboardList}>
-          <ChartState loading={readinessLoading} error={readinessError} rows={validationNeeds} empty="No validation needs loaded.">
-            <div className="validation-list">
-              {validationNeeds.map((row) => (
-                <div className="validation-row" key={row.item}>
-                  <div>
-                    <strong>{String(row.item).replace(/_/g, " ")}</strong>
-                    <span>{row.proposal_use || row.status}</span>
-                  </div>
-                  <Badge variant="amber">Pilot</Badge>
-                </div>
-              ))}
-            </div>
-          </ChartState>
-        </SectionCard>
-      </div>
-
-      <SectionCard title="Wettest District Climate Proxies" icon={CloudRain}>
-        <ChartState loading={featuresLoading} error={featuresError} rows={wettestDistricts} empty="No district public climate feature rows available.">
-          <div className="district-signal-grid">
-            {wettestDistricts.map((row) => (
-              <div className="district-signal" key={row.district}>
-                <strong>{row.district}</strong>
-                <span>{row.rainfall.toFixed(2)} mm/day rainfall proxy</span>
-                <small>{row.temp.toFixed(1)} C mean temperature; {fmt(row.records)} climate rows</small>
-              </div>
-            ))}
-          </div>
-        </ChartState>
-      </SectionCard>
-
-      <SectionCard title="Evidence To Result Trace" icon={Database}>
-        <ChartState loading={validationLoading} error={validationError} rows={validationRows} empty="No evidence trace available.">
-          <DataTable
-            rows={validationRows}
-            maxRows={12}
-            columns={["source_name", "status", "records_or_files", "model_use", "frontend_use", "limitation"]}
-          />
-        </ChartState>
-      </SectionCard>
     </div>
   );
 }

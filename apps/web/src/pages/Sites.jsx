@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { BarChart3, CloudRain, Database, Droplets, Globe2, Map, MapPin, TestTube2 } from "lucide-react";
+import { BarChart3, CloudRain, Database, Droplets, Globe2, Map as MapIcon, MapPin, TestTube2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -335,7 +335,7 @@ export default function Sites() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Rwanda sentinel map" icon={Map}>
+        <SectionCard title="Rwanda sentinel map" icon={MapIcon}>
           <div className="card-body">
             <ChartState loading={loading || cL || sL} error={error || cError || sError} rows={mappedSites} empty="No mappable site coordinates available.">
               <RwandaMap sites={mappedSites} />
