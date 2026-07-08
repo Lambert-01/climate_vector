@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
+import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard } from "../components/UI";
 
 const SITE_COLORS = ["#2f6f4e", "#087f8c", "#d5a642", "#3b82f6", "#f59e0b", "#64748b"];
 
@@ -295,6 +295,30 @@ export default function Sites() {
           ]}
         />
       </SectionCard>
+
+      <InterpretationPanel
+        title="Spatial interpretation"
+        verdict="The map is now operational: regional climate points frame the Great Lakes system, while 33 Rwanda sentinel sites provide the proof-of-concept field network."
+        tone="blue"
+        confidence="Lecturer WKT coordinates are usable for MVP mapping; official PI confirmation is still recommended before formal reporting."
+        items={[
+          {
+            label: "Regional layer",
+            value: `${regionalPoints.length} Great Lakes points`,
+            note: "Used for cross-border climate-vector context.",
+          },
+          {
+            label: "Sentinel layer",
+            value: `${lecturerProvided} mapped sites`,
+            note: "Usable for field verification planning and site registry cleaning.",
+          },
+          {
+            label: "Next action",
+            value: "Confirm administrative metadata",
+            note: "District/province/facility names should be harmonized with PI records.",
+          },
+        ]}
+      />
 
       <div className="insight-grid">
         <div className="insight-card"><MapPin size={17} /><span>Highest-volume site</span><strong>{topSite}</strong></div>

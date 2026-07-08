@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, MetricStrip, SectionCard } from "../components/UI";
+import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard } from "../components/UI";
 
 function numberValue(value) {
   return Number.parseFloat(value ?? 0) || 0;
@@ -70,6 +70,7 @@ export default function Climate() {
     signal: r.climate_signal,
   }));
   const topRegionalWetness = [...regionalRows].sort((a, b) => b.rain30 - a.rain30).slice(0, 7);
+  const highRegionalCount = regionalRows.filter((row) => String(row.signal).includes("high")).length;
 
   const feature = useMemo(() => {
     return (publicFeatures?.items ?? []).find(
@@ -107,6 +108,30 @@ export default function Climate() {
           ]}
         />
       </SectionCard>
+
+      <InterpretationPanel
+        title="Climate interpretation"
+        verdict={`${topRegionalWetness[0]?.location ?? "Regional climate"} is currently the strongest wetness context point; Rwanda district climate remains useful as a proof-of-concept layer.`}
+        tone={highRegionalCount > 0 ? "amber" : "teal"}
+        confidence="NASA POWER and ERA5 are robust public climate inputs; they require field and disease validation before outbreak claims."
+        items={[
+          {
+            label: "Regional signal",
+            value: `${highRegionalCount} high climate-context points`,
+            note: "Use for regional preparedness scanning and cross-border discussion.",
+          },
+          {
+            label: "Rwanda layer",
+            value: `${publicFeatures?.items?.length ?? 0} district summaries`,
+            note: "Use for district screening and sentinel-site planning.",
+          },
+          {
+            label: "Decision use",
+            value: "Field window and wetness prioritization",
+            note: "Good for planning verification, not confirming transmission.",
+          },
+        ]}
+      />
 
       <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
         <SectionCard title="Regional 30-day wetness" icon={CloudRain}>
