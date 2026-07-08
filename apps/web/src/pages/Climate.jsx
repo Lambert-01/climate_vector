@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { Cloud, CloudRain, Database, ThermometerSun } from "lucide-react";
+import { Cloud, CloudRain, Database, Globe2, ThermometerSun } from "lucide-react";
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   Line,
   LineChart,
@@ -25,6 +27,8 @@ export default function Climate() {
 
   const { data: districts } = useFetch(api.climateDistricts);
   const { data: publicFeatures } = useFetch(api.publicDistrictFeatures);
+  const { data: intelligence, loading: iL, error: iError } = useFetch(api.arboviralIntelligence);
+  const { data: regionalClimate, loading: rcL, error: rcError } = useFetch(api.arboviralClimate);
   const { data: era5, loading: eL, error: eError } = useFetch(api.publicEra5);
   const { data: districtClimate, loading: dL, error: dError } = useFetch(
     () => api.climateDistrict(selectedDistrict, days),
@@ -57,6 +61,15 @@ export default function Climate() {
     runoff: numberValue(r.runoff_total_estimated_mm),
   }));
   const era5Latest = era5Rows[era5Rows.length - 1];
+  const regionalRows = (regionalClimate?.items ?? intelligence?.regional_climate?.items ?? []).map((r) => ({
+    location: r.location,
+    country: r.country,
+    rain30: numberValue(r.rainfall_latest_30d_mm),
+    tmean: numberValue(r.tmean_mean_c),
+    humidity: numberValue(r.humidity_mean_pct),
+    signal: r.climate_signal,
+  }));
+  const topRegionalWetness = [...regionalRows].sort((a, b) => b.rain30 - a.rain30).slice(0, 7);
 
   const feature = useMemo(() => {
     return (publicFeatures?.items ?? []).find(
@@ -75,13 +88,50 @@ export default function Climate() {
     <div className="page ops-page">
       <div className="ops-header">
         <div>
-          <div className="eyebrow">Climate module</div>
-          <h2>District climate signals</h2>
+          <div className="eyebrow">Great Lakes climate module</div>
+          <h2>Regional climate and Rwanda district signals</h2>
         </div>
         <div className="hero-badges">
-          <Badge variant="green">NASA POWER loaded</Badge>
-          <Badge variant="blue">{label}</Badge>
+          <Badge variant="green">NASA POWER regional</Badge>
+          <Badge variant="blue">Rwanda PoC: {label}</Badge>
         </div>
+      </div>
+
+      <SectionCard title="Great Lakes climate intelligence" icon={Globe2}>
+        <MetricStrip
+          items={[
+            { label: "Regional points", value: rcL || iL ? "..." : regionalRows.length },
+            { label: "High signals", value: iL ? "..." : intelligence?.summary?.high_climate_context_points ?? "..." },
+            { label: "Wettest point", value: topRegionalWetness[0]?.location ?? "..." },
+            { label: "Rwanda districts", value: publicFeatures?.items?.length ?? "..." },
+          ]}
+        />
+      </SectionCard>
+
+      <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
+        <SectionCard title="Regional 30-day wetness" icon={CloudRain}>
+          <ChartState loading={rcL || iL} error={rcError || iError} rows={topRegionalWetness} empty="No Great Lakes climate rows loaded.">
+            <div className="card-body">
+              <div className="chart-wrap">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topRegionalWetness} margin={{ top: 4, right: 8, left: -20, bottom: 52 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#eef3f4" vertical={false} />
+                    <XAxis dataKey="location" tick={{ fontSize: 10 }} tickLine={false} angle={-30} textAnchor="end" interval={0} />
+                    <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #dde6e8" }} />
+                    <Bar dataKey="rain30" fill="#0d9488" radius={[4, 4, 0, 0]} name="30d rainfall mm" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </ChartState>
+        </SectionCard>
+
+        <SectionCard title="Regional climate point table" icon={Database}>
+          <ChartState loading={rcL || iL} error={rcError || iError} rows={regionalRows} empty="No regional climate rows available.">
+            <DataTable rows={regionalRows} columns={["location", "country", "rain30", "tmean", "humidity", "signal"]} />
+          </ChartState>
+        </SectionCard>
       </div>
 
       <div className="ops-toolbar">
@@ -110,7 +160,7 @@ export default function Climate() {
         ))}
       </div>
 
-      <SectionCard title={`${label} coverage`} icon={Database}>
+      <SectionCard title={`${label} Rwanda district coverage`} icon={Database}>
         <MetricStrip
           items={[
             { label: "Rows in view", value: dL ? "..." : districtRows.length.toLocaleString() },
@@ -182,13 +232,13 @@ export default function Climate() {
       </div>
 
       <div className="grid-2" style={{ marginBottom: 20 }}>
-        <SectionCard title="ERA5-Land monthly baseline" icon={Database}>
+        <SectionCard title="ERA5-Land monthly Rwanda baseline" icon={Database}>
           <MetricStrip
             items={[
               { label: "Coverage", value: era5Rows.length ? `${era5Rows[0].month} to ${era5Latest?.month}` : "..." },
               { label: "Latest rain", value: era5Latest ? `${era5Latest.rain.toFixed(1)} mm` : "..." },
               { label: "Latest temp", value: era5Latest ? `${era5Latest.tmean.toFixed(1)} C` : "..." },
-              { label: "Mode", value: "Rwanda bbox + regional page" },
+              { label: "Mode", value: "Rwanda bbox inside Great Lakes system" },
             ]}
           />
           <ChartState loading={eL} error={eError} rows={era5Rows} empty="No ERA5 monthly rows loaded.">
@@ -216,7 +266,7 @@ export default function Climate() {
         </SectionCard>
       </div>
 
-      <SectionCard title="Gasabo reference" icon={Cloud}>
+      <SectionCard title="Gasabo/Kigali live reference" icon={Cloud}>
         <ChartState loading={kL} error={kError} rows={kigaliRows} empty="No Kigali reference rows available.">
           <div className="card-body">
             <div className="chart-wrap" style={{ height: 300 }}>

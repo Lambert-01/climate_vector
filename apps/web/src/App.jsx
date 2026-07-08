@@ -16,14 +16,14 @@ import Arboviral from "./pages/Arboviral.jsx";
 const PAGE_META = {
   "/": { title: "Arboviral Command View", sub: "Great Lakes climate-vector preparedness intelligence", icon: Home },
   "/arboviral": { title: "Arboviral Preparedness", sub: "Aedes, Culex, RVF, and Great Lakes regional context", icon: Biohazard },
-  "/sites": { title: "Spatial Operations", sub: "Sentinel sites, coordinate status, and map view", icon: Map },
-  "/mosquito": { title: "Vector Evidence", sub: "Ecology, species context, and habitats", icon: Activity },
-  "/resistance": { title: "Vector Control Context", sub: "Susceptibility assay signal review", icon: FlaskConical },
-  "/climate": { title: "Climate and Flooding Context", sub: "Rainfall, temperature, humidity, and regional signals", icon: Cloud },
-  "/live-weather": { title: "Live Weather", sub: "Open-Meteo nowcast and field window", icon: CloudSun },
-  "/modeling": { title: "Preparedness Priority", sub: "Policy-facing prioritization and confidence", icon: BrainCircuit },
-  "/alerts": { title: "Response Board", sub: "Signal review and action workflow", icon: AlertTriangle },
-  "/data-readiness": { title: "Data Control", sub: "Readiness and validation queue", icon: Database },
+  "/sites": { title: "Regional Spatial Operations", sub: "Great Lakes points, Rwanda sentinel sites, coordinate quality, and map view", icon: Map },
+  "/mosquito": { title: "Regional Vector Evidence", sub: "Aedes, Culex, Anopheles, ecology, species context, and habitats", icon: Activity },
+  "/resistance": { title: "Vector Control Intelligence", sub: "Susceptibility context, intervention readiness, and validation needs", icon: FlaskConical },
+  "/climate": { title: "Great Lakes Climate Context", sub: "Regional rainfall, temperature, humidity, ERA5, and Rwanda district signals", icon: Cloud },
+  "/live-weather": { title: "Live Weather Operations", sub: "Open-Meteo nowcast, field windows, and climate-vector review", icon: CloudSun },
+  "/modeling": { title: "Preparedness Prioritization", sub: "Regional indices, Rwanda district screening, confidence, and next actions", icon: BrainCircuit },
+  "/alerts": { title: "Field Verification Board", sub: "Signal review, action queue, partner workflow, and response tracking", icon: AlertTriangle },
+  "/data-readiness": { title: "Evidence Control Center", sub: "All-source validation, partner governance, and pilot data queue", icon: Database },
 };
 
 function Topbar() {

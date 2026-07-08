@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { BarChart3, CloudRain, Database, Droplets, Map, MapPin, TestTube2 } from "lucide-react";
+import { BarChart3, CloudRain, Database, Droplets, Globe2, Map, MapPin, TestTube2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -101,10 +101,88 @@ function RwandaMap({ sites }) {
   return <div ref={mapRef} className="map-container" />;
 }
 
+function RegionalMap({ sites, regionalPoints }) {
+  const mapRef = useRef(null);
+  const instanceRef = useRef(null);
+  const layerRef = useRef(null);
+
+  useEffect(() => {
+    if (instanceRef.current || !mapRef.current) return;
+
+    const map = L.map(mapRef.current, { scrollWheelZoom: false }).setView([-1.7, 30.7], 6);
+    instanceRef.current = map;
+    layerRef.current = L.layerGroup().addTo(map);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "OpenStreetMap contributors",
+      maxZoom: 18,
+    }).addTo(map);
+
+    setTimeout(() => map.invalidateSize(), 50);
+    return () => {
+      map.remove();
+      instanceRef.current = null;
+      layerRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = instanceRef.current;
+    const layer = layerRef.current;
+    if (!map || !layer) return;
+
+    layer.clearLayers();
+    const points = [];
+
+    sites.forEach((site) => {
+      const lat = asNumber(site.latitude);
+      const lng = asNumber(site.longitude);
+      if (lat === null || lng === null) return;
+      L.circleMarker([lat, lng], {
+        radius: 4,
+        color: "#ffffff",
+        weight: 1,
+        fillColor: "#22c55e",
+        fillOpacity: 0.85,
+      })
+        .addTo(layer)
+        .bindPopup(`<strong>${site.site_name}</strong><br/>Rwanda sentinel site<br/><small>${String(site.coordinate_quality).replace(/_/g, " ")}</small>`);
+      points.push([lat, lng]);
+    });
+
+    regionalPoints.forEach((point) => {
+      const lat = asNumber(point.latitude);
+      const lng = asNumber(point.longitude);
+      if (lat === null || lng === null) return;
+      const high = String(point.climate_signal).includes("high");
+      L.circleMarker([lat, lng], {
+        radius: high ? 10 : 8,
+        color: "#0b3d42",
+        weight: 2,
+        fillColor: high ? "#ef4444" : "#2563eb",
+        fillOpacity: 0.82,
+      })
+        .addTo(layer)
+        .bindPopup(
+          `<strong>${point.location}, ${point.country}</strong><br/>30d rain: ${point.rainfall_latest_30d_mm} mm<br/>Mean temp: ${point.tmean_mean_c} C<br/><small>${String(point.climate_signal).replace(/_/g, " ")}</small>`
+        );
+      points.push([lat, lng]);
+    });
+
+    if (points.length) {
+      map.fitBounds(points, { padding: [28, 28], maxZoom: 7 });
+    }
+    setTimeout(() => map.invalidateSize(), 50);
+  }, [sites, regionalPoints]);
+
+  return <div ref={mapRef} className="map-container" />;
+}
+
 export default function Sites() {
   const { data, loading, error } = useFetch(api.sites);
   const { data: sentinelData, loading: sL, error: sError } = useFetch(api.sentinelRegistry);
   const { data: candidates, loading: cL, error: cError } = useFetch(api.siteCoordinateCandidates);
+  const { data: intelligence, loading: iL, error: iError } = useFetch(api.arboviralIntelligence);
 
   const rawSites = data?.items ?? [];
   const sentinelRows = sentinelData?.items ?? [];
@@ -191,26 +269,28 @@ export default function Sites() {
   const topSite = topSites[0]?.site ?? "—";
   const topHabitat = mappedSites.find((site) => site.dominant_habitat)?.dominant_habitat ?? "—";
   const topInsecticide = mappedSites.find((site) => site.dominant_agri_insecticide)?.dominant_agri_insecticide ?? "—";
+  const regionalPoints = intelligence?.regional_climate?.items ?? [];
+  const highRegionalPoints = regionalPoints.filter((p) => String(p.climate_signal).includes("high")).length;
 
   return (
     <div className="page ops-page">
       <div className="ops-header">
         <div>
-          <div className="eyebrow">Spatial module</div>
-          <h2>Sites and map</h2>
+          <div className="eyebrow">Regional spatial module</div>
+          <h2>Great Lakes points and Rwanda sentinel map</h2>
         </div>
         <div className="hero-badges">
           <Badge variant={lecturerProvided ? "green" : provisional ? "amber" : "green"}>{lecturerProvided ? "Lecturer WKT" : provisional ? "GPS validation needed" : "GPS ready"}</Badge>
-          <Badge variant="blue">{mappedSites.length} mapped</Badge>
+          <Badge variant="blue">{regionalPoints.length} regional points</Badge>
         </div>
       </div>
 
-      <SectionCard title="Coordinate coverage" icon={Database}>
+      <SectionCard title="Spatial coverage" icon={Database}>
         <MetricStrip
           items={[
             { label: "Mapped locations", value: loading || cL || sL ? "..." : mappedSites.length },
-            { label: "PI records", value: loading || cL || sL ? "..." : fmt(totalRecords) },
-            { label: "Districts", value: loading || cL || sL ? "..." : districts },
+            { label: "Regional climate points", value: iL ? "..." : regionalPoints.length },
+            { label: "High regional signals", value: iL ? "..." : highRegionalPoints },
             { label: "Lecturer WKT", value: loading || cL || sL ? "..." : lecturerProvided },
           ]}
         />
@@ -223,13 +303,24 @@ export default function Sites() {
       </div>
 
       <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
-        <SectionCard title="National map" icon={Map}>
+        <SectionCard title="Great Lakes operational map" icon={Globe2}>
+          <div className="card-body">
+            <ChartState loading={loading || cL || sL || iL} error={error || cError || sError || iError} rows={[...mappedSites, ...regionalPoints]} empty="No regional map coordinates available.">
+              <RegionalMap sites={mappedSites} regionalPoints={regionalPoints} />
+            </ChartState>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Rwanda sentinel map" icon={Map}>
           <div className="card-body">
             <ChartState loading={loading || cL || sL} error={error || cError || sError} rows={mappedSites} empty="No mappable site coordinates available.">
               <RwandaMap sites={mappedSites} />
             </ChartState>
           </div>
         </SectionCard>
+      </div>
+
+      <div className="grid-2" style={{ marginBottom: 20 }}>
 
         <SectionCard title="Site volume" icon={BarChart3}>
           <ChartState loading={loading || cL || sL} error={error || cError || sError} rows={topSites} empty="No site records available.">
@@ -248,6 +339,16 @@ export default function Sites() {
                 </ResponsiveContainer>
               </div>
             </div>
+          </ChartState>
+        </SectionCard>
+
+        <SectionCard title="Regional climate points" icon={CloudRain}>
+          <ChartState loading={iL} error={iError} rows={regionalPoints} empty="No Great Lakes climate points loaded.">
+            <DataTable
+              rows={regionalPoints}
+              maxRows={10}
+              columns={["location", "country", "latitude", "longitude", "rainfall_latest_30d_mm", "tmean_mean_c", "climate_signal"]}
+            />
           </ChartState>
         </SectionCard>
       </div>
