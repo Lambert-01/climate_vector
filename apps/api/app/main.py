@@ -4,12 +4,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routes import alerts, climate, dashboard, live_weather, modeling, mosquito, public_data, readiness, resistance, sites, summaries
+from app.routes import alerts, arboviral, climate, dashboard, live_weather, modeling, mosquito, public_data, readiness, resistance, sites, summaries
 
 app = FastAPI(
     title=settings.project_name,
     version="1.0.0",
-    description="Climate-informed mosquito risk surveillance API for Rwanda.",
+    description="Climate-informed arboviral and vector preparedness API for the African Great Lakes region.",
 )
 
 app.add_middleware(
@@ -27,6 +27,7 @@ for router in [
     mosquito.router,
     resistance.router,
     alerts.router,
+    arboviral.router,
     climate.router,
     live_weather.router,
     modeling.router,

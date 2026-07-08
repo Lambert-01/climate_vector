@@ -56,8 +56,8 @@ export default function Resistance() {
     <div className="page ops-page">
       <div className="ops-header">
         <div>
-          <div className="eyebrow">Resistance module</div>
-          <h2>Insecticide signals</h2>
+          <div className="eyebrow">Vector control context</div>
+          <h2>Susceptibility signals</h2>
         </div>
         <div className="hero-badges">
           <Badge variant="green">IR data loaded</Badge>
@@ -157,7 +157,7 @@ export default function Resistance() {
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <SectionCard title="Resistance evidence inputs" icon={Database}>
+        <SectionCard title="Control-context evidence inputs" icon={Database}>
           <ChartState loading={vL} error={vError} rows={evidenceRows} empty="No resistance evidence registry loaded.">
             <DataTable
               rows={evidenceRows}

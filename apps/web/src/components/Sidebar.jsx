@@ -4,6 +4,7 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  Biohazard,
   BrainCircuit,
   CheckCircle2,
   Cloud,
@@ -21,21 +22,22 @@ const NAV_GROUPS = [
     label: "Command",
     items: [
       { to: "/", label: "Overview", icon: Home, hint: "MVP status" },
+      { to: "/arboviral", label: "Arboviral Prep", icon: Biohazard, hint: "Great Lakes" },
       { to: "/data-readiness", label: "Data Control", icon: Database, hint: "Quality centre" },
     ],
   },
   {
     label: "Evidence",
     items: [
-      { to: "/mosquito", label: "Habitat + Exposure", icon: Activity, hint: "3,547 rows" },
-      { to: "/resistance", label: "Susceptibility", icon: FlaskConical, hint: "24h mortality" },
+      { to: "/mosquito", label: "Vector Evidence", icon: Activity, hint: "PI + GBIF" },
+      { to: "/resistance", label: "Control Context", icon: FlaskConical, hint: "24h mortality" },
       { to: "/sites", label: "Sites + Map", icon: Map, hint: "30 mapped" },
     ],
   },
   {
     label: "Climate To Action",
     items: [
-      { to: "/climate", label: "Climate Context", icon: Cloud, hint: "30 districts" },
+      { to: "/climate", label: "Climate Context", icon: Cloud, hint: "RWA + GL" },
       { to: "/live-weather", label: "Live Weather", icon: CloudSun, hint: "nowcast" },
       { to: "/modeling", label: "Priority Engine", icon: BrainCircuit, hint: "screening" },
       { to: "/alerts", label: "Response Board", icon: AlertTriangle, hint: "review flow" },
@@ -45,8 +47,8 @@ const NAV_GROUPS = [
 
 const MVP_STEPS = [
   "Readiness",
-  "Habitat",
-  "Susceptibility",
+  "Aedes",
+  "RVF",
   "Climate",
   "Response",
 ];
@@ -60,13 +62,13 @@ export default function Sidebar() {
             <Shield size={18} color="#fff" />
           </div>
           <div className="sidebar-logo-text">
-            <strong>RCVIS</strong>
-            <span>Vector intelligence</span>
+            <strong>ArboRisk-GL</strong>
+            <span>Arboviral intelligence</span>
           </div>
         </div>
         <div className="sidebar-product-meta">
-          <span>Rwanda PoC</span>
-          <span>Current data</span>
+          <span>Great Lakes</span>
+          <span>Preparedness</span>
         </div>
       </div>
 
@@ -111,7 +113,7 @@ export default function Sidebar() {
         <div className="sidebar-kpis">
           <div>
             <span>Records</span>
-            <strong>7,094</strong>
+            <strong>13k+</strong>
           </div>
           <div>
             <span>Sites</span>

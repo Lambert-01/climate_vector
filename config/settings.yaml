@@ -1,7 +1,7 @@
 project:
   name: climate-vector-rwanda
   mode: proof_of_concept
-  country: Rwanda
+  country: African Great Lakes region
 
 paths:
   raw_data: data/raw
@@ -15,4 +15,3 @@ scientific_guardrails:
   require_full_dates_for_climate_lags: true
   require_gps_for_site_models: true
   require_denominator_for_resistance_rates: true
-

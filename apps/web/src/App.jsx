@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, BrainCircuit, Cloud, CloudSun, Database, FlaskConical, Home, Map, Radar } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FlaskConical, Home, Map, Radar } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import Overview from "./pages/Overview.jsx";
 import Sites from "./pages/Sites.jsx";
@@ -11,15 +11,17 @@ import LiveWeather from "./pages/LiveWeather.jsx";
 import Alerts from "./pages/Alerts.jsx";
 import DataReadiness from "./pages/DataReadiness.jsx";
 import Modeling from "./pages/Modeling.jsx";
+import Arboviral from "./pages/Arboviral.jsx";
 
 const PAGE_META = {
-  "/": { title: "Prototype Command View", sub: "Current PI data plus public climate/environment intelligence", icon: Home },
-  "/sites": { title: "Spatial Operations", sub: "Sites, coordinate status, and map view", icon: Map },
-  "/mosquito": { title: "Mosquito Surveillance", sub: "Ecology, species context, and habitats", icon: Activity },
-  "/resistance": { title: "Resistance Intelligence", sub: "Insecticide assay signal review", icon: FlaskConical },
-  "/climate": { title: "Climate Intelligence", sub: "District rainfall and temperature signals", icon: Cloud },
+  "/": { title: "Arboviral Command View", sub: "Great Lakes climate-vector preparedness intelligence", icon: Home },
+  "/arboviral": { title: "Arboviral Preparedness", sub: "Aedes, Culex, RVF, and Great Lakes regional context", icon: Biohazard },
+  "/sites": { title: "Spatial Operations", sub: "Sentinel sites, coordinate status, and map view", icon: Map },
+  "/mosquito": { title: "Vector Evidence", sub: "Ecology, species context, and habitats", icon: Activity },
+  "/resistance": { title: "Vector Control Context", sub: "Susceptibility assay signal review", icon: FlaskConical },
+  "/climate": { title: "Climate and Flooding Context", sub: "Rainfall, temperature, humidity, and regional signals", icon: Cloud },
   "/live-weather": { title: "Live Weather", sub: "Open-Meteo nowcast and field window", icon: CloudSun },
-  "/modeling": { title: "Risk Engine", sub: "Suitability and priority scoring", icon: BrainCircuit },
+  "/modeling": { title: "Preparedness Priority", sub: "Policy-facing prioritization and confidence", icon: BrainCircuit },
   "/alerts": { title: "Response Board", sub: "Signal review and action workflow", icon: AlertTriangle },
   "/data-readiness": { title: "Data Control", sub: "Readiness and validation queue", icon: Database },
 };
@@ -41,8 +43,8 @@ function Topbar() {
         <div className="topbar-mission">
           <Radar size={13} />
           <span>Readiness</span>
-          <span>Habitat</span>
-          <span>Susceptibility</span>
+          <span>Aedes</span>
+          <span>RVF</span>
           <span>Climate</span>
           <span>Response</span>
         </div>
@@ -61,6 +63,7 @@ export default function App() {
         <Topbar />
         <Routes>
           <Route path="/" element={<Overview />} />
+          <Route path="/arboviral" element={<Arboviral />} />
           <Route path="/sites" element={<Sites />} />
           <Route path="/mosquito" element={<Mosquito />} />
           <Route path="/resistance" element={<Resistance />} />

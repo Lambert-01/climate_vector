@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
 
-    project_name: str = "Climate Vector Rwanda"
+    project_name: str = "ArboRisk-GL"
     project_env: str = "development"
 
     @property

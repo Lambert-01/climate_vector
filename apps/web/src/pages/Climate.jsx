@@ -188,7 +188,7 @@ export default function Climate() {
               { label: "Coverage", value: era5Rows.length ? `${era5Rows[0].month} to ${era5Latest?.month}` : "..." },
               { label: "Latest rain", value: era5Latest ? `${era5Latest.rain.toFixed(1)} mm` : "..." },
               { label: "Latest temp", value: era5Latest ? `${era5Latest.tmean.toFixed(1)} C` : "..." },
-              { label: "Mode", value: "Rwanda bbox" },
+              { label: "Mode", value: "Rwanda bbox + regional page" },
             ]}
           />
           <ChartState loading={eL} error={eError} rows={era5Rows} empty="No ERA5 monthly rows loaded.">

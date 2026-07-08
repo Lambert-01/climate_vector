@@ -1,0 +1,8 @@
+point_id,country,location,longitude,latitude,role,records,date_start,date_end,rainfall_mean_daily_mm,rainfall_latest_30d_mm,tmean_mean_c,humidity_mean_pct,climate_signal
+kigali,Rwanda,Kigali,30.0588,-1.9470,capital_city_reference,1826,2021-01-01,2025-12-31,3.52,109.73,19.88,76.06,moderate_mosquito_emergence_context
+goma,DRC,Goma,29.2285,-1.6585,lake_kivu_cross_border_reference,1826,2021-01-01,2025-12-31,4.62,153.93,17.56,79.87,routine_monitoring_context
+bukavu,DRC,Bukavu,28.8608,-2.5083,lake_kivu_cross_border_reference,1826,2021-01-01,2025-12-31,4.1,182.23,18.55,78.53,moderate_mosquito_emergence_context
+kampala,Uganda,Kampala,32.5825,0.3476,urban_aedes_reference,1826,2021-01-01,2025-12-31,3.83,62.95,22.53,75.43,moderate_mosquito_emergence_context
+bujumbura,Burundi,Bujumbura,29.3639,-3.3614,lake_tanganyika_reference,1826,2021-01-01,2025-12-31,4.81,236.71,21.32,72.29,high_mosquito_emergence_context
+mwanza,Tanzania,Mwanza,32.9000,-2.5167,lake_victoria_reference,1826,2021-01-01,2025-12-31,3.75,121.52,23.76,66.01,high_mosquito_emergence_context
+kisumu,Kenya,Kisumu,34.7617,-0.0917,lake_victoria_reference,1826,2021-01-01,2025-12-31,7.28,119.63,20.4,74.32,moderate_mosquito_emergence_context

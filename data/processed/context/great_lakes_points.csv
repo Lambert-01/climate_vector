@@ -1,0 +1,8 @@
+point_id,country,location,longitude,latitude,role
+kigali,Rwanda,Kigali,30.0588,-1.9470,capital_city_reference
+goma,DRC,Goma,29.2285,-1.6585,lake_kivu_cross_border_reference
+bukavu,DRC,Bukavu,28.8608,-2.5083,lake_kivu_cross_border_reference
+kampala,Uganda,Kampala,32.5825,0.3476,urban_aedes_reference
+bujumbura,Burundi,Bujumbura,29.3639,-3.3614,lake_tanganyika_reference
+mwanza,Tanzania,Mwanza,32.9000,-2.5167,lake_victoria_reference
+kisumu,Kenya,Kisumu,34.7617,-0.0917,lake_victoria_reference

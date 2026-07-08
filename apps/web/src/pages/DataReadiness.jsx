@@ -8,13 +8,13 @@ const MISSING_ITEMS = [
   { item: "Full sample dates (month + year per row)", priority: "high" },
   { item: "GPS coordinates for all sentinel sites", priority: "high" },
   { item: "Mosquito counts and sampling effort", priority: "high" },
-  { item: "Resistance test denominator (likely 25 — needs PI confirmation)", priority: "high" },
+  { item: "Susceptibility test denominator (likely 25 — needs PI confirmation)", priority: "high" },
   { item: "Test protocol (WHO susceptibility / CDC bottle / PBO assay)", priority: "high" },
   { item: "Control mortality records", priority: "high" },
   { item: "Clean species identification (morphological vs molecular)", priority: "medium" },
   { item: "Positive and negative habitat observations", priority: "medium" },
-  { item: "Malaria case or intervention outcome data (requires formal approval)", priority: "medium" },
-  { item: "Resistance status classification (after above confirmed)", priority: "medium" },
+  { item: "Arboviral case, febrile illness, or intervention outcome data (requires RBC/MoH approval)", priority: "medium" },
+  { item: "Susceptibility status classification (after above confirmed)", priority: "medium" },
 ];
 
 const PRIORITY_BADGE = { high: "red", medium: "amber", low: "green" };
@@ -155,7 +155,7 @@ export default function DataReadiness() {
                   ["missing_effort", "No sampling effort recorded", "Collect prospectively"],
                   ["duplicate_possible", "Possible duplicate row detected", "Data manager review"],
                   ["needs_review", "Flagged for manual review", "Data manager + PI review"],
-                  ["needs_denominator_protocol_control_date_gps_confirmation", "Resistance row — multiple fields unconfirmed", "PI/lab confirmation required"],
+                  ["needs_denominator_protocol_control_date_gps_confirmation", "Susceptibility row — multiple fields unconfirmed", "PI/lab confirmation required"],
                 ].map(([flag, meaning, action]) => (
                   <tr key={flag}>
                     <td><code style={{ fontSize: 11, background: "#f1f5f9", padding: "2px 6px", borderRadius: 4 }}>{flag}</code></td>

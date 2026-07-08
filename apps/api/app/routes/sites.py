@@ -38,6 +38,16 @@ def site_coordinate_candidates() -> dict:
     }
 
 
+@router.get("/sites/sentinel-registry")
+def sentinel_registry() -> dict:
+    rows = read_csv("data/processed/context/sentinel_sites_33.csv")
+    return {
+        "items": rows,
+        "source": "Map- 33 sentinel.xls",
+        "model_note": "Lecturer-provided WKT coordinates for Rwanda proof-of-concept sentinel mapping.",
+    }
+
+
 @router.get("/sites/{site_id}")
 async def get_site(site_id: str, db: AsyncSession = Depends(get_db)) -> dict:
     site = await db.get(Site, site_id)

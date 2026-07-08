@@ -24,7 +24,7 @@ function asNumber(value) {
 }
 
 function markerColor(quality) {
-  return String(quality).includes("validated") ? "#22c55e" : "#f59e0b";
+  return String(quality).includes("validated") || String(quality).includes("lecturer") ? "#22c55e" : "#f59e0b";
 }
 
 function fmt(value) {
@@ -103,11 +103,38 @@ function RwandaMap({ sites }) {
 
 export default function Sites() {
   const { data, loading, error } = useFetch(api.sites);
+  const { data: sentinelData, loading: sL, error: sError } = useFetch(api.sentinelRegistry);
   const { data: candidates, loading: cL, error: cError } = useFetch(api.siteCoordinateCandidates);
 
   const rawSites = data?.items ?? [];
+  const sentinelRows = sentinelData?.items ?? [];
   const candidateRows = candidates?.items ?? [];
   const mappedSites = useMemo(() => {
+    const piById = new Map(
+      rawSites.map((site) => [String(site.site_id ?? site.site_name ?? "").toLowerCase(), site])
+    );
+    const sentinelSites = sentinelRows.map((site) => {
+      const pi = piById.get(String(site.site_id ?? "").toLowerCase()) ?? {};
+      return {
+        site_id: site.site_id,
+        site_name: site.sentinel_name ?? site.site_label ?? site.site_id,
+        district: pi.district ?? "",
+        province: pi.province ?? "",
+        latitude: site.latitude,
+        longitude: site.longitude,
+        coordinate_quality: site.coordinate_quality ?? "lecturer_provided_wkt_coordinate",
+        coordinate_source: site.coordinate_source ?? "map_33_sentinel_xls",
+        records: pi.records ?? "",
+        dominant_habitat: pi.dominant_habitat ?? "—",
+        dominant_species_context: pi.dominant_species_context ?? "—",
+        dominant_agri_insecticide: pi.dominant_agri_insecticide ?? "—",
+        rainfall_mean_daily_mm: pi.rainfall_mean_daily_mm ?? "—",
+        tmean_c_mean: pi.tmean_c_mean ?? "—",
+        gbif_occurrence_count: pi.gbif_occurrence_count ?? "—",
+      };
+    });
+    if (sentinelSites.length) return sentinelSites;
+
     const validSites = rawSites
       .map((site) => ({
         site_id: site.site_id ?? site.site_name,
@@ -147,10 +174,10 @@ export default function Sites() {
       tmean_c_mean: site.tmean_c_mean ?? "—",
       gbif_occurrence_count: site.gbif_occurrence_count ?? "—",
     }));
-  }, [rawSites, candidateRows]);
+  }, [rawSites, sentinelRows, candidateRows]);
 
   const provisional = mappedSites.filter((s) => String(s.coordinate_quality).includes("provisional")).length;
-  const validated = mappedSites.length - provisional;
+  const lecturerProvided = mappedSites.filter((s) => String(s.coordinate_quality).includes("lecturer")).length;
   const totalRecords = mappedSites.reduce((sum, site) => sum + (Number(site.records) || 0), 0);
   const districts = new Set(mappedSites.map((site) => site.district).filter(Boolean)).size;
   const topSites = [...mappedSites]
@@ -173,7 +200,7 @@ export default function Sites() {
           <h2>Sites and map</h2>
         </div>
         <div className="hero-badges">
-          <Badge variant={provisional ? "amber" : "green"}>{provisional ? "GPS validation needed" : "GPS ready"}</Badge>
+          <Badge variant={lecturerProvided ? "green" : provisional ? "amber" : "green"}>{lecturerProvided ? "Lecturer WKT" : provisional ? "GPS validation needed" : "GPS ready"}</Badge>
           <Badge variant="blue">{mappedSites.length} mapped</Badge>
         </div>
       </div>
@@ -181,10 +208,10 @@ export default function Sites() {
       <SectionCard title="Coordinate coverage" icon={Database}>
         <MetricStrip
           items={[
-            { label: "Mapped locations", value: loading || cL ? "..." : mappedSites.length },
-            { label: "PI records", value: loading || cL ? "..." : fmt(totalRecords) },
-            { label: "Districts", value: loading || cL ? "..." : districts },
-            { label: "Provisional GPS", value: loading || cL ? "..." : provisional },
+            { label: "Mapped locations", value: loading || cL || sL ? "..." : mappedSites.length },
+            { label: "PI records", value: loading || cL || sL ? "..." : fmt(totalRecords) },
+            { label: "Districts", value: loading || cL || sL ? "..." : districts },
+            { label: "Lecturer WKT", value: loading || cL || sL ? "..." : lecturerProvided },
           ]}
         />
       </SectionCard>
@@ -198,14 +225,14 @@ export default function Sites() {
       <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
         <SectionCard title="National map" icon={Map}>
           <div className="card-body">
-            <ChartState loading={loading || cL} error={error || cError} rows={mappedSites} empty="No mappable site coordinates available.">
+            <ChartState loading={loading || cL || sL} error={error || cError || sError} rows={mappedSites} empty="No mappable site coordinates available.">
               <RwandaMap sites={mappedSites} />
             </ChartState>
           </div>
         </SectionCard>
 
         <SectionCard title="Site volume" icon={BarChart3}>
-          <ChartState loading={loading || cL} error={error || cError} rows={topSites} empty="No site records available.">
+          <ChartState loading={loading || cL || sL} error={error || cError || sError} rows={topSites} empty="No site records available.">
             <div className="card-body">
               <div className="chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">

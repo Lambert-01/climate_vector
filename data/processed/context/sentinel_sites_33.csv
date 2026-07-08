@@ -1,0 +1,34 @@
+site_id,sentinel_name,site_label,longitude,latitude,wkt,coordinate_source,coordinate_quality,regional_role
+ngarama,Ngarama,Ngarama,30.2426185,-1.5384402,POINT (30.2426185 -1.5384402),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+gashora,Gashora,Gashora,30.2426185,-2.2050337,POINT (30.2426185 -2.2050337),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+mareba,Mareba,Mareba Health Centre,30.0703223,-2.2476988,POINT (30.0703223 -2.2476988),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+cyondo,Cyondo,Cyondo Health Centre,30.1204601,-1.4406602,POINT (30.1204601 -1.4406602),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+karambi,Karambi,Karambi Health Centre,29.650769,-2.225432,POINT (29.650769 -2.225432),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+groupe,Groupe,Groupe Scolaire Mubuga,29.5745453,-2.1438188,POINT (29.5745453 -2.1438188),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+ngera,Ngera,Ngera Health Centre,29.6866626,-2.7135971,POINT (29.6866626 -2.7135971),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+kirarambogo,Kirarambogo,Kirarambogo Health Centre,29.899979,-2.6207571,POINT (29.899979 -2.6207571),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+busoro,Busoro,Busoro Health Centre,29.9304473,-2.2893504,POINT (29.9304473 -2.2893504),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+kicukiro,Kicukiro,Kicukiro,30.1358346,-2.0085703,POINT (30.1358346 -2.0085703),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+nyagasambu,Nyagasambu,Nyagasambu Health Centre,30.2741481,-1.8970939,POINT (30.2741481 -1.8970939),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+rwaza,Rwaza,Rwaza Health Center,29.6928704,-1.5449207,POINT (29.6928704 -1.5449207),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+gahini,Gahini,Gahini,30.4847242,-1.8423784,POINT (30.4847242 -1.8423784),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+nkaka,Nkaka,Nkanka Health Center,28.9289995,-2.4272076,POINT (28.9289995 -2.4272076),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+kajevuba,Kajevuba,Kajevuba Health Centre,30.1263711,-1.8090411,POINT (30.1263711 -1.8090411),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+mimuli,Mimuli,Mimuli Health Centre,30.257948,-1.4480965,POINT (30.257948 -1.4480965),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+mwogo,Mwogo,Mwogo Health Center,30.1566195,-2.0844752,POINT (30.1566195 -2.0844752),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+rukara,Rukara,Rukara Health Center,30.5030733,-1.7970125,POINT (30.5030733 -1.7970125),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+nyagatare,Nyagatare,Nyagatare Health Center,30.3248165,-1.2963944,POINT (30.3248165 -1.2963944),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+kibogora,Kibogora,Kibogora Health Centre,29.137487,-2.3308203,POINT (29.137487 -2.3308203),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+mbuga,Mbuga,Mbuga Health Centre,29.4805647,-2.4970068,POINT (29.4805647 -2.4970068),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+mbazi,Mbazi,Mbazi Health Center,29.7458429,-2.5516408,POINT (29.7458429 -2.5516408),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+gakoma,Gakoma,Gakoma Hospital,29.9178543,-2.4830354,POINT (29.9178543 -2.4830354),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+gitarama,Gitarama,Gitarama Health Centre,29.7811358,-2.0760386,POINT (29.7811358 -2.0760386),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+bungwe,Bungwe,Bungwe Health Center,29.9730822,-1.5028796,POINT (29.9730822 -1.5028796),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+bukora,Bukora,Bukora Health Centre,30.7865202,-2.308647,POINT (30.7865202 -2.308647),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+kivumu,Kivumu,Kivumu Health Center,29.3207589,-1.7767619,POINT (29.3207589 -1.7767619),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+rwesero,Rwesero,Rwesero Health Centre,30.1766579,-1.7992585,POINT (30.1766579 -1.7992585),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+rusizi,Rusizi,Rusizi District Office,28.9053899,-2.4830107,POINT (28.9053899 -2.4830107),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+remera,Remera,Remera Health Center,30.5557412,-2.0814261,POINT (30.5557412 -2.0814261),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+mbazi_31,Mbazi,Mbazi Health Center,29.7458429,-2.5516408,POINT (29.7458429 -2.5516408),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+gashora_32,Gashora,Gashora,30.2426185,-2.2050337,POINT (30.2426185 -2.2050337),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site
+gatsibo,Gatsibo,Gatsibo Health Centre,30.2392086,-1.5821958,POINT (30.2392086 -1.5821958),map_33_sentinel_xls_wkt,lecturer_provided_wkt_coordinate,rwanda_proof_of_concept_sentinel_site

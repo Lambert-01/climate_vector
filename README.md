@@ -1,4 +1,4 @@
-# Rwanda Climate-Vector Intelligence Prototype
+# ArboRisk-GL: Great Lakes Arboviral Intelligence Prototype
 
 This workspace is being restarted around the data that is available now.
 
@@ -9,7 +9,7 @@ The project uses:
 - useful public climate, environment, population, boundary, and mosquito-occurrence data in `data/external/`
 - the concept note in `docs/concept_note_original.doc`
 
-The goal is a professional proof-of-concept for a climate-informed mosquito ecology and insecticide-exposure decision-support system for Rwanda. The system must be honest: it can produce descriptive analytics, climate suitability indices, public-data context, provisional maps, readiness scoring, and pilot planning. It must not claim validated prediction of mosquito abundance, insecticide resistance, or malaria outcomes until missing field/lab variables are collected.
+The goal is a professional proof-of-concept for a climate-informed arboviral disease preparedness and vector-intelligence system for the African Great Lakes region. The system must be honest: it can produce climate/vector preparedness context, public-data evidence, Rwanda proof-of-concept entomology infrastructure, regional Aedes/Culex occurrence context, readiness scoring, and pilot planning. It must not claim confirmed arboviral outbreak prediction or incidence forecasting until partner surveillance, vector, livestock, and laboratory validation data are collected.
 
 ## Active Plan
 
@@ -47,4 +47,4 @@ outputs/
 
 ## Scientific Rule
 
-This is a current-data proof-of-concept. Missing exact sample dates, official GPS, mosquito counts, sampling effort, positive/negative habitat observations, resistance denominators, control mortality, assay protocol, and malaria/intervention outcomes remain future pilot or PI-confirmation variables.
+This is a current-data proof-of-concept. Missing exact sample dates, official GPS, Aedes/Culex field surveillance, ovitrap/container surveys, livestock/RVF event data, confirmed arboviral case or febrile illness indicators, susceptibility denominators, control mortality, and assay protocol remain future pilot, PI-confirmation, or RBC/MoH partner-governance variables.

@@ -328,7 +328,7 @@ def _model_spec() -> dict[str, object]:
         "name": "Live Climate Suitability Index",
         "version": "lcsi-v1",
         "scope": "Forecast-based mosquito habitat and field-verification screening only.",
-        "governance": "Not a validated mosquito abundance, resistance, or malaria prediction.",
+        "governance": "Not a confirmed arboviral outbreak, incidence, or official alert prediction.",
         "formulas": [
             {"symbol": "S_T", "label": "Temperature", "formula": "exp(-((T-26)/7)^2)"},
             {"symbol": "S_H", "label": "Humidity", "formula": "clip((RH-50)/35, 0, 1)"},

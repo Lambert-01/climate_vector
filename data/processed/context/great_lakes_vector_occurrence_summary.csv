@@ -1,0 +1,6 @@
+species,vector_group,records,countries,top_country,year_start,year_end,source,use_boundary
+Aedes aegypti,Aedes-borne preparedness,329,4,Kenya,1960,2025,GBIF public occurrence context,presence-only context; not local surveillance proof
+Aedes Albopictus,Aedes-borne preparedness,0,0,,,,GBIF public occurrence context,presence-only context; not local surveillance proof
+Anopheles funestus,Anopheles field-infrastructure context,3000,2,"Tanzania, United Republic of",2019,2021,GBIF public occurrence context,presence-only context; not local surveillance proof
+Anopheles gambiae,Anopheles field-infrastructure context,3000,2,Uganda,2018,2020,GBIF public occurrence context,presence-only context; not local surveillance proof
+Culex quinquefasciatus,Culex/RVF and West Nile context,51,3,"Tanzania, United Republic of",1912,2021,GBIF public occurrence context,presence-only context; not local surveillance proof

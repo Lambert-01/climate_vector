@@ -101,11 +101,11 @@ export default function Overview() {
     <div className="page overview-redesign">
       <section className="overview-hero">
         <div className="overview-hero-main">
-          <div className="eyebrow">Rwanda current-data build</div>
-          <h2>Climate-vector intelligence prototype</h2>
+          <div className="eyebrow">African Great Lakes preparedness build</div>
+          <h2>Arboviral disease intelligence prototype</h2>
           <p>
             A professional proof-of-concept using the two PI datasets, public climate layers,
-            mosquito occurrence context, and validated operational evidence for action review.
+            regional vector occurrence context, and validated operational evidence for action review.
           </p>
           <div className="hero-badges">
             <Badge variant="green">Ready for proposal demo</Badge>
@@ -122,7 +122,7 @@ export default function Overview() {
           <div className="scope-item">
             <Target size={18} />
             <span>What we do next</span>
-            <strong>Validate GPS, dates, effort, denominator, and protocol during pilot</strong>
+            <strong>Validate Aedes/Culex surveillance, case data, livestock signals, GPS, and protocols during pilot</strong>
           </div>
         </div>
       </section>
@@ -148,21 +148,21 @@ export default function Overview() {
           icon={Activity}
           label="Mosquito ecology rows"
           value={statsLoading ? "..." : fmt(stats?.mosquito_observations)}
-          sub="From mosquito_behavior_raw.xls"
+          sub="Rwanda proof-of-concept vector ecology"
           color="teal"
         />
         <StatCard
           icon={FlaskConical}
-          label="Resistance rows"
+          label="Susceptibility rows"
           value={statsLoading ? "..." : fmt(stats?.resistance_tests)}
-          sub="From IR_data.xls"
+          sub="Vector-control context from IR_data.xls"
           color="orange"
         />
         <StatCard
           icon={Map}
           label="Named PI sites"
           value={statsLoading ? "..." : fmt(stats?.sites)}
-          sub="Mapped provisionally until GPS validation"
+          sub="Rwanda PoC until regional sentinel sites are added"
           color="blue"
         />
         <StatCard
@@ -193,13 +193,13 @@ export default function Overview() {
           <CloudRain size={18} />
           <div>
             <span>District climate feature rows</span>
-            <strong>{fmt(featureRows.length)} Rwanda district summaries</strong>
+            <strong>{fmt(featureRows.length)} Rwanda district summaries plus Great Lakes context</strong>
           </div>
         </div>
         <div className="model-strip-item">
           <Database size={18} />
           <div>
-            <span>GBIF mosquito context</span>
+            <span>GBIF vector context</span>
             <strong>{fmt(gbif?.count)} public occurrence records</strong>
           </div>
         </div>
@@ -233,7 +233,7 @@ export default function Overview() {
             <div className="decision-card">
               <span>Use now</span>
               <strong>Prioritize districts for field verification</strong>
-              <small>Climate, mosquito ecology, resistance, and public context combined for review.</small>
+              <small>Climate, vector ecology, control context, and public evidence combined for review.</small>
             </div>
             <div className="decision-card">
               <span>Use now</span>
@@ -243,7 +243,7 @@ export default function Overview() {
             <div className="decision-card">
               <span>Do not overclaim</span>
               <strong>No official outbreak prediction yet</strong>
-              <small>Outputs are screening intelligence until GPS, dates, effort, and lab protocol are confirmed.</small>
+              <small>Outputs are screening intelligence until arboviral cases, Aedes/Culex field data, livestock signals, GPS, and protocols are confirmed.</small>
             </div>
           </div>
         </SectionCard>
@@ -262,33 +262,33 @@ export default function Overview() {
             <div className="evidence-row">
               <div>
                 <strong>IR_data.xls</strong>
-                <span>Resistance tests, insecticide concentration, 24h deaths, and Anopheles species context.</span>
+                <span>Susceptibility tests, insecticide concentration, 24h deaths, and vector-control context.</span>
               </div>
               <Badge variant="green">Primary PI data</Badge>
             </div>
             <div className="evidence-row">
               <div>
                 <strong>Public covariates</strong>
-                <span>NASA POWER, CHIRPS, WorldClim, elevation, land cover, population, boundaries, OSM, GBIF.</span>
+                <span>NASA POWER, CHIRPS, WorldClim, elevation, land cover, population, boundaries, OSM, GBIF, and Great Lakes regional points.</span>
               </div>
               <Badge variant="blue">Context layers</Badge>
             </div>
           </div>
         </SectionCard>
 
-        <SectionCard title="Model Scope For The Deadline" icon={BarChart3}>
+        <SectionCard title="Preparedness Scope For The Deadline" icon={BarChart3}>
           <div className="model-scope">
             <div>
               <span>Built now</span>
-              <p>Climate suitability, ecology evidence, resistance-pressure summaries, district prioritization, and proposal-ready readiness tracking.</p>
+              <p>Climate suitability, vector evidence, control-context summaries, regional arboviral preparedness, and proposal-ready readiness tracking.</p>
             </div>
             <div>
               <span>Not claimed yet</span>
-              <p>No final resistance classification, mosquito abundance model, or malaria alerting until pilot validation data are collected.</p>
+              <p>No confirmed outbreak prediction, incidence forecast, or official alerting until arboviral case, vector, livestock, and partner validation data are collected.</p>
             </div>
             <div>
               <span>Funding logic</span>
-              <p>The prototype demonstrates feasibility; the grant funds validation, surveillance expansion, and operational modelling.</p>
+              <p>The prototype demonstrates feasibility; the grant funds regional surveillance expansion, validation, and operational One Health coordination.</p>
             </div>
           </div>
         </SectionCard>
@@ -317,7 +317,7 @@ export default function Overview() {
           </ChartState>
         </SectionCard>
 
-        <SectionCard title="Top Districts By Current Suitability Proxy" icon={Target}>
+        <SectionCard title="Rwanda PoC District Preparedness Proxy" icon={Target}>
           <ChartState loading={riskLoading} error={riskError} rows={priorityDistricts} empty="No district suitability rows available.">
             <div className="chart-wrap">
               <ResponsiveContainer width="100%" height="100%">

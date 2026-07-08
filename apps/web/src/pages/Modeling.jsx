@@ -166,7 +166,7 @@ export default function Modeling() {
               </div>
               <div className="readiness-item">
                 <div className="readiness-dot missing" />
-                <div className="readiness-item-label">Cannot yet support validated abundance, resistance, or malaria prediction</div>
+                <div className="readiness-item-label">Cannot yet support confirmed arboviral outbreak or incidence prediction</div>
                 <Badge variant="red">blocked</Badge>
               </div>
             </div>
@@ -182,7 +182,6 @@ export default function Modeling() {
               "district",
               "risk_level",
               "suitability_index",
-              "vectorial_capacity_proxy",
               "rainfall_7d_mm",
               "rainfall_30d_mm",
               "tmean_c",

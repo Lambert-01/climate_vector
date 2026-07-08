@@ -1,0 +1,7 @@
+layer,status,evidence,policy_note
+Project entomology infrastructure,available,PI mosquito and IR datasets are loaded in the operational database,Useful as Rwanda proof-of-concept vector surveillance infrastructure
+Great Lakes climate points,available,"NASA POWER daily rainfall, temperature, and humidity for 7 regional points","Regional climate context, not sentinel-site microclimate"
+Regional vector occurrence,available_context,GBIF Aedes/Culex/Anopheles occurrence records in the Great Lakes bounding box,Presence-only context; not surveillance proof
+Land cover and elevation,available,ESA WorldCover and WorldClim elevation files exist locally,Environmental suitability context
+JRC surface water,planned,Requires Google Earth Engine export,Do not block MVP; use land-cover water classes and rainfall now
+RBC/MoH arboviral data,formal_access_required,No fake case dashboard should be built,Access through approval/data-sharing during PoC

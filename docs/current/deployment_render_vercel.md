@@ -102,7 +102,7 @@ Start Command: uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port $PO
 
 ```text
 PROJECT_ENV=production
-PROJECT_NAME=Rwanda Climate-Vector Intelligence System
+PROJECT_NAME=ArboRisk-GL Arboviral Intelligence System
 API_CORS_ORIGINS=https://YOUR-VERCEL-PROJECT.vercel.app
 ```
 
@@ -171,7 +171,7 @@ VITE_API_BASE=https://YOUR-RENDER-SERVICE.onrender.com/api
 - CORS must include the exact Vercel domain in `API_CORS_ORIGINS`.
 - If Vercel gives preview domains, add them to `API_CORS_ORIGINS` too, separated by commas.
 - Do not upload raw PI Excel files to public GitHub.
-- Do not claim validated malaria prediction; this is a current-data MVP ready for pilot validation.
+- Do not claim confirmed arboviral outbreak prediction; this is a current-data MVP ready for pilot validation and formal partner data governance.
 
 ## Neon Migration And Seed
 

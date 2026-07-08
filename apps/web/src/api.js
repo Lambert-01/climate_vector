@@ -20,6 +20,7 @@ export const api = {
   climateSummary: () => req("/dashboard/climate-summary"),
 
   sites: () => req("/sites"),
+  sentinelRegistry: () => req("/sites/sentinel-registry"),
   siteCoordinateCandidates: () => req("/sites/coordinate-candidates"),
   site: (id) => req(`/sites/${id}`),
 
@@ -56,4 +57,10 @@ export const api = {
   publicEra5: () => req("/public-data/era5"),
   publicValidation: () => req("/public-data/validation"),
   publicSummary: () => req("/public-data/summary"),
+
+  arboviralOverview: () => req("/arboviral/overview"),
+  arboviralClimate: () => req("/arboviral/great-lakes-climate"),
+  arboviralVectors: () => req("/arboviral/vector-occurrences"),
+  arboviralDiseaseProfiles: () => req("/arboviral/disease-profiles"),
+  arboviralReadiness: () => req("/arboviral/readiness"),
 };

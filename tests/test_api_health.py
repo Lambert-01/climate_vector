@@ -93,6 +93,37 @@ def test_public_data_formulation_sources_returns_modules() -> None:
     assert "screening proxies" in payload["governance"]
 
 
+def test_arboviral_overview_returns_great_lakes_context() -> None:
+    client = TestClient(app)
+    response = client.get("/api/arboviral/overview")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["summary"]["regional_points"] >= 7
+    assert payload["summary"]["disease_profiles"] >= 3
+    assert payload["disease_profiles"]
+    assert "not confirmed outbreak predictions" in payload["governance"]
+
+
+def test_arboviral_vector_occurrences_include_aedes_context() -> None:
+    client = TestClient(app)
+    response = client.get("/api/arboviral/vector-occurrences")
+    assert response.status_code == 200
+    rows = response.json()["items"]
+    assert rows
+    assert any("Aedes" in row["species"] for row in rows)
+
+
+def test_sentinel_registry_returns_lecturer_coordinates() -> None:
+    client = TestClient(app)
+    response = client.get("/api/sites/sentinel-registry")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["items"]
+    assert payload["source"] == "Map- 33 sentinel.xls"
+    first = payload["items"][0]
+    assert {"site_id", "sentinel_name", "latitude", "longitude", "coordinate_quality"}.issubset(first)
+
+
 def test_local_dev_cors_preflight_allows_127_frontend() -> None:
     client = TestClient(app)
     response = client.options(
