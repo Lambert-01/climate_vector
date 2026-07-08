@@ -112,6 +112,30 @@ export function AlertBanner({ type = "info", title, message }) {
   );
 }
 
+export function InterpretationPanel({ title, verdict, confidence = "context", items = [], tone = "teal" }) {
+  return (
+    <section className={`interpretation-panel tone-${tone}`}>
+      <div className="interpretation-head">
+        <span>{title}</span>
+        <strong>{verdict}</strong>
+      </div>
+      <div className="interpretation-grid">
+        {items.map((item) => (
+          <div className="interpretation-item" key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            {item.note && <small>{item.note}</small>}
+          </div>
+        ))}
+      </div>
+      <div className="interpretation-foot">
+        <CheckCircle size={14} />
+        <span>{confidence}</span>
+      </div>
+    </section>
+  );
+}
+
 export function ReadinessList({ items }) {
   if (!items?.length) return <div className="empty">No readiness data.</div>;
   return (
