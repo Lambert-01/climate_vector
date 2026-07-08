@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { AlertTriangle, CheckCircle, ClipboardCheck, Clock, Plus, RefreshCw } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, MetricStrip, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
 
 const RISK_BADGE = {
   high: "red",
@@ -135,6 +135,30 @@ export default function Alerts() {
           ]}
         />
       </SectionCard>
+
+      <InterpretationPanel
+        title="Response interpretation"
+        verdict="The response board should be used as a verification workflow: review evidence, assign owners, and document decisions before any public-health action label."
+        tone={active > 0 ? "red" : pending > 0 ? "amber" : "teal"}
+        confidence="Current actions are operational planning tasks; official alerts require technical and institutional review."
+        items={[
+          {
+            label: "Queue status",
+            value: `${actionRows.length} system actions · ${items.length} manual alerts`,
+            note: "Use this board for team coordination and PI review.",
+          },
+          {
+            label: "Priority logic",
+            value: "High actions first",
+            note: "Sentinel validation, Aedes/Culex surveillance, and official data access are the top blockers.",
+          },
+          {
+            label: "Governance",
+            value: "Review before action",
+            note: "Preparedness signal does not equal official outbreak alert.",
+          },
+        ]}
+      />
 
       <SectionCard title="Preparedness action board" icon={ClipboardCheck}>
         <ChartState loading={iL} error={iError} rows={actionRows} empty="No preparedness actions loaded.">
