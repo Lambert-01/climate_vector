@@ -1,5 +1,5 @@
 import React from "react";
-import { Database, FlaskConical, Gauge, MapPin, TestTube2 } from "lucide-react";
+import { ClipboardCheck, Database, FlaskConical, Gauge, Globe2, MapPin, TestTube2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -35,6 +35,8 @@ export default function Resistance() {
   const { data: byDistrict, loading: distL, error: distError } = useFetch(api.resistanceByDistrict);
   const { data: records, loading: rL, error: rError } = useFetch(() => api.resistanceRecords(200));
   const { data: validation, loading: vL, error: vError } = useFetch(api.publicValidation);
+  const { data: intelligence, loading: iL, error: iError } = useFetch(api.arboviralIntelligence);
+  const { data: governance, loading: gL, error: gError } = useFetch(api.arboviralPartnerGovernance);
 
   const deathData = (deathSummary?.items ?? []).map((r) => ({
     insecticide: String(r.insecticide_tested_raw ?? "").slice(0, 22),
@@ -51,13 +53,23 @@ export default function Resistance() {
   const meanDeaths = deathData.length
     ? deathData.reduce((sum, row) => sum + row.mean, 0) / deathData.length
     : 0;
+  const actionRows = (intelligence?.action_queue ?? []).filter((row) =>
+    String(row.action).toLowerCase().includes("susceptibility") ||
+    String(row.action).toLowerCase().includes("aedes") ||
+    String(row.action).toLowerCase().includes("culex")
+  );
+  const governanceRows = (governance?.items ?? []).filter((row) =>
+    String(row.dataset).toLowerCase().includes("surveillance") ||
+    String(row.dataset).toLowerCase().includes("intervention") ||
+    String(row.dataset).toLowerCase().includes("sentinel")
+  );
 
   return (
     <div className="page ops-page">
       <div className="ops-header">
         <div>
-          <div className="eyebrow">Vector control context</div>
-          <h2>Susceptibility signals</h2>
+          <div className="eyebrow">Vector control intelligence</div>
+          <h2>Susceptibility, intervention readiness, and pilot actions</h2>
         </div>
         <div className="hero-badges">
           <Badge variant="green">IR data loaded</Badge>
@@ -65,13 +77,13 @@ export default function Resistance() {
         </div>
       </div>
 
-      <SectionCard title="Assay coverage" icon={FlaskConical}>
+      <SectionCard title="Control evidence coverage" icon={FlaskConical}>
         <MetricStrip
           items={[
             { label: "Rows", value: rL ? "..." : (records?.total ?? tableRows.length).toLocaleString() },
             { label: "Insecticide groups", value: dL ? "..." : deathData.length },
             { label: "Districts", value: distL ? "..." : districtRows.length },
-            { label: "Evidence inputs", value: vL ? "..." : evidenceRows.length },
+            { label: "Action items", value: iL ? "..." : actionRows.length },
           ]}
         />
       </SectionCard>
@@ -136,7 +148,29 @@ export default function Resistance() {
         </SectionCard>
       </div>
 
-      <SectionCard title="Insecticide summary" icon={FlaskConical}>
+      <div className="grid-2" style={{ marginBottom: 20 }}>
+        <SectionCard title="Intervention action queue" icon={ClipboardCheck}>
+          <ChartState loading={iL} error={iError} rows={actionRows} empty="No vector-control action rows loaded.">
+            <DataTable
+              rows={actionRows}
+              maxRows={6}
+              columns={["priority", "action", "owner", "evidence", "decision_use"]}
+            />
+          </ChartState>
+        </SectionCard>
+
+        <SectionCard title="Regional control governance" icon={Globe2}>
+          <ChartState loading={gL} error={gError} rows={governanceRows} empty="No governance rows loaded.">
+            <DataTable
+              rows={governanceRows}
+              maxRows={6}
+              columns={["dataset", "partner", "governance_status", "required_for", "next_step"]}
+            />
+          </ChartState>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Insecticide summary from PI IR dataset" icon={FlaskConical}>
         <ChartState loading={dL} error={dError} rows={deathSummary?.items ?? []} empty="No death summary table rows loaded.">
           <DataTable
             rows={deathSummary?.items ?? []}
@@ -146,7 +180,7 @@ export default function Resistance() {
       </SectionCard>
 
       <div style={{ marginTop: 20 }}>
-        <SectionCard title="Record explorer" icon={FlaskConical}>
+        <SectionCard title="PI susceptibility record explorer" icon={FlaskConical}>
           <ChartState loading={rL} error={rError} rows={tableRows} empty="No resistance records loaded.">
             <DataTable
               rows={tableRows}

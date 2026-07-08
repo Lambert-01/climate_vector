@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { AlertTriangle, CheckCircle, Clock, Plus, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle, ClipboardCheck, Clock, Plus, RefreshCw } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, MetricStrip, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, MetricStrip, SectionCard, Spinner } from "../components/UI";
 
 const RISK_BADGE = {
   high: "red",
@@ -70,6 +70,7 @@ const DISTRICTS = ["Bugesera", "Gasabo", "Kicukiro", "Nyarugenge", "Musanze", "R
 
 export default function Alerts() {
   const { data, loading, error } = useFetch(api.alerts);
+  const { data: intelligence, loading: iL, error: iError } = useFetch(api.arboviralIntelligence);
   const [alerts, setAlerts] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
@@ -81,6 +82,7 @@ export default function Alerts() {
   const [submitting, setSubmitting] = useState(false);
 
   const items = alerts ?? data?.items ?? [];
+  const actionRows = intelligence?.action_queue ?? [];
 
   async function handleStatusChange(id, status) {
     try {
@@ -114,8 +116,8 @@ export default function Alerts() {
     <div className="page ops-page">
       <div className="ops-header">
         <div>
-          <div className="eyebrow">Operations module</div>
-          <h2>Signals and response</h2>
+          <div className="eyebrow">Field verification board</div>
+          <h2>Regional signal review and operational actions</h2>
         </div>
         <div className="hero-badges">
           <Badge variant="amber">Review workflow</Badge>
@@ -123,19 +125,28 @@ export default function Alerts() {
         </div>
       </div>
 
-      <SectionCard title="Signal queue" icon={AlertTriangle}>
+      <SectionCard title="Signal and action queue" icon={AlertTriangle}>
         <MetricStrip
           items={[
             { label: "Pending", value: pending },
             { label: "Active", value: active },
-            { label: "Resolved", value: items.filter((a) => a.status === "resolved").length },
-            { label: "Total", value: items.length },
+            { label: "Operational actions", value: iL ? "..." : actionRows.length },
+            { label: "Mapped sentinels", value: iL ? "..." : intelligence?.summary?.mapped_sentinel_sites ?? 0 },
           ]}
         />
       </SectionCard>
 
+      <SectionCard title="Preparedness action board" icon={ClipboardCheck}>
+        <ChartState loading={iL} error={iError} rows={actionRows} empty="No preparedness actions loaded.">
+          <DataTable
+            rows={actionRows}
+            columns={["priority", "action", "owner", "evidence", "decision_use"]}
+          />
+        </ChartState>
+      </SectionCard>
+
       <SectionCard
-        title="Review board"
+        title="Manual review board"
         icon={AlertTriangle}
         action={
           <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>

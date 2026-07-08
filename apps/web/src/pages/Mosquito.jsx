@@ -1,5 +1,5 @@
 import React from "react";
-import { Activity, Database, Droplets, MapPin } from "lucide-react";
+import { Activity, Bug, Database, Droplets, Globe2, MapPin } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -71,6 +71,8 @@ export default function Mosquito() {
   const { data: byBreeding, loading: bL, error: bError } = useFetch(api.mosquitoByBreedingSite);
   const { data: records, loading: rL, error: rError } = useFetch(() => api.mosquitoRecords(200));
   const { data: validation, loading: vL, error: vError } = useFetch(api.publicValidation);
+  const { data: intelligence, loading: iL, error: iError } = useFetch(api.arboviralIntelligence);
+  const { data: taxonomy, loading: tL, error: tError } = useFetch(api.arboviralVectorTaxonomy);
   const tableRows = (records?.items ?? []).map(cleanRecord);
   const districtRows = byDistrict?.items ?? [];
   const speciesRows = bySpecies?.items ?? [];
@@ -80,27 +82,29 @@ export default function Mosquito() {
   );
   const topDistrict = districtRows[0]?.value ?? "—";
   const topHabitat = breedingRows[0]?.value ?? "—";
+  const vectorContext = intelligence?.vector_context?.items ?? [];
+  const taxonomyRows = taxonomy?.items ?? [];
 
   return (
     <div className="page ops-page">
       <div className="ops-header">
         <div>
-          <div className="eyebrow">Ecology module</div>
-          <h2>Mosquito surveillance</h2>
+          <div className="eyebrow">Regional vector evidence</div>
+          <h2>Aedes, Culex, Anopheles and Rwanda ecology PoC</h2>
         </div>
         <div className="hero-badges">
-          <Badge variant="green">PI data loaded</Badge>
-          <Badge variant="amber">Current-data view</Badge>
+          <Badge variant="green">PI ecology loaded</Badge>
+          <Badge variant="blue">GBIF regional context</Badge>
         </div>
       </div>
 
-      <SectionCard title="Coverage" icon={Database}>
+      <SectionCard title="Vector evidence coverage" icon={Database}>
         <MetricStrip
           items={[
             { label: "Records", value: rL ? "..." : (records?.total ?? tableRows.length).toLocaleString() },
-            { label: "Districts", value: dL ? "..." : districtRows.length },
+            { label: "Aedes records", value: iL ? "..." : Number(intelligence?.summary?.aedes_records ?? 0).toLocaleString() },
+            { label: "Culex records", value: iL ? "..." : Number(intelligence?.summary?.culex_records ?? 0).toLocaleString() },
             { label: "Species labels", value: sL ? "..." : speciesRows.length },
-            { label: "Evidence inputs", value: vL ? "..." : evidenceRows.length },
           ]}
         />
       </SectionCard>
@@ -117,7 +121,29 @@ export default function Mosquito() {
         <BarChartCard title="Habitat distribution" icon={Droplets} data={breedingRows} loading={bL} error={bError} />
       </div>
 
-      <SectionCard title="Record explorer" icon={Activity}>
+      <div className="grid-2" style={{ marginBottom: 20 }}>
+        <SectionCard title="Great Lakes vector occurrence context" icon={Globe2}>
+          <ChartState loading={iL} error={iError} rows={vectorContext} empty="No regional vector context loaded.">
+            <DataTable
+              rows={vectorContext}
+              maxRows={8}
+              columns={["species", "vector_group", "records", "countries", "top_country", "year_start", "year_end", "use_boundary"]}
+            />
+          </ChartState>
+        </SectionCard>
+
+        <SectionCard title="Arboviral vector groups" icon={Bug}>
+          <ChartState loading={tL} error={tError} rows={taxonomyRows} empty="No vector taxonomy loaded.">
+            <DataTable
+              rows={taxonomyRows}
+              maxRows={5}
+              columns={["vector_group", "arboviral_relevance", "surveillance_priority", "current_evidence", "pilot_need"]}
+            />
+          </ChartState>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Rwanda PI ecology record explorer" icon={Activity}>
         <ChartState loading={rL} error={rError} rows={tableRows} empty="No mosquito records loaded.">
           <DataTable
             rows={tableRows}

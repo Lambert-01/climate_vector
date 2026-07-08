@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import {
   CloudSun,
+  Globe2,
   Droplets,
   Gauge,
   Info,
@@ -26,7 +27,7 @@ import {
 } from "recharts";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, MetricStrip, SectionCard, Spinner } from "../components/UI";
 
 function n(value, fallback = 0) {
   return Number.parseFloat(value ?? fallback) || fallback;
@@ -114,6 +115,7 @@ export default function LiveWeather() {
     () => api.liveWeatherDistrict(selected, 7),
     [selected, refreshKey]
   );
+  const { data: intelligence, loading: iL, error: iError } = useFetch(api.arboviralIntelligence);
 
   const districts = summary?.items ?? [];
   const current = detail?.current;
@@ -130,13 +132,14 @@ export default function LiveWeather() {
   const components = current?.components ?? {};
   const insights = current?.insights ?? [];
   const sourceStatus = detail?.source_status ?? summary?.source_status ?? "checking";
+  const regionalPoints = intelligence?.regional_climate?.top_wetness_points ?? [];
 
   return (
     <div className="page ops-page live-weather-page">
       <div className="live-weather-hero">
         <div>
           <div className="eyebrow">Live nowcast</div>
-          <h2>Weather operations</h2>
+          <h2>Weather operations and regional preparedness</h2>
         </div>
         <div className="live-weather-controls">
           <select value={selected} onChange={(e) => setSelected(e.target.value)}>
@@ -152,6 +155,17 @@ export default function LiveWeather() {
 
       {summaryLoading && <Spinner />}
       {summaryError && <div className="empty">Live weather is temporarily unavailable.<small>{summaryError}</small></div>}
+
+      <SectionCard title="Live-weather role in ArboRisk-GL" icon={Globe2}>
+        <MetricStrip
+          items={[
+            { label: "Rwanda live districts", value: summaryLoading ? "..." : districts.length },
+            { label: "Great Lakes context points", value: iL ? "..." : intelligence?.summary?.great_lakes_climate_points ?? 0 },
+            { label: "High climate signals", value: iL ? "..." : intelligence?.summary?.high_climate_context_points ?? 0 },
+            { label: "Mode", value: "field window" },
+          ]}
+        />
+      </SectionCard>
 
       <div className="live-now-grid">
         <div className="live-now-card primary">
@@ -276,6 +290,16 @@ export default function LiveWeather() {
           </ChartState>
         </SectionCard>
       </div>
+
+      <SectionCard title="Regional wetness context for live review" icon={Globe2}>
+        <ChartState loading={iL} error={iError} rows={regionalPoints} empty="No regional wetness context loaded.">
+          <DataTable
+            rows={regionalPoints}
+            maxRows={7}
+            columns={["location", "country", "rainfall_latest_30d_mm", "tmean_mean_c", "humidity_mean_pct", "climate_signal"]}
+          />
+        </ChartState>
+      </SectionCard>
 
       <SectionCard title="Operational use" icon={Gauge}>
         <div className="decision-grid">

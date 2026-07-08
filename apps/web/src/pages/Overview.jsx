@@ -62,6 +62,7 @@ export default function Overview() {
   const { data: validation, loading: validationLoading, error: validationError } = useFetch(api.publicValidation);
   const { data: gbif } = useFetch(() => api.publicGbif(1));
   const { data: risk, loading: riskLoading, error: riskError } = useFetch(() => api.districtRisk(30));
+  const { data: intelligence, loading: iL, error: iError } = useFetch(api.arboviralIntelligence);
 
   const sourceRows = publicSources?.items ?? [];
   const validationRows = validation?.items ?? [];
@@ -96,6 +97,8 @@ export default function Overview() {
       records: num(row.recent_records),
       level: row.risk_level,
     }));
+  const intelSummary = intelligence?.summary ?? {};
+  const actionRows = intelligence?.action_queue ?? [];
 
   return (
     <div className="page overview-redesign">
@@ -148,30 +151,30 @@ export default function Overview() {
       <div className="stats-grid">
         <StatCard
           icon={Activity}
-          label="Mosquito ecology rows"
-          value={statsLoading ? "..." : fmt(stats?.mosquito_observations)}
-          sub="Rwanda proof-of-concept vector ecology"
+          label="Indexed evidence"
+          value={iL ? "..." : fmt(intelSummary.records_or_files_indexed)}
+          sub="All loaded records/files across current evidence"
           color="teal"
         />
         <StatCard
           icon={FlaskConical}
-          label="Susceptibility rows"
-          value={statsLoading ? "..." : fmt(stats?.resistance_tests)}
-          sub="Vector-control context from IR_data.xls"
+          label="Aedes + Culex records"
+          value={iL ? "..." : fmt((intelSummary.aedes_records ?? 0) + (intelSummary.culex_records ?? 0))}
+          sub="GBIF Great Lakes regional vector context"
           color="orange"
         />
         <StatCard
           icon={Map}
-          label="Named PI sites"
-          value={statsLoading ? "..." : fmt(stats?.sites)}
-          sub="Rwanda PoC until regional sentinel sites are added"
+          label="Mapped sentinel sites"
+          value={iL ? "..." : `${intelSummary.mapped_sentinel_sites ?? 0}/${intelSummary.sentinel_sites ?? 0}`}
+          sub="Lecturer WKT coordinate registry"
           color="blue"
         />
         <StatCard
           icon={Globe2}
-          label="Public covariate layers"
-          value={validationLoading ? "..." : validation?.summary?.sources ?? loadedSources}
-          sub={`${validation?.summary?.ready_or_usable ?? loadedSources} ready or usable`}
+          label="Great Lakes climate points"
+          value={iL ? "..." : intelSummary.great_lakes_climate_points ?? 0}
+          sub={`${intelSummary.high_climate_context_points ?? 0} high climate-context signals`}
           color="green"
         />
       </div>
@@ -188,7 +191,7 @@ export default function Overview() {
           <CheckCircle2 size={18} />
           <div>
             <span>Evidence available now</span>
-            <strong>{availableReadiness.length} usable evidence groups</strong>
+            <strong>{iL ? "Checking..." : `${intelSummary.ready_or_usable_sources ?? availableReadiness.length} ready/usable sources`}</strong>
           </div>
         </div>
         <div className="model-strip-item">
@@ -202,10 +205,27 @@ export default function Overview() {
           <Database size={18} />
           <div>
             <span>GBIF vector context</span>
-            <strong>{fmt(gbif?.count)} public occurrence records</strong>
+            <strong>{iL ? "Checking..." : `${fmt(intelSummary.aedes_records)} Aedes · ${fmt(intelSummary.culex_records)} Culex · ${fmt(intelSummary.anopheles_records)} Anopheles`}</strong>
           </div>
         </div>
       </div>
+
+      <SectionCard title="Operational action queue" icon={ClipboardList}>
+        <ChartState loading={iL} error={iError} rows={actionRows} empty="No operational action queue loaded.">
+          <div className="action-queue">
+            {actionRows.map((row) => (
+              <div className="action-row" key={row.action}>
+                <Badge variant={row.priority === "high" ? "red" : "amber"}>{row.priority}</Badge>
+                <div>
+                  <strong>{row.action}</strong>
+                  <span>{row.evidence}</span>
+                </div>
+                <small>{row.decision_use}</small>
+              </div>
+            ))}
+          </div>
+        </ChartState>
+      </SectionCard>
 
       <div className="grid-2 overview-grid">
         <SectionCard title="Validated Evidence Registry" icon={ShieldCheck}>
