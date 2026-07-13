@@ -280,7 +280,11 @@ export default function Alerts() {
 
         <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
           {loading ? <Spinner /> : items.length === 0 ? (
-            <div className="empty">No alerts yet. Create one to start the review workflow.</div>
+            <EmptyState
+              icon={AlertTriangle}
+              title="No alerts yet"
+              description="Create a preparedness alert to start the review workflow. Alerts track climate signals, vector context, and field verification status."
+            />
           ) : (
             items.map((a) => (
               <AlertCard key={a.alert_id} alert={a} onStatusChange={handleStatusChange} />
