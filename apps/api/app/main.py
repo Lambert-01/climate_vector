@@ -43,11 +43,11 @@ for router in [
 @app.get("/api/health")
 async def health() -> dict[str, str]:
     from sqlalchemy import text
-    from app.database import async_session
+    from app.core.database import AsyncSessionLocal
 
     db_status = "unavailable"
     try:
-        async with async_session() as session:
+        async with AsyncSessionLocal() as session:
             await session.execute(text("SELECT 1"))
         db_status = "connected"
     except Exception:
