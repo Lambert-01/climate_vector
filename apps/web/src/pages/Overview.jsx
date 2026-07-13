@@ -13,6 +13,7 @@ import { useFetch } from "../hooks/useFetch";
 import {
   Badge, ChartState, MetricStrip, PhaseTimeline,
   ProgressBar, PulseIndicator, SectionCard, StatCard,
+  SkeletonStatCard, SkeletonLine,
 } from "../components/UI";
 
 function n(v) { const x = Number(v); return Number.isFinite(x) ? x : 0; }
@@ -90,11 +91,11 @@ export default function Overview() {
 
         <div className="page-hero-kpis">
           <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{sL ? "…" : fmt(stats?.mosquito_observations)}</div>
+            <div className="page-hero-kpi-value">{sL ? <span className="skeleton skeleton-line w40" style={{ display: "inline-block", width: 60, height: 24 }} /> : fmt(stats?.mosquito_observations)}</div>
             <div className="page-hero-kpi-label">Ecology rows</div>
           </div>
           <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{sL ? "…" : fmt(stats?.resistance_tests)}</div>
+            <div className="page-hero-kpi-value">{sL ? <span className="skeleton skeleton-line w40" style={{ display: "inline-block", width: 60, height: 24 }} /> : fmt(stats?.resistance_tests)}</div>
             <div className="page-hero-kpi-label">Susceptibility rows</div>
           </div>
           <div className="page-hero-kpi">
@@ -102,7 +103,7 @@ export default function Overview() {
             <div className="page-hero-kpi-label">Sentinel sites mapped</div>
           </div>
           <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{vL ? "…" : usableSrc}</div>
+            <div className="page-hero-kpi-value">{vL ? <span className="skeleton skeleton-line w40" style={{ display: "inline-block", width: 40, height: 24 }} /> : usableSrc}</div>
             <div className="page-hero-kpi-label">Usable evidence sources</div>
           </div>
         </div>
@@ -110,34 +111,38 @@ export default function Overview() {
 
       {/* ── KPI TILES ── */}
       <div className="kpi-row">
-        <div className="kpi-tile">
-          <div className="kpi-tile-accent teal" />
-          <div className="kpi-tile-label">PI ecology records</div>
-          <div className="kpi-tile-value">{sL ? "…" : fmt(stats?.mosquito_observations)}</div>
-          <div className="kpi-tile-sub">mosquito_behavior_raw.xls · Rwanda PoC</div>
-          <Activity size={48} className="kpi-tile-icon" />
-        </div>
-        <div className="kpi-tile">
-          <div className="kpi-tile-accent amber" />
-          <div className="kpi-tile-label">Susceptibility assay rows</div>
-          <div className="kpi-tile-value">{sL ? "…" : fmt(stats?.resistance_tests)}</div>
-          <div className="kpi-tile-sub">IR_data.xls · vector-control context</div>
-          <FlaskConical size={48} className="kpi-tile-icon" />
-        </div>
-        <div className="kpi-tile">
-          <div className="kpi-tile-accent blue" />
-          <div className="kpi-tile-label">District climate records</div>
-          <div className="kpi-tile-value">{fL ? "…" : fmt(featureRows.length)}</div>
-          <div className="kpi-tile-sub">30 Rwanda districts · NASA POWER</div>
-          <CloudRain size={48} className="kpi-tile-icon" />
-        </div>
-        <div className="kpi-tile">
-          <div className="kpi-tile-accent green" />
-          <div className="kpi-tile-label">GBIF vector records</div>
-          <div className="kpi-tile-value">{fmt(gbif?.count)}</div>
-          <div className="kpi-tile-sub">Aedes + Culex · Great Lakes region</div>
-          <Globe2 size={48} className="kpi-tile-icon" />
-        </div>
+        {sL ? Array.from({ length: 4 }).map((_, i) => <SkeletonStatCard key={i} />) : (
+          <>
+            <div className="kpi-tile">
+              <div className="kpi-tile-accent teal" />
+              <div className="kpi-tile-label">PI ecology records</div>
+              <div className="kpi-tile-value">{fmt(stats?.mosquito_observations)}</div>
+              <div className="kpi-tile-sub">mosquito_behavior_raw.xls · Rwanda PoC</div>
+              <Activity size={48} className="kpi-tile-icon" />
+            </div>
+            <div className="kpi-tile">
+              <div className="kpi-tile-accent amber" />
+              <div className="kpi-tile-label">Susceptibility assay rows</div>
+              <div className="kpi-tile-value">{fmt(stats?.resistance_tests)}</div>
+              <div className="kpi-tile-sub">IR_data.xls · vector-control context</div>
+              <FlaskConical size={48} className="kpi-tile-icon" />
+            </div>
+            <div className="kpi-tile">
+              <div className="kpi-tile-accent blue" />
+              <div className="kpi-tile-label">District climate records</div>
+              <div className="kpi-tile-value">{fmt(featureRows.length)}</div>
+              <div className="kpi-tile-sub">30 Rwanda districts · NASA POWER</div>
+              <CloudRain size={48} className="kpi-tile-icon" />
+            </div>
+            <div className="kpi-tile">
+              <div className="kpi-tile-accent green" />
+              <div className="kpi-tile-label">GBIF vector records</div>
+              <div className="kpi-tile-value">{fmt(gbif?.count)}</div>
+              <div className="kpi-tile-sub">Aedes + Culex · Great Lakes region</div>
+              <Globe2 size={48} className="kpi-tile-icon" />
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── READINESS PROGRESS ── */}

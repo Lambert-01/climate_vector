@@ -1767,3 +1767,78 @@ tbody tr:hover td { background: #f0fdf9; }
 @media (max-width: 1100px) {
   .interpretation-grid { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SKELETON LOADING + EMPTY STATE + SYSTEM STATUS UPGRADES
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Skeleton shimmer ──────────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #e8efed 25%, #f2f7f6 37%, #e8efed 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+.skeleton-line      { height: 12px; margin-bottom: 8px; border-radius: 4px; }
+.skeleton-line.w60  { width: 60%; }
+.skeleton-line.w40  { width: 40%; }
+.skeleton-line.w80  { width: 80%; }
+.skeleton-line.w-full { width: 100%; }
+.skeleton-heading   { height: 20px; width: 55%; margin-bottom: 12px; border-radius: 6px; }
+.skeleton-circle    { width: 40px; height: 40px; border-radius: 50%; }
+.skeleton-rect      { height: 100%; min-height: 120px; border-radius: var(--radius); }
+.skeleton-stat {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 20px; background: var(--surface); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+}
+.skeleton-card {
+  background: var(--surface); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.skeleton-card-header {
+  padding: 14px 18px;
+  background: linear-gradient(180deg, #fff 0%, #f8fbfa 100%);
+  border-bottom: 1px solid var(--border-light);
+}
+.skeleton-card-body { padding: 18px; display: grid; gap: 10px; }
+
+/* ─── Empty state upgraded ──────────────────────────────────────────────────── */
+.empty {
+  text-align: center; padding: 40px 24px; color: var(--text-muted); font-size: 13px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.empty-icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--teal-50); display: flex; align-items: center; justify-content: center;
+  margin-bottom: 4px;
+}
+.empty-icon svg { color: var(--teal-400); opacity: .7; }
+.empty-title { font-weight: 700; font-size: 14px; color: var(--text-secondary); }
+.empty-desc  { max-width: 380px; line-height: 1.5; font-size: 12.5px; color: var(--text-muted); }
+
+/* ─── System status panel (sidebar) ─────────────────────────────────────────── */
+.system-status-panel {
+  margin: 6px 10px 10px; padding: 10px 11px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.03);
+  border-radius: 9px;
+}
+.system-status-title {
+  font-size: 9.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .1em; color: rgba(143,176,166,.45); margin-bottom: 8px;
+}
+.system-status-row {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; color: #b0ccc6; padding: 3px 0;
+}
+.system-status-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.system-status-dot.ok   { background: #34d399; box-shadow: 0 0 5px rgba(52,211,153,.4); }
+.system-status-dot.warn { background: #fbbf24; box-shadow: 0 0 5px rgba(251,191,36,.3); }
+.system-status-dot.err  { background: #f87171; box-shadow: 0 0 5px rgba(248,113,113,.3); }

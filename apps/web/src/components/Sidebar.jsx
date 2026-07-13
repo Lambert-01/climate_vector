@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Activity,
@@ -18,6 +18,7 @@ import {
   Shield,
   ShieldCheck,
 } from "lucide-react";
+import { api } from "../api";
 
 const NAV_GROUPS = [
   {
@@ -50,6 +51,42 @@ const NAV_GROUPS = [
 ];
 
 const MVP_STEPS = ["Readiness", "Aedes", "RVF", "Climate", "Response"];
+
+function SystemStatusPanel() {
+  const [status, setStatus] = useState({ api: "checking", db: "checking" });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function check() {
+      try {
+        const r = await api.health();
+        if (!cancelled) {
+          const dbOk = r?.database === "connected" || r?.database === "ok";
+          setStatus({ api: "ok", db: dbOk ? "ok" : "err" });
+        }
+      } catch {
+        if (!cancelled) setStatus({ api: "err", db: "err" });
+      }
+    }
+    check();
+    const id = setInterval(check, 30000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  return (
+    <div className="system-status-panel">
+      <div className="system-status-title">System Status</div>
+      <div className="system-status-row">
+        <span className={`system-status-dot ${status.api}`} />
+        <span>API {status.api === "ok" ? "online" : status.api === "checking" ? "checking…" : "offline"}</span>
+      </div>
+      <div className="system-status-row">
+        <span className={`system-status-dot ${status.db}`} />
+        <span>Database {status.db === "ok" ? "connected" : status.db === "checking" ? "checking…" : "unreachable"}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function Sidebar() {
   return (
@@ -110,6 +147,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
+        <SystemStatusPanel />
         <div className="sidebar-kpis">
           <div>
             <span>Records</span>

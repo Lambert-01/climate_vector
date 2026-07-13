@@ -1,10 +1,52 @@
 import React from "react";
-import { AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { AlertTriangle, CheckCircle, Database, Info } from "lucide-react";
 
+/* ─── Spinner ───────────────────────────────────────────────────────────────── */
 export function Spinner() {
   return (
     <div className="spinner">
       <div className="spinner-ring" />
+    </div>
+  );
+}
+
+/* ─── Skeleton blocks ───────────────────────────────────────────────────────── */
+export function SkeletonLine({ w = "w80" }) {
+  return <div className={`skeleton skeleton-line ${w}`} />;
+}
+export function SkeletonCard({ lines = 4 }) {
+  return (
+    <div className="skeleton-card">
+      <div className="skeleton-card-header">
+        <div className="skeleton skeleton-heading" />
+      </div>
+      <div className="skeleton-card-body">
+        {Array.from({ length: lines }).map((_, i) => (
+          <div key={i} className={`skeleton skeleton-line ${i % 3 === 0 ? "w60" : "w-full"}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+export function SkeletonStatCard() {
+  return (
+    <div className="skeleton-stat">
+      <div className="skeleton skeleton-circle" />
+      <div className="skeleton skeleton-line w40" style={{ marginTop: 8 }} />
+      <div className="skeleton skeleton-heading" style={{ width: "45%", marginBottom: 0 }} />
+      <div className="skeleton skeleton-line w60" />
+    </div>
+  );
+}
+export function SkeletonChart({ height = 180 }) {
+  return (
+    <div className="skeleton-card">
+      <div className="skeleton-card-header">
+        <div className="skeleton skeleton-heading" />
+      </div>
+      <div className="skeleton-card-body">
+        <div className="skeleton skeleton-rect" style={{ height }} />
+      </div>
     </div>
   );
 }
@@ -65,18 +107,36 @@ export function Badge({ children, variant = "teal" }) {
 }
 
 export function ChartState({ loading, error, rows, empty = "No graphable records loaded.", children }) {
-  if (loading) return <Spinner />;
+  if (loading) return <SkeletonChart />;
   if (error) {
     return (
       <div className="empty">
-        <AlertTriangle size={18} />
-        <div>Could not load this figure.</div>
-        <small>{error}</small>
+        <div className="empty-icon"><AlertTriangle size={22} /></div>
+        <div className="empty-title">Could not load this figure</div>
+        <div className="empty-desc">{error}</div>
       </div>
     );
   }
-  if (!rows?.length) return <div className="empty">{empty}</div>;
+  if (!rows?.length) return (
+    <div className="empty">
+      <div className="empty-icon"><Database size={22} /></div>
+      <div className="empty-title">No data available</div>
+      <div className="empty-desc">{empty}</div>
+    </div>
+  );
   return children;
+}
+
+/* ─── Rich Empty State ──────────────────────────────────────────────────────── */
+export function EmptyState({ icon: Icon = Database, title = "No data available", description, action }) {
+  return (
+    <div className="empty">
+      <div className="empty-icon"><Icon size={22} /></div>
+      {title && <div className="empty-title">{title}</div>}
+      {description && <div className="empty-desc">{description}</div>}
+      {action}
+    </div>
+  );
 }
 
 export function MetricStrip({ items }) {
