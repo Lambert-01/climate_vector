@@ -10,11 +10,13 @@ import {
   Cloud,
   CloudSun,
   Database,
+  FileCheck,
   FlaskConical,
   Home,
   Map,
   Radar,
   Shield,
+  ShieldCheck,
 } from "lucide-react";
 
 const NAV_GROUPS = [
@@ -22,6 +24,7 @@ const NAV_GROUPS = [
     label: "Command",
     items: [
       { to: "/",             label: "Overview",       icon: Home,         hint: "MVP status",     pulse: true },
+      { to: "/decision-room", label: "Decision Room", icon: ShieldCheck,  hint: "Action brief" },
       { to: "/arboviral",    label: "Arboviral Prep", icon: Biohazard,    hint: "Great Lakes" },
       { to: "/data-readiness", label: "Data Control", icon: Database,     hint: "Quality centre" },
     ],
@@ -41,6 +44,7 @@ const NAV_GROUPS = [
       { to: "/live-weather", label: "Live Weather",    icon: CloudSun,      hint: "nowcast" },
       { to: "/modeling",     label: "Priority Engine", icon: BrainCircuit,  hint: "screening" },
       { to: "/alerts",       label: "Response Board",  icon: AlertTriangle, hint: "review flow" },
+      { to: "/field-verification", label: "Field Verification", icon: FileCheck, hint: "pilot ready" },
     ],
   },
 ];
