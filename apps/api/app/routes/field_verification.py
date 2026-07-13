@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import uuid
+import json
 from datetime import date
 from typing import Literal
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -14,6 +16,8 @@ from app.core.database import get_db
 from app.models import Alert
 
 router = APIRouter(tags=["field-verification"])
+ROOT = Path(__file__).resolve().parents[4]
+STORE_PATH = ROOT / "data" / "processed" / "field_verifications.json"
 
 
 class FieldVerificationIn(BaseModel):
@@ -51,9 +55,31 @@ _VALID_VF_STATUSES = [
 _IN_MEMORY_VERIFICATIONS: list[dict] = []
 
 
+def _load_verifications() -> list[dict]:
+    if _IN_MEMORY_VERIFICATIONS:
+        return _IN_MEMORY_VERIFICATIONS
+    if not STORE_PATH.exists():
+        return _IN_MEMORY_VERIFICATIONS
+    try:
+        _IN_MEMORY_VERIFICATIONS.extend(json.loads(STORE_PATH.read_text(encoding="utf-8")))
+    except (OSError, json.JSONDecodeError):
+        _IN_MEMORY_VERIFICATIONS.clear()
+    return _IN_MEMORY_VERIFICATIONS
+
+
+def _save_verifications() -> None:
+    STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    STORE_PATH.write_text(json.dumps(_IN_MEMORY_VERIFICATIONS, indent=2), encoding="utf-8")
+
+
 @router.get("/field-verifications")
 def list_verifications() -> dict:
-    return {"items": _IN_MEMORY_VERIFICATIONS, "source": "in_memory"}
+    return {
+        "items": _load_verifications(),
+        "source": "json_store",
+        "store": str(STORE_PATH.relative_to(ROOT)),
+        "governance": "Proof-of-concept local persistence. Migrate to database audit tables before operational deployment.",
+    }
 
 
 @router.post("/field-verifications", status_code=201)
@@ -81,13 +107,14 @@ def create_verification(payload: FieldVerificationIn) -> dict:
         "created_date": str(date.today()),
         "completed_date": None,
     }
-    _IN_MEMORY_VERIFICATIONS.insert(0, verification)
+    _load_verifications().insert(0, verification)
+    _save_verifications()
     return verification
 
 
 @router.get("/field-verifications/{verification_id}")
 def get_verification(verification_id: str) -> dict:
-    v = next((v for v in _IN_MEMORY_VERIFICATIONS if v["verification_id"] == verification_id), None)
+    v = next((v for v in _load_verifications() if v["verification_id"] == verification_id), None)
     if not v:
         raise HTTPException(404, "Verification not found")
     return v
@@ -95,7 +122,7 @@ def get_verification(verification_id: str) -> dict:
 
 @router.patch("/field-verifications/{verification_id}")
 def update_verification(verification_id: str, payload: FieldVerificationUpdate) -> dict:
-    v = next((v for v in _IN_MEMORY_VERIFICATIONS if v["verification_id"] == verification_id), None)
+    v = next((v for v in _load_verifications() if v["verification_id"] == verification_id), None)
     if not v:
         raise HTTPException(404, "Verification not found")
     updates = payload.model_dump(exclude_unset=True)
@@ -104,6 +131,7 @@ def update_verification(verification_id: str, payload: FieldVerificationUpdate) 
     if updates.get("status") == "completed":
         updates["completed_date"] = str(date.today())
     v.update(updates)
+    _save_verifications()
     return v
 
 

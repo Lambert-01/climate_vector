@@ -12,12 +12,41 @@ import {
 
 function n(v) { const x = Number(v); return Number.isFinite(x) ? x : 0; }
 
-const PRIORITY_DISTRICTS = [
-  { district: "Bugesera", signal: "Warm and wet climate window with relevant vector context", evidence: "NASA POWER + GBIF Aedes + sentinel registry", confidence: "medium", action: "Field verification and Aedes/Culex larval-source inspection", limitation: "No official arboviral case data connected yet", owner: "Surveillance / vector-control team" },
-  { district: "Gasabo", signal: "Moderate climate suitability with urban vector context", evidence: "NASA POWER + GBIF + PI ecology data", confidence: "medium", action: "Sentinel site coordinate validation and trap deployment planning", limitation: "Sentinel coordinates need PI confirmation", owner: "Entomology team" },
-  { district: "Kicukiro", signal: "Urban setting with potential Aedes breeding habitat", evidence: "GBIF occurrence context + land cover", confidence: "low", action: "Community health worker observation deployment", limitation: "No local Aedes/Culex field data yet", owner: "Community health team" },
-  { district: "Nyarugenge", signal: "Central urban district with vector occurrence context", evidence: "GBIF + NASA POWER climate", confidence: "low", action: "Urban breeding site survey and source reduction planning", limitation: "Limited PI ecology records for this district", owner: "District health office" },
-];
+function confidenceFromSignal(row) {
+  if (row.uncertainty_level === "low") return "high";
+  if (row.uncertainty_level === "medium") return "medium";
+  return "low";
+}
+
+function ownerFor(row) {
+  if (row.risk_level === "high") return "Surveillance / vector-control team";
+  if ((row.recent_records ?? 0) > 0) return "Entomology team";
+  return "District health office";
+}
+
+function actionFor(row) {
+  if (row.risk_level === "high") return "Field verification and Aedes/Culex larval-source inspection";
+  if (row.risk_level === "medium") return "Monitor climate signal and prepare sentinel verification";
+  return "Routine monitoring and data-quality review";
+}
+
+function limitationFor(row) {
+  const gap = (row.reason_codes ?? []).find((c) => c.category === "gap");
+  return gap?.message ?? "Official arboviral outcome data and local Aedes/Culex surveillance remain pending.";
+}
+
+function evidenceFor(row) {
+  const categories = new Set((row.reason_codes ?? []).map((c) => c.category));
+  const parts = ["NASA POWER climate"];
+  if (categories.has("evidence")) parts.push("PI ecology context");
+  if ((row.recent_records ?? 0) === 0) parts.push("public/context evidence only");
+  return parts.join(" + ");
+}
+
+function signalFor(row) {
+  const climate = (row.reason_codes ?? []).find((c) => c.category === "climate");
+  return climate?.message ?? row.reason ?? "Climate-vector preparedness signal generated from current data.";
+}
 
 export default function DecisionRoom() {
   const { data: risk, loading: rL } = useFetch(() => api.districtRisk(30));
@@ -31,6 +60,16 @@ export default function DecisionRoom() {
   const highRisk = riskItems.filter((r) => r.risk_level === "high");
   const medRisk = riskItems.filter((r) => r.risk_level === "medium");
   const topDistricts = riskItems.slice(0, 5);
+  const priorityRows = topDistricts.map((row, index) => ({
+    priority: row.risk_level ?? (index === 0 ? "high" : "medium"),
+    district: row.district,
+    signal: signalFor(row),
+    evidence: evidenceFor(row),
+    confidence: confidenceFromSignal(row),
+    action: actionFor(row),
+    limitation: limitationFor(row),
+    owner: ownerFor(row),
+  }));
 
   const validRows = validation?.items ?? [];
   const usableSrc = validRows.filter((r) => ["usable", "validated", "downloaded"].some((k) => String(r.status).includes(k))).length;
@@ -140,9 +179,9 @@ export default function DecisionRoom() {
               </tr>
             </thead>
             <tbody>
-              {PRIORITY_DISTRICTS.map((p, i) => (
+              {priorityRows.map((p, i) => (
                 <tr key={i}>
-                  <td><Badge variant={i === 0 ? "red" : i < 3 ? "amber" : "blue"}>{i === 0 ? "High" : i < 3 ? "Medium" : "Low"}</Badge></td>
+                  <td><Badge variant={p.priority === "high" ? "red" : p.priority === "medium" ? "amber" : "blue"}>{p.priority}</Badge></td>
                   <td><strong>{p.district}</strong></td>
                   <td style={{ fontSize: 12 }}>{p.signal}</td>
                   <td style={{ fontSize: 11, color: "var(--text-secondary)" }}>{p.evidence}</td>
@@ -155,6 +194,7 @@ export default function DecisionRoom() {
             </tbody>
           </table>
         </div>
+        <ChartState loading={rL} rows={priorityRows} empty="No API-derived priority rows are available yet. Check the modelling endpoint and processed climate data." />
       </SectionCard>
 
       <div style={{ marginBottom: 22 }} />
@@ -219,7 +259,7 @@ export default function DecisionRoom() {
             <strong>Status:</strong> Proof of Concept — descriptive preparedness context, not validated prediction
           </p>
           <p style={{ margin: "12px 0 0" }}>
-            <strong>Top priority:</strong> {PRIORITY_DISTRICTS[0].district} district — {PRIORITY_DISTRICTS[0].action.toLowerCase()}.<br />
+            <strong>Top priority:</strong> {priorityRows[0]?.district ?? "Pending"} district — {(priorityRows[0]?.action ?? "run modelling endpoint").toLowerCase()}.<br />
             <strong>Data confidence:</strong> {Math.round(confidenceIdx * 100)}% overall. Climate data ready; vector context available; case data and field surveillance require pilot.<br />
             <strong>Recommended next steps:</strong> (1) Validate sentinel coordinates, (2) Deploy Aedes/Culex pilot traps, (3) Request RBC/MoH data-sharing agreement.
           </p>

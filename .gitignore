@@ -64,6 +64,7 @@ data/processed/
 !outputs/tables/*.csv
 !data/processed/
 !data/processed/*.csv
+data/processed/field_verifications.json
 !data/sites/
 !data/sites/*.csv
 

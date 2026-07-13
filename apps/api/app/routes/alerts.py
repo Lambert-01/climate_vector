@@ -16,6 +16,18 @@ router = APIRouter(tags=["alerts"])
 
 _IN_MEMORY_ALERTS: list[dict] = []
 
+VALID_TRANSITIONS = {
+    "pending_review": {"active", "rejected", "escalated"},
+    "active": {"field_verification_requested", "acknowledged", "escalated", "resolved"},
+    "field_verification_requested": {"verified", "escalated", "resolved"},
+    "acknowledged": {"resolved", "escalated"},
+    "verified": {"resolved", "closed", "escalated"},
+    "resolved": {"closed"},
+    "escalated": {"resolved", "closed"},
+    "rejected": {"closed"},
+    "closed": set(),
+}
+
 VALID_STATUSES = Literal[
     "pending_review", "active", "field_verification_requested",
     "acknowledged", "verified", "resolved", "closed", "escalated", "rejected",
@@ -85,6 +97,7 @@ async def update_alert_status(
         alert = await db.get(Alert, alert_id)
         if not alert:
             raise HTTPException(404, "Alert not found")
+        _validate_transition(alert.status, payload.status)
         alert.status = payload.status
         await db.commit()
         await db.refresh(alert)
@@ -94,9 +107,23 @@ async def update_alert_status(
         fallback = next((a for a in _IN_MEMORY_ALERTS if a["alert_id"] == alert_id), None)
         if not fallback:
             raise HTTPException(404, "Alert not found")
+        _validate_transition(fallback.get("status"), payload.status)
         fallback["status"] = payload.status
         return {**fallback, "source": "memory_fallback"}
     return _alert_dict(alert)
+
+
+def _validate_transition(current: str | None, requested: str) -> None:
+    current_status = current or "pending_review"
+    if requested == current_status:
+        return
+    allowed = VALID_TRANSITIONS.get(current_status, set())
+    if requested not in allowed:
+        allowed_text = ", ".join(sorted(allowed)) or "no further transitions"
+        raise HTTPException(
+            409,
+            f"Invalid transition from {current_status} to {requested}. Allowed: {allowed_text}",
+        )
 
 
 def _alert_payload_dict(a: Alert) -> dict:

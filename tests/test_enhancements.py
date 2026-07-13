@@ -158,8 +158,8 @@ def test_source_registry_returns_all_sources() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert payload["items"]
-    assert len(payload["items"]) >= 10
-    assert payload["summary"]["total_sources"] >= 10
+    assert len(payload["items"]) == 13
+    assert payload["summary"]["total_sources"] == 13
     first = payload["items"][0]
     assert {"source_id", "name", "domain", "source_type", "status", "supports", "cannot_prove"}.issubset(first)
 
@@ -187,7 +187,8 @@ def test_validation_engine_checks_files() -> None:
     assert payload["summary"]["total"] >= 10
     assert payload["summary"]["passed"] >= 5
     first = payload["checks"][0]
-    assert {"check_id", "description", "file", "exists", "record_count", "status"}.issubset(first)
+    assert {"check_id", "description", "file", "exists", "record_count", "status", "issues", "issue_count"}.issubset(first)
+    assert "content quality" in payload["governance"] or "coordinate bounds" in payload["governance"]
 
 
 def test_validation_engine_marks_missing_files() -> None:
@@ -205,6 +206,7 @@ def test_field_verifications_list_empty_initially() -> None:
     payload = response.json()
     assert "items" in payload
     assert isinstance(payload["items"], list)
+    assert payload["source"] == "json_store"
 
 
 def test_field_verifications_create_and_retrieve() -> None:
@@ -300,6 +302,18 @@ def test_alert_response_includes_all_fields() -> None:
         assert "alert_expiry_date" in first
         assert "issued_by" in first
         assert "approved_by" in first
+
+
+def test_alerts_reject_invalid_backend_transition() -> None:
+    create_resp = client.post("/api/alerts", json={
+        "district": "Bugesera",
+        "risk_level": "high",
+        "risk_reason": "Transition validation test",
+    })
+    assert create_resp.status_code == 201
+    alert_id = create_resp.json()["alert_id"]
+    bad_transition = client.patch(f"/api/alerts/{alert_id}/status", json={"status": "verified"})
+    assert bad_transition.status_code == 409
 
 
 # ─── NEW TESTS: Modelling Reason Codes ─────────────────────────────────────

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import csv as csv_mod
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -10,6 +11,17 @@ from app.services.csv_store import read_csv
 ROOT = Path(__file__).resolve().parents[4]
 
 router = APIRouter(tags=["source-registry"])
+
+EXPECTED_COLUMNS = {
+    "ecology_processed": {"district_raw", "site_raw", "anopheles_species_raw", "breeding_site_type_raw"},
+    "resistance_processed": {"district", "insecticide_tested", "concentration_label", "number_dead_24h"},
+    "sentinel_context": {"site_id", "sentinel_name", "latitude", "longitude"},
+    "climate_features": {"district", "rainfall_mean_daily_mm", "tmean_c_mean"},
+    "gbif_occurrences": {"species", "decimalLatitude", "decimalLongitude"},
+    "era5_monthly": {"year", "month"},
+    "great_lakes_climate": {"location", "rainfall_latest_30d_mm"},
+    "great_lakes_vectors": {"species", "records"},
+}
 
 
 _SOURCE_ENTRIES = [
@@ -287,33 +299,189 @@ def validation_engine() -> dict:
         path = ROOT / rel_path
         exists = path.exists()
         record_count = 0
+        issues: list[dict] = []
+        columns: list[str] = []
         if exists and path.suffix == ".csv":
             try:
-                import csv as csv_mod
-                with path.open(newline="", encoding="utf-8-sig") as f:
-                    reader = csv_mod.DictReader(f)
-                    record_count = sum(1 for _ in reader)
-            except Exception:
+                rows = _read_rows(path)
+                columns = list(rows[0].keys()) if rows else []
+                record_count = len(rows)
+                issues.extend(_required_column_issues(check_id, columns))
+                issues.extend(_content_quality_issues(check_id, rows))
+            except Exception as exc:
                 record_count = -1
+                issues.append({
+                    "severity": "high",
+                    "issue": "read_error",
+                    "detail": exc.__class__.__name__,
+                    "recommendation": "Inspect file encoding and CSV structure.",
+                })
         elif exists:
             record_count = 1
+        elif not exists:
+            issues.append({
+                "severity": "high",
+                "issue": "missing_file",
+                "detail": rel_path,
+                "recommendation": "Regenerate/download this source before relying on this module.",
+            })
+        if exists and record_count == 0:
+            issues.append({
+                "severity": "high",
+                "issue": "empty_table",
+                "detail": "File exists but has no data rows.",
+                "recommendation": "Regenerate the processed table and inspect upstream source data.",
+            })
+        status = "pass" if exists and record_count > 0 and not _has_high_issue(issues) else "warn" if exists and record_count != -1 else "missing" if not exists else "error"
         results.append({
             "check_id": check_id,
             "description": description,
             "file": rel_path,
             "exists": exists,
             "record_count": record_count,
-            "status": "pass" if exists and record_count != -1 else "missing" if not exists else "error",
+            "columns_checked": columns,
+            "issues": issues,
+            "issue_count": len(issues),
+            "status": status,
         })
     passed = sum(1 for r in results if r["status"] == "pass")
     missing = sum(1 for r in results if r["status"] == "missing")
+    warnings = sum(1 for r in results if r["status"] == "warn")
+    errors = sum(1 for r in results if r["status"] == "error")
     return {
         "checks": results,
         "summary": {
             "total": len(results),
             "passed": passed,
+            "warnings": warnings,
             "missing": missing,
-            "errors": len(results) - passed - missing,
+            "errors": errors,
         },
-        "governance": "Validation engine checks file existence and record counts. It does not validate content quality, scientific accuracy, or completeness.",
+        "governance": "Validation engine checks file existence, record counts, selected required columns, coordinate bounds, duplicate IDs, and selected climate plausibility ranges. It does not certify scientific accuracy or official disease validation.",
     }
+
+
+def _read_rows(path: Path) -> list[dict[str, str]]:
+    with path.open(newline="", encoding="utf-8-sig") as f:
+        return list(csv_mod.DictReader(f))
+
+
+def _required_column_issues(check_id: str, columns: list[str]) -> list[dict]:
+    expected = EXPECTED_COLUMNS.get(check_id)
+    if not expected:
+        return []
+    present = set(columns)
+    missing = sorted(expected - present)
+    if not missing:
+        return []
+    return [{
+        "severity": "high",
+        "issue": "missing_required_columns",
+        "detail": ", ".join(missing),
+        "recommendation": "Update the processing pipeline or source mapping so this table exposes required fields.",
+    }]
+
+
+def _content_quality_issues(check_id: str, rows: list[dict[str, str]]) -> list[dict]:
+    if not rows:
+        return []
+    issues: list[dict] = []
+    if check_id == "sentinel_context":
+        issues.extend(_duplicate_issues(rows, "site_id"))
+        issues.extend(_coordinate_issues(rows, "latitude", "longitude", (-4.9, 1.2), (27.0, 32.5)))
+    if check_id == "gbif_occurrences":
+        issues.extend(_coordinate_issues(rows, "decimalLatitude", "decimalLongitude", (-12.5, 5.5), (24.0, 36.0)))
+        missing_species = sum(1 for row in rows if not str(row.get("species", "")).strip())
+        if missing_species:
+            issues.append({
+                "severity": "medium",
+                "issue": "missing_species_values",
+                "detail": f"{missing_species} records have no species value.",
+                "recommendation": "Keep these as context only or filter before species-level summaries.",
+            })
+    if check_id in {"climate_features", "great_lakes_climate"}:
+        for field, low, high in [
+            ("rainfall_mean_daily_mm", 0, 80),
+            ("rainfall_latest_30d_mm", 0, 1000),
+            ("tmean_c_mean", 5, 40),
+        ]:
+            bad = _range_failures(rows, field, low, high)
+            if bad:
+                issues.append({
+                    "severity": "medium",
+                    "issue": "implausible_climate_values",
+                    "detail": f"{bad} rows outside plausible range for {field}.",
+                    "recommendation": "Inspect units, aggregation, and source conversion.",
+                })
+    if check_id == "resistance_processed":
+        for field in ["insecticide_tested", "number_dead_24h"]:
+            missing = sum(1 for row in rows if not str(row.get(field, "")).strip())
+            if missing:
+                issues.append({
+                    "severity": "medium",
+                    "issue": "missing_resistance_fields",
+                    "detail": f"{missing} rows missing {field}.",
+                    "recommendation": "Review PI IR extraction and keep interpretation preliminary.",
+                })
+    return issues
+
+
+def _duplicate_issues(rows: list[dict[str, str]], field: str) -> list[dict]:
+    seen: set[str] = set()
+    duplicates: set[str] = set()
+    for row in rows:
+        value = str(row.get(field, "")).strip().lower()
+        if not value:
+            continue
+        if value in seen:
+            duplicates.add(value)
+        seen.add(value)
+    if not duplicates:
+        return []
+    return [{
+        "severity": "medium",
+        "issue": "duplicate_identifier",
+        "detail": f"{len(duplicates)} duplicate {field} values.",
+        "recommendation": "Confirm registry IDs before operational use.",
+    }]
+
+
+def _coordinate_issues(rows: list[dict[str, str]], lat_field: str, lon_field: str, lat_bounds: tuple[float, float], lon_bounds: tuple[float, float]) -> list[dict]:
+    invalid = 0
+    for row in rows:
+        lat = _to_float(row.get(lat_field))
+        lon = _to_float(row.get(lon_field))
+        if lat is None or lon is None or not (lat_bounds[0] <= lat <= lat_bounds[1]) or not (lon_bounds[0] <= lon <= lon_bounds[1]):
+            invalid += 1
+    if not invalid:
+        return []
+    return [{
+        "severity": "high",
+        "issue": "invalid_coordinates",
+        "detail": f"{invalid} rows outside expected coordinate bounds or missing coordinates.",
+        "recommendation": "Verify coordinate extraction and source CRS before mapping.",
+    }]
+
+
+def _range_failures(rows: list[dict[str, str]], field: str, low: float, high: float) -> int:
+    failures = 0
+    saw_field = False
+    for row in rows:
+        if field not in row:
+            continue
+        saw_field = True
+        value = _to_float(row.get(field))
+        if value is None or value < low or value > high:
+            failures += 1
+    return failures if saw_field else 0
+
+
+def _to_float(value: str | None) -> float | None:
+    try:
+        return float(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _has_high_issue(issues: list[dict]) -> bool:
+    return any(issue.get("severity") == "high" for issue in issues)

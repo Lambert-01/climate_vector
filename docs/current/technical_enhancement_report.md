@@ -26,6 +26,7 @@ All risk signals, suitability indices, and preparedness scores are descriptive p
 - Added NaN guard to RiskGauge component to prevent rendering errors
 - Fixed orphaned `modelling` router reference in main.py that was never registered
 - Added status validation to alerts endpoint (8 valid statuses)
+- Added backend alert transition enforcement so invalid workflow jumps are rejected
 - Added alerts memory fallback so the Response Board does not crash when the database or Neon DNS is unreachable
 - Added duplicate site handling with proper HTTP 409 responses
 - Added full response fields to alerts (rule_or_model_version, alert_expiry_date, issued_by, approved_by)
@@ -35,16 +36,16 @@ All risk signals, suitability indices, and preparedness scores are descriptive p
 ### B. Source Registry and Validation Layer
 
 Built a complete data provenance tracking system:
-- `GET /api/source-registry` — Lists all 12 tracked evidence sources with full provenance metadata (domain, raw_file, processed_table, supports, cannot_prove, quality_limitations, status, required_for_validation)
+- `GET /api/source-registry` — Lists all 13 tracked evidence sources with full provenance metadata (domain, raw_file, processed_table, supports, cannot_prove, quality_limitations, status, required_for_validation)
 - `GET /api/source-registry/{id}` — Detailed view for individual source
-- `GET /api/validation-engine` — Checks 16 source files for existence and record counts, reports overall system readiness status
+- `GET /api/validation-engine` — Checks 16 source files for existence, record counts, selected required columns, duplicate IDs, coordinate bounds, and selected climate plausibility ranges
 
-Sources tracked include: PI insecticide resistance data, PI mosquito ecology data, NASA POWER climate data, GBIF vector occurrence, ERA5-Land monthly, CHIRPS rainfall, Rwanda boundaries, sentinel sites, processed climate tables, and processed vector tables.
+Sources tracked include: PI insecticide resistance data, PI mosquito ecology data, sentinel site registry, NASA POWER climate data, GBIF vector occurrence, ERA5-Land monthly, Open-Meteo live weather, WorldClim, elevation, land cover, Rwanda boundaries, official arboviral outcomes required for validation, and future Aedes/Culex field surveillance.
 
 ### C. Decision Room (Policy-Maker Page)
 
 New `/decision-room` route with:
-- Priority district table with suitability index, risk level, and action summaries
+- API-derived priority district table from `/api/modeling/district-risk` with risk level, generated evidence summaries, action recommendations, limitations, and owners
 - Confidence gauges (RiskGauge components) for risk, readiness, and field verification
 - Key metrics (districts at high risk, pending actions, evidence sources)
 - Action items with owners, limitations, and confidence levels
@@ -55,7 +56,7 @@ New `/decision-room` route with:
 
 Complete rewrite of the Alerts page with:
 - 8 alert statuses: pending_review, active, field_verification_requested, acknowledged, verified, resolved, closed, escalated
-- Status transition validation (only valid transitions allowed)
+- Frontend and backend status transition validation (only valid transitions allowed)
 - Uncertainty badges on all alert cards
 - Proper state re-sync via useEffect hook (prevents stale data)
 - Full alert fields: alert_id, district, risk_level, risk_reason, status, rule_or_model_version, alert_expiry_date, issued_by, approved_by
@@ -64,6 +65,7 @@ Complete rewrite of the Alerts page with:
 
 New `/field-verification` route with:
 - CRUD operations for verification requests (`GET/POST/PATCH /api/field-verifications`)
+- Local JSON persistence in `data/processed/field_verifications.json` so requests survive API restarts during the Proof of Concept demo
 - Checklist templates endpoint (`/api/field-verifications/checklist-templates`)
 - 3 templates: larval inspection, adult trap check, community observation
 - Status workflow: pending → in_progress → data_collected → larvae_confirmed/larvae_not_found/adults_collected → completed/escalated
@@ -88,7 +90,7 @@ Enhanced district risk signals with structured reason codes:
 
 ### H. Test Suite
 
-49 tests covering:
+50 tests covering:
 - Source registry (3 tests)
 - Validation engine (2 tests)
 - Field verification CRUD and checklists (6 tests)
@@ -108,11 +110,11 @@ Enhanced district risk signals with structured reason codes:
 | File | Change |
 |------|--------|
 | `main.py` | Removed orphaned modelling router, added source_registry + field_verification routers, enhanced health endpoint with DB check |
-| `routes/alerts.py` | Added status validation, full response fields, and memory fallback when database is unreachable |
+| `routes/alerts.py` | Added status validation, backend transition enforcement, full response fields, and memory fallback when database is unreachable |
 | `routes/sites.py` | Added duplicate handling (IntegrityError → 409) |
 | `routes/modeling.py` | Added reason codes to district risk signals |
-| `routes/source_registry.py` | **NEW** — Source registry + validation engine endpoints |
-| `routes/field_verification.py` | **NEW** — Field verification CRUD + checklist templates |
+| `routes/source_registry.py` | **NEW** — Source registry + deeper validation engine endpoints |
+| `routes/field_verification.py` | **NEW** — Field verification CRUD + checklist templates + JSON persistence |
 | `routes/modelling.py` | **DELETED** — Orphaned dead code |
 
 ### Frontend (apps/web/src/)
@@ -123,7 +125,7 @@ Enhanced district risk signals with structured reason codes:
 | `api.js` | Added sourceRegistry, validationEngine, fieldVerification endpoints |
 | `components/UI.jsx` | Added Skeleton*, EmptyState, improved ChartState, RiskGauge NaN guard |
 | `components/Sidebar.jsx` | Added SystemStatusPanel (live API/DB health), Decision Room + Field Verification nav items |
-| `pages/DecisionRoom.jsx` | **NEW** — Policy-maker decision page |
+| `pages/DecisionRoom.jsx` | **NEW** — Policy-maker decision page using API-derived priority rows |
 | `pages/FieldVerification.jsx` | **NEW** — Field verification workflow page |
 | `pages/Alerts.jsx` | Complete rewrite (8 statuses, validation, re-sync, EmptyState) |
 | `pages/Overview.jsx` | Fixed Cell import, added skeleton loading for KPIs and stat cards |
@@ -133,7 +135,7 @@ Enhanced district risk signals with structured reason codes:
 
 | File | Change |
 |------|--------|
-| `tests/test_enhancements.py` | **NEW** — 49 comprehensive tests |
+| `tests/test_enhancements.py` | **NEW** — 50 comprehensive tests |
 
 ### Styles
 
@@ -147,17 +149,17 @@ Enhanced district risk signals with structured reason codes:
 
 ```bash
 $ .venv/bin/pytest tests/ -q
-49 passed, 1 warning in 9.86s
+50 passed, 1 warning in 8.16s
 ```
 
-All 49 tests pass. The remaining warning is a Starlette/FastAPI TestClient deprecation warning and does not affect functionality.
+All 50 tests pass. The remaining warning is a Starlette/FastAPI TestClient deprecation warning and does not affect functionality.
 
 Test categories:
 - API health and CORS: 4 tests
 - Source registry: 3 tests
 - Validation engine: 2 tests
 - Field verification: 6 tests
-- Alert workflow: 3 tests
+- Alert workflow: 4 tests
 - Modelling reason codes: 1 test
 - Dashboard stats: 2 tests
 - Existing endpoint tests: 28+ tests
@@ -176,7 +178,7 @@ Test categories:
 
 5. **No audit logging** — Alert status changes and field verification updates are not logged. Audit trails should be added before operational use.
 
-6. **In-memory field verification storage** — Field verification data is stored in-memory and will reset on server restart. This should migrate to the database before pilot deployment.
+6. **Local JSON field verification storage** — Field verification data persists to a local JSON file for the Proof of Concept demo. This should migrate to the database with audit logging before pilot deployment.
 
 ---
 
@@ -229,7 +231,7 @@ npm run dev
 
 1. **Open Overview page** — Show the hero banner with KPIs (3,547 ecology rows, 3,547 susceptibility rows, 33 sentinel sites). Point out the system readiness progress bars and evidence source badges.
 
-2. **Navigate to Data Control** — Show the validation engine (16 source files tracked) and source registry (12 sources with full provenance). Highlight the quality limitations and "cannot prove" fields for honesty.
+2. **Navigate to Data Control** — Show the validation engine (16 source files tracked) and source registry (13 sources with full provenance). Highlight the quality limitations and "cannot prove" fields for honesty.
 
 3. **Open Priority Engine** — Show the district risk signals with reason codes. Click on a district to see structured reason codes across climate, evidence, and gap categories.
 
