@@ -5,7 +5,7 @@ import {
   ShieldCheck, Target, Zap,
 } from "lucide-react";
 import {
-  Area, AreaChart, Bar, BarChart, CartesianGrid,
+  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { api } from "../api";
@@ -194,8 +194,8 @@ export default function Overview() {
                     <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 1]} />
                     <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #d8e2e4" }} />
                     <Bar dataKey="suitability" name="Suitability index" radius={[5, 5, 0, 0]}>
-                      {topDistricts.map(r => (
-                        <rect key={r.district} fill={RISK_COLOR[r.risk] ?? RISK_COLOR.low} />
+                      {topDistricts.map((r, i) => (
+                        <Cell key={i} fill={RISK_COLOR[r.risk] ?? RISK_COLOR.low} />
                       ))}
                     </Bar>
                   </BarChart>

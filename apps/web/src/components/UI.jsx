@@ -149,7 +149,9 @@ export function ProgressBar({ label, value, max = 100, color = "teal", showPct =
 export function RiskGauge({ label, value, max = 1, level = "low", sub }) {
   const r = 28;
   const circ = 2 * Math.PI * r;
-  const pct = Math.min(1, value / max);
+  const safeValue = value ?? 0;
+  const safeMax = max || 1;
+  const pct = Math.min(1, safeValue / safeMax);
   const offset = circ * (1 - pct);
   return (
     <div className="risk-gauge-card">
