@@ -257,10 +257,14 @@ export default function Overview() {
 
       {/* ── STAT CARDS ── */}
       <div className="stats-grid">
-        <StatCard icon={Activity}    label="Mosquito ecology rows"    value={sL ? "…" : fmt(stats?.mosquito_observations)} sub="Rwanda PoC vector ecology"            color="teal"   accent="teal" />
-        <StatCard icon={FlaskConical} label="Susceptibility rows"     value={sL ? "…" : fmt(stats?.resistance_tests)}      sub="Vector-control context · IR_data.xls"  color="orange" accent="amber" />
-        <StatCard icon={MapPin}       label="Sentinel sites"          value="33"                                            sub="Lecturer WKT coordinates · mapped"     color="blue"   accent="blue" />
-        <StatCard icon={CheckCircle2} label="Usable evidence sources" value={vL ? "…" : usableSrc}                         sub={`of ${validRows.length} total indexed`} color="green"  accent="green" />
+        {sL ? Array.from({ length: 4 }).map((_, i) => <SkeletonStatCard key={i} />) : (
+          <>
+            <StatCard icon={Activity}    label="Mosquito ecology rows"    value={fmt(stats?.mosquito_observations)} sub="Rwanda PoC vector ecology"            color="teal"   accent="teal" />
+            <StatCard icon={FlaskConical} label="Susceptibility rows"     value={fmt(stats?.resistance_tests)}      sub="Vector-control context · IR_data.xls"  color="orange" accent="amber" />
+            <StatCard icon={MapPin}       label="Sentinel sites"          value="33"                                sub="Lecturer WKT coordinates · mapped"     color="blue"   accent="blue" />
+            <StatCard icon={CheckCircle2} label="Usable evidence sources" value={usableSrc}                         sub={`of ${validRows.length} total indexed`} color="green"  accent="green" />
+          </>
+        )}
       </div>
 
     </div>
