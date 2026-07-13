@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routes import alerts, arboviral, climate, dashboard, live_weather, modeling, mosquito, public_data, readiness, resistance, sites, summaries
+from app.routes import alerts, arboviral, climate, dashboard, live_weather, modeling, mosquito, public_data, readiness, resistance, sites, summaries, source_registry, field_verification
 
 app = FastAPI(
     title=settings.project_name,
@@ -34,6 +34,8 @@ for router in [
     public_data.router,
     readiness.router,
     summaries.router,
+    source_registry.router,
+    field_verification.router,
 ]:
     app.include_router(router, prefix="/api")
 

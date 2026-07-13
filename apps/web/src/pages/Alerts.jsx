@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { AlertTriangle, CheckCircle, ClipboardCheck, Clock, Plus, RefreshCw } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { AlertTriangle, CheckCircle, ClipboardCheck, Clock, Plus, RefreshCw, Shield, Users } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
@@ -13,12 +13,37 @@ const RISK_BADGE = {
 const STATUS_BADGE = {
   pending_review: "amber",
   active: "red",
+  field_verification_requested: "blue",
   acknowledged: "blue",
+  verified: "green",
   resolved: "green",
+  closed: "gray",
+  escalated: "red",
   rejected: "gray",
 };
 
+const STATUS_LABELS = {
+  pending_review: "Pending Review",
+  active: "Active",
+  field_verification_requested: "Field Verification",
+  acknowledged: "Acknowledged",
+  verified: "Verified",
+  resolved: "Resolved",
+  closed: "Closed",
+  escalated: "Escalated",
+  rejected: "Rejected",
+};
+
+const VALID_TRANSITIONS = {
+  pending_review: ["active", "rejected"],
+  active: ["field_verification_requested", "acknowledged", "escalated"],
+  field_verification_requested: ["verified", "escalated"],
+  acknowledged: ["resolved", "escalated"],
+  verified: ["resolved", "closed"],
+};
+
 function AlertCard({ alert, onStatusChange }) {
+  const nextStatuses = VALID_TRANSITIONS[alert.status] || [];
   return (
     <div className="alert-card">
       <div className={`alert-card-risk ${alert.risk_level ?? "low"}`}>
@@ -28,36 +53,62 @@ function AlertCard({ alert, onStatusChange }) {
         <div className="alert-card-title">
           <strong>{alert.district}</strong>
           <Badge variant={RISK_BADGE[alert.risk_level] ?? "gray"}>{alert.risk_level}</Badge>
-          <Badge variant={STATUS_BADGE[alert.status] ?? "gray"}>{alert.status?.replace(/_/g, " ")}</Badge>
+          <Badge variant={STATUS_BADGE[alert.status] ?? "gray"}>{STATUS_LABELS[alert.status] ?? alert.status?.replace(/_/g, " ")}</Badge>
         </div>
         <div className="alert-card-meta">{alert.alert_date}</div>
         <div className="alert-card-reason">{alert.risk_reason}</div>
         {alert.recommended_action && (
           <div className="alert-card-action">→ {alert.recommended_action}</div>
         )}
+        {alert.rule_or_model_version && (
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Model: {alert.rule_or_model_version}</div>
+        )}
+        {alert.uncertainty_level && (
+          <Badge variant={alert.uncertainty_level === "high" ? "amber" : alert.uncertainty_level === "low" ? "green" : "blue"}>
+            Uncertainty: {alert.uncertainty_level}
+          </Badge>
+        )}
         <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-          {alert.status === "pending_review" && (
-            <>
-              <button className="btn btn-primary" style={{ fontSize: 12, padding: "5px 12px" }}
-                onClick={() => onStatusChange(alert.alert_id, "active")}>
-                <CheckCircle size={12} /> Approve
-              </button>
-              <button className="btn btn-outline" style={{ fontSize: 12, padding: "5px 12px" }}
-                onClick={() => onStatusChange(alert.alert_id, "rejected")}>
-                Reject
-              </button>
-            </>
+          {nextStatuses.includes("active") && (
+            <button className="btn btn-primary" style={{ fontSize: 12, padding: "5px 12px" }}
+              onClick={() => onStatusChange(alert.alert_id, "active")}>
+              <CheckCircle size={12} /> Approve
+            </button>
           )}
-          {alert.status === "active" && (
+          {nextStatuses.includes("rejected") && (
+            <button className="btn btn-outline" style={{ fontSize: 12, padding: "5px 12px" }}
+              onClick={() => onStatusChange(alert.alert_id, "rejected")}>
+              Reject
+            </button>
+          )}
+          {nextStatuses.includes("field_verification_requested") && (
+            <button className="btn btn-primary" style={{ fontSize: 12, padding: "5px 12px" }}
+              onClick={() => onStatusChange(alert.alert_id, "field_verification_requested")}>
+              <ClipboardCheck size={12} /> Request Field Verification
+            </button>
+          )}
+          {nextStatuses.includes("acknowledged") && (
             <button className="btn btn-outline" style={{ fontSize: 12, padding: "5px 12px" }}
               onClick={() => onStatusChange(alert.alert_id, "acknowledged")}>
               <Clock size={12} /> Acknowledge
             </button>
           )}
-          {alert.status === "acknowledged" && (
+          {nextStatuses.includes("verified") && (
+            <button className="btn btn-primary" style={{ fontSize: 12, padding: "5px 12px" }}
+              onClick={() => onStatusChange(alert.alert_id, "verified")}>
+              <Shield size={12} /> Mark Verified
+            </button>
+          )}
+          {nextStatuses.includes("resolved") && (
             <button className="btn btn-primary" style={{ fontSize: 12, padding: "5px 12px" }}
               onClick={() => onStatusChange(alert.alert_id, "resolved")}>
-              <CheckCircle size={12} /> Mark Resolved
+              <CheckCircle size={12} /> Resolve
+            </button>
+          )}
+          {nextStatuses.includes("escalated") && (
+            <button className="btn btn-outline" style={{ fontSize: 12, padding: "5px 12px", borderColor: "var(--red-400)", color: "var(--red-600)" }}
+              onClick={() => onStatusChange(alert.alert_id, "escalated")}>
+              <AlertTriangle size={12} /> Escalate
             </button>
           )}
         </div>
@@ -81,13 +132,17 @@ export default function Alerts() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (data?.items) setAlerts(null);
+  }, [data]);
+
   const items = alerts ?? data?.items ?? [];
   const actionRows = intelligence?.action_queue ?? [];
 
   async function handleStatusChange(id, status) {
     try {
-      await api.updateAlertStatus(id, status);
-      setAlerts(items.map((a) => a.alert_id === id ? { ...a, status } : a));
+      const updated = await api.updateAlertStatus(id, status);
+      setAlerts(items.map((a) => a.alert_id === id ? { ...a, ...updated } : a));
     } catch (e) {
       console.error(e);
     }
@@ -111,6 +166,8 @@ export default function Alerts() {
 
   const pending = items.filter((a) => a.status === "pending_review").length;
   const active = items.filter((a) => a.status === "active").length;
+  const fieldRequested = items.filter((a) => a.status === "field_verification_requested").length;
+  const escalated = items.filter((a) => a.status === "escalated").length;
 
   return (
     <div className="page ops-page">
@@ -128,18 +185,20 @@ export default function Alerts() {
       <SectionCard title="Signal and action queue" icon={AlertTriangle}>
         <MetricStrip
           items={[
-            { label: "Pending", value: pending },
+            { label: "Pending Review", value: pending },
             { label: "Active", value: active },
-            { label: "Operational actions", value: iL ? "..." : actionRows.length },
-            { label: "Mapped sentinels", value: iL ? "..." : intelligence?.summary?.mapped_sentinel_sites ?? 0 },
+            { label: "Field Verification", value: fieldRequested },
+            { label: "Escalated", value: escalated },
+            { label: "System Actions", value: iL ? "..." : actionRows.length },
+            { label: "Sentinels Mapped", value: iL ? "..." : intelligence?.summary?.mapped_sentinel_sites ?? 0 },
           ]}
         />
       </SectionCard>
 
       <InterpretationPanel
         title="Response interpretation"
-        verdict="The response board should be used as a verification workflow: review evidence, assign owners, and document decisions before any public-health action label."
-        tone={active > 0 ? "red" : pending > 0 ? "amber" : "teal"}
+        verdict="The response board supports a preparedness verification workflow: review evidence, assign owners, request field verification, and document decisions before any public-health action label."
+        tone={escalated > 0 ? "red" : active > 0 ? "amber" : pending > 0 ? "amber" : "teal"}
         confidence="Current actions are operational planning tasks; official alerts require technical and institutional review."
         items={[
           {
@@ -148,9 +207,9 @@ export default function Alerts() {
             note: "Use this board for team coordination and PI review.",
           },
           {
-            label: "Priority logic",
-            value: "High actions first",
-            note: "Sentinel validation, Aedes/Culex surveillance, and official data access are the top blockers.",
+            label: "Workflow",
+            value: "Review → Approve → Field Verify → Resolve",
+            note: "Each alert follows a structured status workflow with clear transitions.",
           },
           {
             label: "Governance",
@@ -221,7 +280,7 @@ export default function Alerts() {
 
         <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
           {loading ? <Spinner /> : items.length === 0 ? (
-            <div className="empty">No alerts yet.</div>
+            <div className="empty">No alerts yet. Create one to start the review workflow.</div>
           ) : (
             items.map((a) => (
               <AlertCard key={a.alert_id} alert={a} onStatusChange={handleStatusChange} />
