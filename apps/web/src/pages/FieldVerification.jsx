@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { CheckCircle, ClipboardCheck, FileText, MapPin, Plus, RefreshCw, Upload } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, EmptyState, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
 
 const VF_STATUS_BADGE = {
   pending: "amber",
@@ -293,11 +293,11 @@ export default function FieldVerification() {
 
         <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
           {loading ? <Spinner /> : items.length === 0 ? (
-            <div className="empty">
-              <ClipboardCheck size={18} />
-              <div>No verification requests yet.</div>
-              <small>Create a request from the climate trigger table above or manually.</small>
-            </div>
+            <EmptyState
+              icon={ClipboardCheck}
+              title="No verification requests yet"
+              description="Create a request from the climate trigger table above or manually to start the field verification workflow."
+            />
           ) : (
             items.map((v) => (
               <VerificationCard key={v.verification_id} v={v} onUpdate={handleUpdate} />
