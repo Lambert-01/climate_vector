@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FlaskConical, Home, Map as MapIcon, Radar } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, Map as MapIcon, Radar, ShieldCheck } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import Overview from "./pages/Overview.jsx";
 import Sites from "./pages/Sites.jsx";
@@ -12,9 +12,12 @@ import Alerts from "./pages/Alerts.jsx";
 import DataReadiness from "./pages/DataReadiness.jsx";
 import Modeling from "./pages/Modeling.jsx";
 import Arboviral from "./pages/Arboviral.jsx";
+import DecisionRoom from "./pages/DecisionRoom.jsx";
+import FieldVerification from "./pages/FieldVerification.jsx";
 
 const PAGE_META = {
   "/":              { title: "Command Overview",        sub: "Great Lakes climate-vector preparedness intelligence", icon: Home },
+  "/decision-room": { title: "Decision Room",           sub: "Policy-facing preparedness action brief",              icon: ShieldCheck },
   "/arboviral":     { title: "Arboviral Preparedness",  sub: "Aedes · Culex · RVF · Great Lakes regional context",  icon: Biohazard },
   "/sites":         { title: "Spatial Operations",      sub: "33 sentinel sites · coordinate status · map view",     icon: MapIcon },
   "/mosquito":      { title: "Vector Evidence",         sub: "Ecology · species context · habitats",                 icon: Activity },
@@ -23,6 +26,7 @@ const PAGE_META = {
   "/live-weather":  { title: "Live Weather",            sub: "Open-Meteo nowcast and field window",                  icon: CloudSun },
   "/modeling":      { title: "Preparedness Priority",   sub: "Policy-facing prioritization and confidence",          icon: BrainCircuit },
   "/alerts":        { title: "Response Board",          sub: "Signal review and action workflow",                    icon: AlertTriangle },
+  "/field-verification": { title: "Field Verification", sub: "Verification requests and pilot checklists",          icon: FileCheck },
   "/data-readiness":{ title: "Data Control",            sub: "Readiness · validation queue · governance",            icon: Database },
 };
 
@@ -65,6 +69,7 @@ export default function App() {
         <Topbar />
         <Routes>
           <Route path="/"              element={<Overview />} />
+          <Route path="/decision-room" element={<DecisionRoom />} />
           <Route path="/arboviral"     element={<Arboviral />} />
           <Route path="/sites"         element={<Sites />} />
           <Route path="/mosquito"      element={<Mosquito />} />
@@ -73,6 +78,7 @@ export default function App() {
           <Route path="/live-weather"  element={<LiveWeather />} />
           <Route path="/modeling"      element={<Modeling />} />
           <Route path="/alerts"        element={<Alerts />} />
+          <Route path="/field-verification" element={<FieldVerification />} />
           <Route path="/data-readiness" element={<DataReadiness />} />
           <Route path="*"              element={<Navigate to="/" replace />} />
         </Routes>
