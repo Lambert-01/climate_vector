@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle, ClipboardCheck, Clock, Plus, RefreshCw, Shield, Users } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, EmptyState, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
 
 const RISK_BADGE = {
   high: "red",
