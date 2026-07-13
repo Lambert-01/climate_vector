@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, ClipboardCheck, Database, FlaskConical, Globe2, MapPin, Microscope, XCircle } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Database, FlaskConical, Globe2, MapPin, Microscope, Shield, XCircle } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import {
@@ -16,7 +16,6 @@ const GOVERNANCE_PHASES = [
   { label: "Integrated",     sub: "In dashboard",     status: "pending" },
 ];
 
-// What we have NOW — honest, positive framing
 const HAVE_NOW = [
   { icon: FlaskConical, label: "PI ecology records",        value: "3,547 rows",  note: "mosquito_behavior_raw.xls — breeding sites, habitats, agricultural exposure", status: "ready" },
   { icon: FlaskConical, label: "PI susceptibility records", value: "3,547 rows",  note: "IR_data.xls — insecticide, concentration, 24h deaths, vector-control context", status: "ready" },
@@ -28,7 +27,6 @@ const HAVE_NOW = [
   { icon: Globe2,       label: "Great Lakes climate points",value: "7 points",    note: "NASA POWER for Kigali, Goma, Kampala, Nairobi, Bujumbura, Dar, Mwanza",        status: "ready" },
 ];
 
-// What the PILOT will collect — framed as roadmap, not failure
 const PILOT_COLLECT = [
   { label: "Full sample dates (month + year per row)",                                priority: "high",   owner: "PI / field team" },
   { label: "GPS coordinates for all sentinel sites",                                  priority: "high",   owner: "PI / field officer" },
@@ -48,6 +46,8 @@ export default function DataReadiness() {
   const { data,             loading }       = useFetch(api.readiness);
   const { data: validation, loading: vL, error: vE } = useFetch(api.publicValidation);
   const { data: governance, loading: gL    } = useFetch(api.arboviralPartnerGovernance);
+  const { data: sourceRegistry, loading: srL } = useFetch(api.sourceRegistry);
+  const { data: valEngine, loading: veL } = useFetch(api.validationEngine);
 
   const items      = data?.items ?? [];
   const ready      = items.filter(i => String(i.ready).toLowerCase() === "true").length;
@@ -55,36 +55,40 @@ export default function DataReadiness() {
   const usableSrc  = validRows.filter(r => ["usable","validated","downloaded"].some(k => String(r.status ?? "").includes(k))).length;
   const readyPct   = items.length ? Math.round((ready / items.length) * 100) : 0;
   const govRows    = governance?.items ?? [];
+  const registryItems = sourceRegistry?.items ?? [];
+  const valChecks = valEngine?.checks ?? [];
+  const valPassed = valEngine?.summary?.passed ?? 0;
+  const valTotal = valEngine?.summary?.total ?? 0;
 
   return (
     <div className="page">
 
-      {/* ── HERO ── */}
+      {/* HERO */}
       <div className="page-hero">
         <div className="eyebrow">Data operations · readiness control</div>
-        <h2>What we have · what the pilot collects</h2>
+        <h2>Source registry · validation · governance</h2>
         <p>
-          This system is built on real, integrated data. The items below labelled "pilot" are
-          not failures — they are the honest scientific roadmap that makes this proposal credible.
-          The Nexa PoC funding is specifically designed to collect them.
+          This system is built on real, integrated data. Every source is tracked with provenance,
+          limitations, and validation status. Items labelled "pilot" are the honest scientific
+          roadmap that makes this proposal credible.
         </p>
         <div className="hero-badges">
-          <Badge variant="green">{HAVE_NOW.length} evidence groups integrated</Badge>
-          <Badge variant="amber">{PILOT_COLLECT.length} pilot collection items</Badge>
-          <Badge variant="blue">Honest science · fundable roadmap</Badge>
+          <Badge variant="green">{registryItems.length} sources tracked</Badge>
+          <Badge variant="blue">{valPassed}/{valTotal} validation checks pass</Badge>
+          <Badge variant="amber">{PILOT_COLLECT.length} pilot items</Badge>
         </div>
         <div className="page-hero-kpis">
           <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{HAVE_NOW.length}</div>
-            <div className="page-hero-kpi-label">Evidence groups ready</div>
+            <div className="page-hero-kpi-value">{registryItems.length}</div>
+            <div className="page-hero-kpi-label">Sources tracked</div>
           </div>
           <div className="page-hero-kpi">
             <div className="page-hero-kpi-value">{vL ? "…" : usableSrc}</div>
             <div className="page-hero-kpi-label">Usable sources</div>
           </div>
           <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{PILOT_COLLECT.filter(p => p.priority === "high").length}</div>
-            <div className="page-hero-kpi-label">High-priority pilot items</div>
+            <div className="page-hero-kpi-value">{valPassed}</div>
+            <div className="page-hero-kpi-label">Validation checks pass</div>
           </div>
           <div className="page-hero-kpi">
             <div className="page-hero-kpi-value">{readyPct}%</div>
@@ -93,12 +97,12 @@ export default function DataReadiness() {
         </div>
       </div>
 
-      {/* ── READINESS BARS ── */}
+      {/* READINESS BARS */}
       <SectionCard title="Readiness overview" icon={ClipboardCheck}>
         <div style={{ padding: "18px 20px", display: "grid", gap: 14 }}>
           <ProgressBar label="Overall data readiness" value={readyPct} color="teal" />
           <ProgressBar label="Usable evidence sources" value={usableSrc} max={validRows.length || 18} color="green" />
-          <ProgressBar label="Pilot items with high priority" value={PILOT_COLLECT.filter(p => p.priority === "high").length} max={PILOT_COLLECT.length} color="amber" />
+          <ProgressBar label="Validation checks" value={valPassed} max={valTotal || 1} color="blue" />
         </div>
         <MetricStrip items={[
           { label: "Ready groups",   value: ready },
@@ -110,7 +114,65 @@ export default function DataReadiness() {
 
       <div style={{ marginBottom: 22 }} />
 
-      {/* ── WHAT WE HAVE NOW ── */}
+      {/* VALIDATION ENGINE */}
+      <SectionCard title="Data validation engine — file and record checks" icon={Shield}>
+        <ChartState loading={veL} rows={valChecks} empty="Validation engine not loaded.">
+          <div style={{ padding: "16px 20px", display: "grid", gap: 6 }}>
+            {valChecks.map((check) => (
+              <div key={check.check_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: check.status === "pass" ? "var(--green-50)" : check.status === "missing" ? "#fef2f2" : "#fffbeb", borderRadius: 6, border: `1px solid ${check.status === "pass" ? "var(--green-200)" : check.status === "missing" ? "#fecaca" : "#fde68a"}` }}>
+                <div className={`readiness-dot ${check.status === "pass" ? "ready" : check.status === "missing" ? "missing" : "partial"}`} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600 }}>{check.description}</div>
+                  <div style={{ fontSize: 10.5, color: "var(--text-muted)" }}>{check.file}</div>
+                </div>
+                <Badge variant={check.status === "pass" ? "green" : check.status === "missing" ? "red" : "amber"}>
+                  {check.status === "pass" ? `${check.record_count} records` : check.status}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </ChartState>
+      </SectionCard>
+
+      <div style={{ marginBottom: 22 }} />
+
+      {/* SOURCE REGISTRY */}
+      <SectionCard title="Data source registry — provenance and limitations" icon={Database}>
+        <ChartState loading={srL} rows={registryItems} empty="Source registry not loaded.">
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Source</th>
+                  <th>Domain</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Supports</th>
+                  <th>Cannot Prove</th>
+                  <th>Validation Required</th>
+                </tr>
+              </thead>
+              <tbody>
+                {registryItems.map((src) => (
+                  <tr key={src.source_id}>
+                    <td><strong>{src.name}</strong></td>
+                    <td style={{ fontSize: 11 }}>{src.domain}</td>
+                    <td><Badge variant={src.source_type === "public" || src.source_type === "public_api" ? "blue" : src.source_type === "pi_provided" ? "teal" : "gray"}>{src.source_type?.replace(/_/g, " ")}</Badge></td>
+                    <td><Badge variant={src.status?.includes("validated") || src.status?.includes("usable") ? "green" : src.status?.includes("pilot") ? "amber" : "gray"}>{src.status?.replace(/_/g, " ")}</Badge></td>
+                    <td style={{ fontSize: 11, maxWidth: 200 }}>{src.supports}</td>
+                    <td style={{ fontSize: 11, color: "var(--text-muted)", maxWidth: 200 }}>{src.cannot_prove}</td>
+                    <td style={{ fontSize: 11, color: "var(--text-secondary)", maxWidth: 200 }}>{src.required_for_validation}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </ChartState>
+      </SectionCard>
+
+      <div style={{ marginBottom: 22 }} />
+
+      {/* WHAT WE HAVE NOW */}
       <div className="section-label"><CheckCircle2 size={13} /> Evidence integrated and operational now</div>
       <div className="source-chip-grid" style={{ padding: 0, marginBottom: 22 }}>
         {HAVE_NOW.map(item => {
@@ -130,7 +192,7 @@ export default function DataReadiness() {
         })}
       </div>
 
-      {/* ── PILOT ROADMAP ── */}
+      {/* PILOT ROADMAP */}
       <div className="section-label"><Microscope size={13} /> Pilot collection roadmap — what the grant funds</div>
       <div style={{ display: "grid", gap: 8, marginBottom: 22 }}>
         {PILOT_COLLECT.map((item, i) => (
@@ -145,14 +207,14 @@ export default function DataReadiness() {
         ))}
       </div>
 
-      {/* ── GOVERNANCE PIPELINE ── */}
+      {/* GOVERNANCE PIPELINE */}
       <SectionCard title="Partner data governance pipeline — RBC/MoH and partners" icon={Database}>
         <PhaseTimeline phases={GOVERNANCE_PHASES} />
       </SectionCard>
 
       <div style={{ marginBottom: 22 }} />
 
-      {/* ── PARTNER GOVERNANCE TABLE ── */}
+      {/* PARTNER GOVERNANCE TABLE */}
       <SectionCard title="Partner governance status by dataset" icon={Database}>
         <div style={{ padding: "16px 20px", display: "grid", gap: 8 }}>
           {gL ? <Spinner /> : govRows.map(row => (
@@ -172,7 +234,7 @@ export default function DataReadiness() {
 
       <div style={{ marginBottom: 22 }} />
 
-      {/* ── VALIDATED SOURCES ── */}
+      {/* VALIDATED SOURCES */}
       <SectionCard title="Validated public evidence registry" icon={CheckCircle2}>
         <ChartState loading={vL} error={vE} rows={validRows} empty="Validation registry not loaded.">
           <div style={{ padding: "16px 20px", display: "grid", gap: 8 }}>
