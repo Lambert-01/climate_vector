@@ -47,7 +47,7 @@ nohup bash -lc "cd '$ROOT_DIR/apps/api' && '$ROOT_DIR/.venv/bin/uvicorn' app.mai
   > "$LOG_DIR/api.log" 2>&1 &
 echo "$!" > "$PID_DIR/api.pid"
 
-nohup bash -lc "cd '$ROOT_DIR/apps/web' && VITE_API_BASE='http://$HOST:$API_PORT/api' npm run dev -- --host '$HOST' --port '$WEB_PORT'" \
+nohup bash -lc "export NVM_DIR=\"\$HOME/.nvm\"; [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\"; cd '$ROOT_DIR/apps/web' && VITE_API_BASE='http://$HOST:$API_PORT/api' npm run dev -- --host '$HOST' --port '$WEB_PORT'" \
   > "$LOG_DIR/web.log" 2>&1 &
 echo "$!" > "$PID_DIR/web.pid"
 
