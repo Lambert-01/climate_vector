@@ -90,6 +90,7 @@ def _signal_from_rows(district: str, rows: list[dict[str, str]], days: int, rece
         recent_records=recent_records,
         gps_validated=False,
     )
+    reason_codes = _generate_reason_codes(signal, rainfall_7d, rainfall_30d, tmean, recent_records)
     return {
         "district": signal.district,
         "risk_level": signal.risk_level,
@@ -101,12 +102,37 @@ def _signal_from_rows(district: str, rows: list[dict[str, str]], days: int, rece
         "vectorial_capacity_proxy": signal.vectorial_capacity_proxy,
         "uncertainty_level": signal.uncertainty_level,
         "reason": signal.reason,
+        "reason_codes": reason_codes,
         "rule_or_model_version": signal.rule_or_model_version,
         "rainfall_7d_mm": round(rainfall_7d, 2),
         "rainfall_30d_mm": round(rainfall_30d, 2),
         "tmean_c": round(tmean, 2) if tmean is not None else None,
         "recent_records": recent_records,
     }
+
+
+def _generate_reason_codes(signal, r7: float, r30: float, tmean: float | None, records: int) -> list[dict]:
+    codes = []
+    if tmean is not None:
+        if 20 <= tmean <= 30:
+            codes.append({"code": "temp_suitable", "message": f"Temperature {tmean:.1f}C within plausible Aedes/Culex activity range", "category": "climate"})
+        elif tmean < 16 or tmean > 34:
+            codes.append({"code": "temp_out_of_range", "message": f"Temperature {tmean:.1f}C below or above mosquito activity range", "category": "climate"})
+        else:
+            codes.append({"code": "temp_moderate", "message": f"Temperature {tmean:.1f}C in marginal suitability range", "category": "climate"})
+    if r7 > 35:
+        codes.append({"code": "rainfall_7d_high", "message": f"7-day rainfall {r7:.0f}mm suitable for breeding habitat activation", "category": "climate"})
+    elif r7 > 90:
+        codes.append({"code": "rainfall_flushing", "message": f"7-day rainfall {r7:.0f}mm may flush breeding habitats", "category": "climate"})
+    else:
+        codes.append({"code": "rainfall_7d_low", "message": f"7-day rainfall {r7:.0f}mm below optimal breeding threshold", "category": "climate"})
+    if records >= 20:
+        codes.append({"code": "evidence_adequate", "message": f"{records} PI ecology records provide contextual vector evidence", "category": "evidence"})
+    else:
+        codes.append({"code": "evidence_limited", "message": f"Only {records} PI ecology records available; field verification needed", "category": "evidence"})
+    codes.append({"code": "no_case_data", "message": "Official arboviral case data not connected; no outbreak prediction possible", "category": "gap"})
+    codes.append({"code": "pilot_surveillance_pending", "message": "Local Aedes/Culex field surveillance not yet deployed", "category": "gap"})
+    return codes
 
 
 def _mosquito_counts_by_district() -> dict[str, int]:

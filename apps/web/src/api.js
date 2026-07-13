@@ -68,4 +68,14 @@ export const api = {
   arboviralScoring: () => req("/arboviral/scoring"),
   arboviralVectorTaxonomy: () => req("/arboviral/vector-taxonomy"),
   arboviralPartnerGovernance: () => req("/arboviral/partner-governance"),
+
+  sourceRegistry: () => req("/source-registry"),
+  sourceRegistryDetail: (id) => req(`/source-registry/${id}`),
+  validationEngine: () => req("/validation-engine"),
+
+  fieldVerifications: () => req("/field-verifications"),
+  createFieldVerification: (body) => req("/field-verifications", { method: "POST", body: JSON.stringify(body) }),
+  updateFieldVerification: (id, body) =>
+    req(`/field-verifications/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  fieldVerificationChecklistTemplates: () => req("/field-verifications/checklist/templates"),
 };
