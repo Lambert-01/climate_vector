@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -12,6 +13,11 @@ from app.core.database import get_db
 from app.models import Alert
 
 router = APIRouter(tags=["alerts"])
+
+VALID_STATUSES = Literal[
+    "pending_review", "active", "field_verification_requested",
+    "acknowledged", "verified", "resolved", "closed", "escalated", "rejected",
+]
 
 
 class AlertIn(BaseModel):
@@ -57,8 +63,15 @@ async def update_alert_status(
     alert = await db.get(Alert, alert_id)
     if not alert:
         raise HTTPException(404, "Alert not found")
+    valid = [
+        "pending_review", "active", "field_verification_requested",
+        "acknowledged", "verified", "resolved", "closed", "escalated", "rejected",
+    ]
+    if payload.status not in valid:
+        raise HTTPException(422, f"Invalid status. Must be one of: {', '.join(valid)}")
     alert.status = payload.status
     await db.commit()
+    await db.refresh(alert)
     return _alert_dict(alert)
 
 
@@ -70,7 +83,11 @@ def _alert_dict(a: Alert) -> dict:
         "risk_level": a.risk_level,
         "risk_reason": a.risk_reason,
         "uncertainty_level": a.uncertainty_level,
+        "rule_or_model_version": a.rule_or_model_version,
         "status": a.status,
         "recommended_action": a.recommended_action,
+        "alert_expiry_date": str(a.alert_expiry_date) if a.alert_expiry_date else None,
+        "issued_by": a.issued_by,
+        "approved_by": a.approved_by,
     }
 

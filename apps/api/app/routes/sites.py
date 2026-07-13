@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -60,7 +61,11 @@ async def get_site(site_id: str, db: AsyncSession = Depends(get_db)) -> dict:
 async def create_site(payload: SiteIn, db: AsyncSession = Depends(get_db)) -> dict:
     site = Site(**payload.model_dump())
     db.add(site)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(409, f"Site with ID '{payload.site_id}' already exists.")
     await db.refresh(site)
     return _site_dict(site)
 
