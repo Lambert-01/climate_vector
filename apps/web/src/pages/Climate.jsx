@@ -16,6 +16,7 @@ import {
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard } from "../components/UI";
+import ExportToolbar from "../components/ExportToolbar";
 
 function numberValue(value) {
   return Number.parseFloat(value ?? 0) || 0;
@@ -86,15 +87,22 @@ export default function Climate() {
   const label = selectedDistrict.charAt(0).toUpperCase() + selectedDistrict.slice(1);
 
   return (
-    <div className="page ops-page">
-      <div className="ops-header">
-        <div>
-          <div className="eyebrow">Great Lakes climate module</div>
-          <h2>Regional climate and Rwanda district signals</h2>
+    <div className="page">
+      <div className="page-header">
+        <div className="page-header-text">
+          <h2>Climate signals</h2>
+          <div className="page-subtitle">Great Lakes regional climate screening — NASA POWER regional + Rwanda district-level</div>
+          <div className="page-header-badges">
+            <Badge variant="green">NASA POWER regional</Badge>
+            <Badge variant="blue">Rwanda PoC: {label}</Badge>
+          </div>
         </div>
-        <div className="hero-badges">
-          <Badge variant="green">NASA POWER regional</Badge>
-          <Badge variant="blue">Rwanda PoC: {label}</Badge>
+        <div className="page-header-actions">
+          <ExportToolbar
+            csvFilename="arborisk_climate_regional"
+            csvRows={regional.map((r) => ({ country: r.country, date: r.date, tavg: r.tavg, rainfall: r.rainfall }))}
+            jsonData={regional}
+          />
         </div>
       </div>
 

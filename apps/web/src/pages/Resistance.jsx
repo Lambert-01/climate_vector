@@ -73,15 +73,22 @@ export default function Resistance() {
   );
 
   return (
-    <div className="page ops-page">
-      <div className="ops-header">
-        <div>
-          <div className="eyebrow">Vector control intelligence</div>
-          <h2>Susceptibility, intervention readiness, and pilot actions</h2>
+    <div className="page">
+      <div className="page-header">
+        <div className="page-header-text">
+          <h2>Intervention readiness</h2>
+          <div className="page-subtitle">Vector control intelligence — susceptibility, intervention readiness, and pilot actions</div>
+          <div className="page-header-badges">
+            <Badge variant="green">IR data loaded</Badge>
+            <Badge variant="amber">Lab validation pending</Badge>
+          </div>
         </div>
-        <div className="hero-badges">
-          <Badge variant="green">IR data loaded</Badge>
-          <Badge variant="amber">Lab validation pending</Badge>
+        <div className="page-header-actions">
+          <ExportToolbar
+            csvFilename="arborisk_intervention_readiness"
+            csvRows={rows.map((r) => ({ country: r.country, district: r.district, vector_group: r.vector_group, species: r.species, insecticide: r.insecticide_class, mortality_pct: r.mortality_pct, status: r.status }))}
+            jsonData={rows}
+          />
         </div>
       </div>
 
