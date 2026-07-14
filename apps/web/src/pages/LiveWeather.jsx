@@ -162,7 +162,6 @@ export default function LiveWeather() {
           </button>
         </div>
       </div>
-      </div>
 
       {summaryLoading && <Spinner />}
       {summaryError && <div className="empty">Live weather is temporarily unavailable.<small>{summaryError}</small></div>}

@@ -7,6 +7,7 @@ import {
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import { Badge, ChartState, MetricStrip, ProgressBar, SectionCard, Spinner } from "../components/UI";
+import ExportToolbar from "../components/ExportToolbar";
 
 const RISK_COLOR = { high: "#ef4444", medium: "#f59e0b", low: "#0d9488" };
 const RISK_BG    = { high: "#fef2f2", medium: "#fffbeb", low: "#f0fdf4" };
@@ -55,6 +56,11 @@ export default function Modeling() {
           <Badge variant="green">Decision support</Badge>
           <Badge variant="amber">Pilot-grade · validation next</Badge>
           <Badge variant="blue">30 Rwanda districts</Badge>
+          <ExportToolbar
+            csvFilename="arborisk_modeling_screening"
+            csvRows={(districts ?? []).map((d) => ({ district: d.district, risk_level: d.risk_level, suitability_index: d.suitability_index, reason: d.reason }))}
+            jsonData={districts ?? []}
+          />
         </div>
         <div className="page-hero-kpis">
           <div className="page-hero-kpi">

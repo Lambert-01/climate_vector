@@ -7,6 +7,7 @@ import {
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import { Badge, ChartState, MetricStrip, RiskGauge, SectionCard } from "../components/UI";
+import ExportToolbar from "../components/ExportToolbar";
 
 const COLORS = ["#0d9488", "#2563eb", "#f59e0b", "#7c3aed", "#ef4444", "#14b8a6"];
 
@@ -62,6 +63,11 @@ export default function Arboviral() {
         <div className="hero-badges">
           <Badge variant="green">Climate + vector context</Badge>
           <Badge variant="amber">Preparedness · not prediction</Badge>
+          <ExportToolbar
+            csvFilename="arborisk_arboviral_intelligence"
+            csvRows={items.map((r) => ({ district: r.district, climate_signal: r.climate_signal, vector_signal: r.vector_signal, risk: r.risk_level }))}
+            jsonData={items}
+          />
           <Badge variant="blue">{totalPoints} regional points</Badge>
         </div>
         <div className="page-hero-kpis">
