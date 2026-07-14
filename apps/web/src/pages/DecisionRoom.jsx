@@ -153,7 +153,7 @@ export default function DecisionRoom() {
     } finally {
       setCreatingAlert(null);
     }
-  }, [mutateAlerts]);
+  }, [refreshAlerts]);
 
   const handleCreateVerify = useCallback(async (row) => {
     setCreatingVerify(row.district);
