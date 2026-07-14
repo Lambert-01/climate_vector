@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { CheckCircle, ClipboardCheck, FileText, MapPin, Plus, RefreshCw, Upload } from "lucide-react";
+import { CheckCircle, ClipboardCheck, FileText, MapPin, Plus, Printer, RefreshCw, Upload } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
-import { Badge, ChartState, DataTable, EmptyState, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
+import { Badge, ChartState, DataTable, EmptyState, MetricStrip, SectionCard, Spinner } from "../components/UI";
+import ExportToolbar from "../components/ExportToolbar";
 
 const VF_STATUS_BADGE = {
   pending: "amber",
