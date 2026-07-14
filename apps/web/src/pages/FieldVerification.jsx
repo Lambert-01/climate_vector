@@ -136,15 +136,26 @@ export default function FieldVerification() {
   const completed = items.filter((v) => v.status === "completed").length;
 
   return (
-    <div className="page ops-page">
-      <div className="ops-header">
-        <div>
-          <div className="eyebrow">Field verification module</div>
-          <h2>Verification requests and pilot checklists</h2>
+    <div className="page">
+      {/* ── HEADER ── */}
+      <div className="page-header">
+        <div className="page-header-text">
+          <h2>Field Verification</h2>
+          <div className="page-subtitle">Climate signals to ground truth — verification requests and pilot checklists</div>
+          <div className="page-header-badges">
+            <Badge variant="amber">Pilot data pending</Badge>
+            <Badge variant="blue">Operational workflow</Badge>
+          </div>
         </div>
-        <div className="hero-badges">
-          <Badge variant="amber">Pilot data pending</Badge>
-          <Badge variant="blue">Operational design</Badge>
+        <div className="page-header-actions">
+          <ExportToolbar
+            csvFilename="arborisk_field_verification"
+            csvRows={items.map((v) => ({ district: v.district, status: v.status, reason: v.reason_for_visit, vector: v.suspected_vector_group }))}
+            jsonData={items}
+          />
+          <button className="btn btn-primary" onClick={() => setShowForm(!showForm)} style={{ fontSize: 12 }}>
+            <Plus size={13} /> New Request
+          </button>
         </div>
       </div>
 
