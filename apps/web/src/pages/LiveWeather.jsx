@@ -28,6 +28,7 @@ import {
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard, Spinner } from "../components/UI";
+import ExportToolbar from "../components/ExportToolbar";
 
 function n(value, fallback = 0) {
   return Number.parseFloat(value ?? fallback) || fallback;
@@ -135,22 +136,32 @@ export default function LiveWeather() {
   const regionalPoints = intelligence?.regional_climate?.top_wetness_points ?? [];
 
   return (
-    <div className="page ops-page live-weather-page">
-      <div className="live-weather-hero">
-        <div>
-          <div className="eyebrow">Live nowcast</div>
-          <h2>Weather operations and regional preparedness</h2>
+    <div className="page live-weather-page">
+      <div className="page-header">
+        <div className="page-header-text">
+          <h2>Live weather</h2>
+          <div className="page-subtitle">Real-time Open-Meteo nowcast with regional preparedness signals</div>
+          <div className="page-header-badges">
+            <Badge variant="blue">{selected.charAt(0).toUpperCase() + selected.slice(1)}</Badge>
+            {lastRefreshed && <Badge variant="gray">Updated {lastRefreshed.toLocaleTimeString()}</Badge>}
+          </div>
         </div>
-        <div className="live-weather-controls">
-          <select value={selected} onChange={(e) => setSelected(e.target.value)}>
+        <div className="page-header-actions">
+          <ExportToolbar
+            csvFilename={`arborisk_live_weather_${selected}`}
+            csvRows={hourly.map((h) => ({ time: h.time, temp: h.temp, rain: h.rain, humidity: h.humidity, wind: h.wind }))}
+            jsonData={{ district: selected, summary, hourly }}
+          />
+          <select value={selected} onChange={(e) => setSelected(e.target.value)} style={{ fontSize: 12, padding: "6px 10px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
             {(districts.length ? districts : [{ id: "gasabo", name: "Gasabo" }]).map((d) => (
               <option key={d.id} value={d.id}>{title(d.name)}</option>
             ))}
           </select>
-          <button className="btn btn-primary" onClick={() => setRefreshKey((v) => v + 1)}>
-            <RefreshCw size={15} /> Refresh
+          <button className="btn btn-primary" onClick={() => setRefreshKey((v) => v + 1)} style={{ fontSize: 12 }}>
+            <RefreshCw size={13} /> Refresh
           </button>
         </div>
+      </div>
       </div>
 
       {summaryLoading && <Spinner />}

@@ -15,6 +15,7 @@ import {
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import { Badge, ChartState, DataTable, InterpretationPanel, MetricStrip, SectionCard } from "../components/UI";
+import ExportToolbar from "../components/ExportToolbar";
 
 const SITE_COLORS = ["#2f6f4e", "#087f8c", "#d5a642", "#3b82f6", "#f59e0b", "#64748b"];
 
@@ -273,15 +274,22 @@ export default function Sites() {
   const highRegionalPoints = regionalPoints.filter((p) => String(p.climate_signal).includes("high")).length;
 
   return (
-    <div className="page ops-page">
-      <div className="ops-header">
-        <div>
-          <div className="eyebrow">Regional spatial module</div>
-          <h2>Great Lakes points and Rwanda sentinel map</h2>
+    <div className="page">
+      <div className="page-header">
+        <div className="page-header-text">
+          <h2>Sentinel sites</h2>
+          <div className="page-subtitle">Great Lakes spatial coverage and Rwanda sentinel map</div>
+          <div className="page-header-badges">
+            <Badge variant={lecturerProvided ? "green" : provisional ? "amber" : "green"}>{lecturerProvided ? "Lecturer WKT" : provisional ? "GPS validation needed" : "GPS ready"}</Badge>
+            <Badge variant="blue">{regionalPoints.length} regional points</Badge>
+          </div>
         </div>
-        <div className="hero-badges">
-          <Badge variant={lecturerProvided ? "green" : provisional ? "amber" : "green"}>{lecturerProvided ? "Lecturer WKT" : provisional ? "GPS validation needed" : "GPS ready"}</Badge>
-          <Badge variant="blue">{regionalPoints.length} regional points</Badge>
+        <div className="page-header-actions">
+          <ExportToolbar
+            csvFilename="arborisk_sentinel_sites"
+            csvRows={allSites.map((s) => ({ district: s.district, name: s.site_name, lat: s.latitude, lng: s.longitude, source: s.gps_source }))}
+            jsonData={allSites}
+          />
         </div>
       </div>
 
