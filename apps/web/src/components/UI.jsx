@@ -286,3 +286,37 @@ export function InterpretationPanel({ title, verdict, tone = "teal", confidence,
     </div>
   );
 }
+
+/* ─── Expandable Details ────────────────────────────────────────────────────── */
+export function ExpandableDetails({ label, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: 6 }}>
+      <button className="expandable-trigger" onClick={() => setOpen(!open)}>
+        {open ? "▾" : "▸"} {label}
+      </button>
+      <div className={`expandable-content ${open ? "open" : ""}`}>
+        <div style={{ padding: "8px 0", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Page Header (standard) ────────────────────────────────────────────────── */
+export function PageHeader({ title, subtitle, badges, actions, children }) {
+  return (
+    <div className="page-header">
+      <div className="page-header-text">
+        <h2>{title}</h2>
+        {subtitle && <div className="page-subtitle">{subtitle}</div>}
+        {badges && <div className="page-header-badges">{badges}</div>}
+      </div>
+      <div className="page-header-actions">
+        {actions}
+      </div>
+      {children}
+    </div>
+  );
+}
