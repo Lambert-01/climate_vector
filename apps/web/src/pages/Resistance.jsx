@@ -87,8 +87,18 @@ export default function Resistance() {
         <div className="page-header-actions">
           <ExportToolbar
             csvFilename="arborisk_intervention_readiness"
-            csvRows={rows.map((r) => ({ country: r.country, district: r.district, vector_group: r.vector_group, species: r.species, insecticide: r.insecticide_class, mortality_pct: r.mortality_pct, status: r.status }))}
-            jsonData={rows}
+            csvRows={tableRows.map((r) => ({
+              replicate_id: r.replicate_id,
+              district: r.district,
+              site: r.site,
+              insecticide: r.insecticide,
+              concentration: r.concentration,
+              dead_24h: r.dead_24h,
+              denominator: r.denominator,
+              control_mortality: r.control_mortality,
+              quality_flag: r.quality_flag,
+            }))}
+            jsonData={{ records: tableRows, death_summary: deathData, provenance }}
           />
         </div>
       </div>

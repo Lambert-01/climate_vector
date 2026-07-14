@@ -124,8 +124,10 @@ export default function DataReadiness() {
   const valChecks = valEngine?.checks ?? [];
   const valPassed = valEngine?.summary?.passed ?? 0;
   const valTotal = valEngine?.summary?.total ?? 0;
-  const valFailed = valChecks.filter((c) => c.status === "fail").length;
+  const valWarnings = valChecks.filter((c) => c.status === "warn").length;
+  const valFailed = valChecks.filter((c) => c.status === "fail" || c.status === "error").length;
   const valMissing = valChecks.filter((c) => c.status === "missing").length;
+  const valIssueCount = valWarnings + valFailed + valMissing;
 
   const filteredRegistry = registryItems.filter((src) => {
     const matchesSearch = !searchQuery || src.name?.toLowerCase().includes(searchQuery.toLowerCase()) || src.domain?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -198,8 +200,8 @@ export default function DataReadiness() {
             <div className="kpi-tile">
               <div className="kpi-tile-accent red" />
               <div className="kpi-tile-label">Issues</div>
-              <div className="kpi-tile-value">{valFailed + valMissing}</div>
-              <div className="kpi-tile-sub">{valFailed} failed · {valMissing} missing</div>
+              <div className="kpi-tile-value">{valIssueCount}</div>
+              <div className="kpi-tile-sub">{valWarnings} warning · {valFailed} failed · {valMissing} missing</div>
               <AlertTriangle size={48} className="kpi-tile-icon" />
             </div>
             <div className="kpi-tile">
@@ -228,7 +230,7 @@ export default function DataReadiness() {
       <SectionCard
         title="Validation issue queue"
         icon={AlertTriangle}
-        action={<Badge variant={valFailed + valMissing > 0 ? "red" : "green"}>{valFailed + valMissing} issues</Badge>}
+        action={<Badge variant={valIssueCount > 0 ? "amber" : "green"}>{valIssueCount} issues</Badge>}
       >
         <ChartState loading={veL} rows={valChecks} empty="No validation checks loaded.">
           <div style={{ padding: "12px 16px", display: "grid", gap: 6 }}>

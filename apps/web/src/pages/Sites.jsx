@@ -287,8 +287,15 @@ export default function Sites() {
         <div className="page-header-actions">
           <ExportToolbar
             csvFilename="arborisk_sentinel_sites"
-            csvRows={allSites.map((s) => ({ district: s.district, name: s.site_name, lat: s.latitude, lng: s.longitude, source: s.gps_source }))}
-            jsonData={allSites}
+            csvRows={mappedSites.map((s) => ({
+              district: s.district,
+              name: s.site_name,
+              latitude: s.latitude,
+              longitude: s.longitude,
+              coordinate_quality: s.coordinate_quality,
+              records: s.records,
+            }))}
+            jsonData={{ sites: mappedSites, regional_points: regionalPoints }}
           />
         </div>
       </div>

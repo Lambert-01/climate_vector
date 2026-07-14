@@ -100,8 +100,15 @@ export default function Climate() {
         <div className="page-header-actions">
           <ExportToolbar
             csvFilename="arborisk_climate_regional"
-            csvRows={regional.map((r) => ({ country: r.country, date: r.date, tavg: r.tavg, rainfall: r.rainfall }))}
-            jsonData={regional}
+            csvRows={regionalRows.map((r) => ({
+              location: r.location,
+              country: r.country,
+              rainfall_30d_mm: r.rain30,
+              tmean_c: r.tmean,
+              humidity_pct: r.humidity,
+              signal: r.signal,
+            }))}
+            jsonData={{ regional: regionalRows, selected_district: selectedDistrict, district_rows: districtRows }}
           />
         </div>
       </div>
