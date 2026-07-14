@@ -1,167 +1,325 @@
-import React from "react";
-import { CheckCircle2, ClipboardCheck, Database, FlaskConical, Globe2, MapPin, Microscope, Shield, XCircle } from "lucide-react";
+import React, { useState } from "react";
+import {
+  AlertTriangle, CheckCircle2, ClipboardCheck, Database, Eye,
+  Filter, FlaskConical, Globe2, MapPin, Microscope, Search,
+  Shield, XCircle,
+} from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../hooks/useFetch";
 import {
-  Badge, ChartState, MetricStrip, PhaseTimeline,
-  ProgressBar, SectionCard, Spinner,
+  Badge, ChartState, DataTable, MetricStrip, PhaseTimeline,
+  ProgressBar, SectionCard, SkeletonStatCard,
 } from "../components/UI";
+import ExportToolbar from "../components/ExportToolbar";
+
+const TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "pi", label: "PI Data" },
+  { id: "climate", label: "Climate" },
+  { id: "vector", label: "Vector" },
+  { id: "spatial", label: "Spatial" },
+  { id: "pilot", label: "Pilot Required" },
+];
 
 const GOVERNANCE_PHASES = [
-  { label: "Not requested",  sub: "Default state",   status: "pending" },
-  { label: "Requested",      sub: "Letter sent",      status: "pending" },
-  { label: "Approved",       sub: "MoU signed",       status: "pending" },
-  { label: "Received",       sub: "Data in hand",     status: "pending" },
-  { label: "Validated",      sub: "QC complete",      status: "pending" },
-  { label: "Integrated",     sub: "In dashboard",     status: "pending" },
+  { label: "Not requested", sub: "Default", status: "pending" },
+  { label: "Requested", sub: "Letter sent", status: "pending" },
+  { label: "Approved", sub: "MoU signed", status: "pending" },
+  { label: "Received", sub: "Data in hand", status: "pending" },
+  { label: "Validated", sub: "QC complete", status: "pending" },
+  { label: "Integrated", sub: "In dashboard", status: "pending" },
 ];
 
-const HAVE_NOW = [
-  { icon: FlaskConical, label: "PI ecology records",        value: "3,547 rows",  note: "mosquito_behavior_raw.xls — breeding sites, habitats, agricultural exposure", status: "ready" },
-  { icon: FlaskConical, label: "PI susceptibility records", value: "3,547 rows",  note: "IR_data.xls — insecticide, concentration, 24h deaths, vector-control context", status: "ready" },
-  { icon: Globe2,       label: "NASA POWER climate",        value: "30 districts",note: "Daily rainfall, temperature, humidity 2021–2025 for all Rwanda districts",      status: "ready" },
-  { icon: Globe2,       label: "GBIF vector occurrence",    value: "380+ records",note: "Aedes aegypti (329) + Culex (51) regional Great Lakes context",                 status: "ready" },
-  { icon: Globe2,       label: "ERA5-Land monthly",         value: "Rwanda bbox", note: "Rainfall, temperature, dewpoint, runoff baseline for Rwanda",                   status: "ready" },
-  { icon: MapPin,       label: "33 sentinel sites",         value: "Mapped",      note: "Lecturer WKT coordinates — operational for MVP mapping and field planning",     status: "ready" },
-  { icon: Globe2,       label: "WorldClim + elevation",     value: "Local files", note: "ESA WorldCover, elevation, land cover — environmental suitability context",     status: "ready" },
-  { icon: Globe2,       label: "Great Lakes climate points",value: "7 points",    note: "NASA POWER for Kigali, Goma, Kampala, Nairobi, Bujumbura, Dar, Mwanza",        status: "ready" },
+const PILOT_ITEMS = [
+  { label: "Full sample dates", priority: "high", owner: "PI / field team" },
+  { label: "GPS coordinates for sentinel sites", priority: "high", owner: "PI / field officer" },
+  { label: "Mosquito counts and sampling effort", priority: "high", owner: "Entomology team" },
+  { label: "Susceptibility test denominator", priority: "high", owner: "PI / lab team" },
+  { label: "Aedes/Culex field surveillance", priority: "high", owner: "Entomology team" },
+  { label: "Arboviral case data (RBC/MoH)", priority: "medium", owner: "Formal access" },
+  { label: "Livestock density and RVF events", priority: "medium", owner: "Rwanda Agriculture Board" },
 ];
 
-const PILOT_COLLECT = [
-  { label: "Full sample dates (month + year per row)",                                priority: "high",   owner: "PI / field team" },
-  { label: "GPS coordinates for all sentinel sites",                                  priority: "high",   owner: "PI / field officer" },
-  { label: "Mosquito counts and sampling effort",                                     priority: "high",   owner: "Entomology team" },
-  { label: "Susceptibility test denominator (likely 25 — PI confirmation)",           priority: "high",   owner: "PI / lab team" },
-  { label: "Test protocol (WHO susceptibility / CDC bottle / PBO assay)",             priority: "high",   owner: "PI / lab team" },
-  { label: "Control mortality records",                                               priority: "high",   owner: "PI / lab team" },
-  { label: "Aedes/Culex field surveillance (ovitraps, container index, adult traps)", priority: "high",   owner: "Entomology team" },
-  { label: "Arboviral case or febrile illness data",                                  priority: "medium", owner: "RBC/MoH (formal access)" },
-  { label: "Livestock density and RVF event data",                                    priority: "medium", owner: "Rwanda Agriculture Board" },
-  { label: "Yellow fever vaccination coverage",                                       priority: "medium", owner: "RBC/MoH immunisation" },
-];
+const DOMAIN_ICONS = { pi: FlaskConical, climate: Globe2, vector: Globe2, spatial: MapPin, public: Globe2 };
 
-const PRIORITY_BADGE = { high: "red", medium: "amber", low: "green" };
+function SourceDetailDrawer({ source, onClose }) {
+  if (!source) return null;
+  return (
+    <div className="source-drawer-overlay" onClick={onClose}>
+      <div className="source-drawer" onClick={(e) => e.stopPropagation()}>
+        <div className="source-drawer-header">
+          <h3>{source.name}</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
+            <XCircle size={18} />
+          </button>
+        </div>
+        <div className="source-drawer-body">
+          <div className="source-detail-row">
+            <span className="source-detail-label">Domain</span>
+            <span>{source.domain}</span>
+          </div>
+          <div className="source-detail-row">
+            <span className="source-detail-label">Status</span>
+            <Badge variant={source.status?.includes("validated") ? "green" : source.status?.includes("pilot") ? "amber" : "gray"}>
+              {source.status?.replace(/_/g, " ")}
+            </Badge>
+          </div>
+          <div className="source-detail-row">
+            <span className="source-detail-label">Raw file</span>
+            <span style={{ fontSize: 12, fontFamily: "monospace" }}>{source.raw_file ?? "—"}</span>
+          </div>
+          <div className="source-detail-row">
+            <span className="source-detail-label">Processed table</span>
+            <span style={{ fontSize: 12, fontFamily: "monospace" }}>{source.processed_table ?? "—"}</span>
+          </div>
+          <div className="source-detail-row">
+            <span className="source-detail-label">Supports</span>
+            <span style={{ fontSize: 12 }}>{source.supports}</span>
+          </div>
+          <div className="source-detail-row">
+            <span className="source-detail-label">Cannot prove</span>
+            <span style={{ fontSize: 12, color: "var(--red-600)" }}>{source.cannot_prove}</span>
+          </div>
+          <div className="source-detail-row">
+            <span className="source-detail-label">Quality limitations</span>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{source.quality_limitations}</span>
+          </div>
+          <div className="source-detail-row">
+            <span className="source-detail-label">Required for validation</span>
+            <span style={{ fontSize: 12 }}>{source.required_for_validation}</span>
+          </div>
+          {source.provenance_chain && (
+            <div className="source-detail-row" style={{ flexDirection: "column", gap: 4 }}>
+              <span className="source-detail-label">Provenance chain</span>
+              <pre style={{ fontSize: 11, background: "var(--surface-2)", padding: 8, borderRadius: 4, margin: 0, overflow: "auto" }}>
+                {source.provenance_chain}
+              </pre>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function DataReadiness() {
-  const { data,             loading }       = useFetch(api.readiness);
+  const { data, loading } = useFetch(api.readiness);
   const { data: validation, loading: vL, error: vE } = useFetch(api.publicValidation);
-  const { data: governance, loading: gL    } = useFetch(api.arboviralPartnerGovernance);
+  const { data: governance, loading: gL } = useFetch(api.arboviralPartnerGovernance);
   const { data: sourceRegistry, loading: srL } = useFetch(api.sourceRegistry);
   const { data: valEngine, loading: veL } = useFetch(api.validationEngine);
 
-  const items      = data?.items ?? [];
-  const ready      = items.filter(i => String(i.ready).toLowerCase() === "true").length;
-  const validRows  = validation?.items ?? [];
-  const usableSrc  = validRows.filter(r => ["usable","validated","downloaded"].some(k => String(r.status ?? "").includes(k))).length;
-  const readyPct   = items.length ? Math.round((ready / items.length) * 100) : 0;
-  const govRows    = governance?.items ?? [];
+  const [activeTab, setActiveTab] = useState("overview");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [drawerSource, setDrawerSource] = useState(null);
+
+  const items = data?.items ?? [];
+  const ready = items.filter((i) => String(i.ready).toLowerCase() === "true").length;
+  const validRows = validation?.items ?? [];
+  const usableSrc = validRows.filter((r) => ["usable", "validated", "downloaded"].some((k) => String(r.status ?? "").includes(k))).length;
+  const readyPct = items.length ? Math.round((ready / items.length) * 100) : 0;
+  const govRows = governance?.items ?? [];
   const registryItems = sourceRegistry?.items ?? [];
   const valChecks = valEngine?.checks ?? [];
   const valPassed = valEngine?.summary?.passed ?? 0;
   const valTotal = valEngine?.summary?.total ?? 0;
+  const valFailed = valChecks.filter((c) => c.status === "fail").length;
+  const valMissing = valChecks.filter((c) => c.status === "missing").length;
+
+  const filteredRegistry = registryItems.filter((src) => {
+    const matchesSearch = !searchQuery || src.name?.toLowerCase().includes(searchQuery.toLowerCase()) || src.domain?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || src.status?.includes(statusFilter);
+    return matchesSearch && matchesStatus;
+  });
+
+  const tabFilteredRegistry = filteredRegistry.filter((src) => {
+    if (activeTab === "overview") return true;
+    if (activeTab === "pilot") return src.status?.includes("pilot");
+    const domain = src.domain?.toLowerCase() ?? "";
+    if (activeTab === "pi") return domain.includes("pi") || domain.includes("entomology");
+    if (activeTab === "climate") return domain.includes("climate") || domain.includes("nasa") || domain.includes("era5");
+    if (activeTab === "vector") return domain.includes("vector") || domain.includes("gbif");
+    if (activeTab === "spatial") return domain.includes("spatial") || domain.includes("sentinel") || domain.includes("boundary");
+    return true;
+  });
+
+  const csvRows = tabFilteredRegistry.map((s) => ({
+    source: s.name, domain: s.domain, status: s.status, supports: s.supports, cannot_prove: s.cannot_prove,
+  }));
 
   return (
     <div className="page">
-
-      {/* HERO */}
-      <div className="page-hero">
-        <div className="eyebrow">Data operations · readiness control</div>
-        <h2>Source registry · validation · governance</h2>
-        <p>
-          This system is built on real, integrated data. Every source is tracked with provenance,
-          limitations, and validation status. Items labelled "pilot" are the honest scientific
-          roadmap that makes this proposal credible.
-        </p>
-        <div className="hero-badges">
-          <Badge variant="green">{registryItems.length} sources tracked</Badge>
-          <Badge variant="blue">{valPassed}/{valTotal} validation checks pass</Badge>
-          <Badge variant="amber">{PILOT_COLLECT.length} pilot items</Badge>
+      {/* ── HEADER ── */}
+      <div className="page-header">
+        <div className="page-header-text">
+          <h2>Data Control</h2>
+          <div className="page-subtitle">Evidence source registry, validation engine, and governance tracking</div>
+          <div className="page-header-badges">
+            <Badge variant="green">{registryItems.length} sources</Badge>
+            <Badge variant="blue">{valPassed}/{valTotal} checks pass</Badge>
+            <Badge variant="amber">{PILOT_ITEMS.length} pilot items</Badge>
+          </div>
         </div>
-        <div className="page-hero-kpis">
-          <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{registryItems.length}</div>
-            <div className="page-hero-kpi-label">Sources tracked</div>
-          </div>
-          <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{vL ? "…" : usableSrc}</div>
-            <div className="page-hero-kpi-label">Usable sources</div>
-          </div>
-          <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{valPassed}</div>
-            <div className="page-hero-kpi-label">Validation checks pass</div>
-          </div>
-          <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{readyPct}%</div>
-            <div className="page-hero-kpi-label">Current readiness</div>
-          </div>
+        <div className="page-header-actions">
+          <ExportToolbar
+            csvFilename="arborisk_data_control"
+            csvRows={csvRows}
+            jsonData={{ sources: tabFilteredRegistry, validation: valChecks }}
+          />
         </div>
       </div>
 
-      {/* READINESS BARS */}
-      <SectionCard title="Readiness overview" icon={ClipboardCheck}>
-        <div style={{ padding: "18px 20px", display: "grid", gap: 14 }}>
-          <ProgressBar label="Overall data readiness" value={readyPct} color="teal" />
-          <ProgressBar label="Usable evidence sources" value={usableSrc} max={validRows.length || 18} color="green" />
-          <ProgressBar label="Validation checks" value={valPassed} max={valTotal || 1} color="blue" />
+      {/* ── TOP METRICS ── */}
+      <div className="kpi-row">
+        {srL ? Array.from({ length: 5 }).map((_, i) => <SkeletonStatCard key={i} />) : (
+          <>
+            <div className="kpi-tile">
+              <div className="kpi-tile-accent teal" />
+              <div className="kpi-tile-label">Total sources</div>
+              <div className="kpi-tile-value">{registryItems.length}</div>
+              <div className="kpi-tile-sub">Tracked with provenance</div>
+              <Database size={48} className="kpi-tile-icon" />
+            </div>
+            <div className="kpi-tile">
+              <div className="kpi-tile-accent green" />
+              <div className="kpi-tile-label">Usable</div>
+              <div className="kpi-tile-value">{usableSrc}</div>
+              <div className="kpi-tile-sub">Validated or downloaded</div>
+              <CheckCircle2 size={48} className="kpi-tile-icon" />
+            </div>
+            <div className="kpi-tile">
+              <div className="kpi-tile-accent blue" />
+              <div className="kpi-tile-label">Validation passed</div>
+              <div className="kpi-tile-value">{valPassed}</div>
+              <div className="kpi-tile-sub">of {valTotal} file checks</div>
+              <Shield size={48} className="kpi-tile-icon" />
+            </div>
+            <div className="kpi-tile">
+              <div className="kpi-tile-accent red" />
+              <div className="kpi-tile-label">Issues</div>
+              <div className="kpi-tile-value">{valFailed + valMissing}</div>
+              <div className="kpi-tile-sub">{valFailed} failed · {valMissing} missing</div>
+              <AlertTriangle size={48} className="kpi-tile-icon" />
+            </div>
+            <div className="kpi-tile">
+              <div className="kpi-tile-accent amber" />
+              <div className="kpi-tile-label">Pilot required</div>
+              <div className="kpi-tile-value">{PILOT_ITEMS.length}</div>
+              <div className="kpi-tile-sub">Formal access needed</div>
+              <Microscope size={48} className="kpi-tile-icon" />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ── READINESS BAR ── */}
+      <SectionCard title="Readiness" icon={ClipboardCheck}>
+        <div style={{ padding: "16px 20px", display: "grid", gap: 10 }}>
+          <ProgressBar label="Data readiness" value={readyPct} color="teal" />
+          <ProgressBar label="Evidence sources" value={usableSrc} max={validRows.length || 18} color="green" />
+          <ProgressBar label="Validation" value={valPassed} max={valTotal || 1} color="blue" />
         </div>
-        <MetricStrip items={[
-          { label: "Ready groups",   value: ready },
-          { label: "Pilot fields",   value: items.length - ready },
-          { label: "Usable sources", value: vL ? "…" : usableSrc },
-          { label: "Total indexed",  value: vL ? "…" : validRows.length },
-        ]} />
       </SectionCard>
 
-      <div style={{ marginBottom: 22 }} />
+      <div style={{ marginBottom: 20 }} />
 
-      {/* VALIDATION ENGINE */}
-      <SectionCard title="Data validation engine — file and record checks" icon={Shield}>
-        <ChartState loading={veL} rows={valChecks} empty="Validation engine not loaded.">
-          <div style={{ padding: "16px 20px", display: "grid", gap: 6 }}>
-            {valChecks.map((check) => (
-              <div key={check.check_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: check.status === "pass" ? "var(--green-50)" : check.status === "missing" ? "#fef2f2" : "#fffbeb", borderRadius: 6, border: `1px solid ${check.status === "pass" ? "var(--green-200)" : check.status === "missing" ? "#fecaca" : "#fde68a"}` }}>
-                <div className={`readiness-dot ${check.status === "pass" ? "ready" : check.status === "missing" ? "missing" : "partial"}`} />
+      {/* ── VALIDATION ISSUE QUEUE ── */}
+      <SectionCard
+        title="Validation issue queue"
+        icon={AlertTriangle}
+        action={<Badge variant={valFailed + valMissing > 0 ? "red" : "green"}>{valFailed + valMissing} issues</Badge>}
+      >
+        <ChartState loading={veL} rows={valChecks} empty="No validation checks loaded.">
+          <div style={{ padding: "12px 16px", display: "grid", gap: 6 }}>
+            {valChecks.filter((c) => c.status !== "pass").map((check) => (
+              <div key={check.check_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: check.status === "missing" ? "#fef2f2" : "#fffbeb", borderRadius: "var(--radius-sm)", border: `1px solid ${check.status === "missing" ? "#fecaca" : "#fde68a"}` }}>
+                <div className={`readiness-dot ${check.status === "missing" ? "missing" : "partial"}`} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 12, fontWeight: 600 }}>{check.description}</div>
                   <div style={{ fontSize: 10.5, color: "var(--text-muted)" }}>{check.file}</div>
                 </div>
-                <Badge variant={check.status === "pass" ? "green" : check.status === "missing" ? "red" : "amber"}>
-                  {check.status === "pass" ? `${check.record_count} records` : check.status}
-                </Badge>
+                <Badge variant={check.status === "missing" ? "red" : "amber"}>{check.status}</Badge>
               </div>
             ))}
+            {valChecks.every((c) => c.status === "pass") && (
+              <div style={{ padding: 12, textAlign: "center", color: "var(--green-600)", fontSize: 13, fontWeight: 600 }}>
+                All validation checks passing
+              </div>
+            )}
           </div>
         </ChartState>
       </SectionCard>
 
-      <div style={{ marginBottom: 22 }} />
+      <div style={{ marginBottom: 20 }} />
 
-      {/* SOURCE REGISTRY */}
-      <SectionCard title="Data source registry — provenance and limitations" icon={Database}>
-        <ChartState loading={srL} rows={registryItems} empty="Source registry not loaded.">
+      {/* ── SOURCE REGISTRY ── */}
+      <SectionCard
+        title="Source registry"
+        icon={Database}
+        action={
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <div style={{ position: "relative" }}>
+              <Search size={13} style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+              <input
+                type="text"
+                placeholder="Search sources…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ padding: "5px 8px 5px 26px", fontSize: 11, border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", width: 150, outline: "none" }}
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{ padding: "5px 8px", fontSize: 11, border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", background: "#fff", outline: "none" }}
+            >
+              <option value="all">All status</option>
+              <option value="validated">Validated</option>
+              <option value="usable">Usable</option>
+              <option value="pilot">Pilot</option>
+            </select>
+          </div>
+        }
+      >
+        {/* Tabs */}
+        <div className="data-control-tabs">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              className={`data-control-tab ${activeTab === tab.id ? "active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <ChartState loading={srL} rows={tabFilteredRegistry} empty="No sources match your filter.">
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Source</th>
                   <th>Domain</th>
-                  <th>Type</th>
                   <th>Status</th>
                   <th>Supports</th>
-                  <th>Cannot Prove</th>
-                  <th>Validation Required</th>
+                  <th>Cannot prove</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                {registryItems.map((src) => (
-                  <tr key={src.source_id}>
+                {tabFilteredRegistry.map((src) => (
+                  <tr key={src.source_id} onClick={() => setDrawerSource(src)} style={{ cursor: "pointer" }}>
                     <td><strong>{src.name}</strong></td>
                     <td style={{ fontSize: 11 }}>{src.domain}</td>
-                    <td><Badge variant={src.source_type === "public" || src.source_type === "public_api" ? "blue" : src.source_type === "pi_provided" ? "teal" : "gray"}>{src.source_type?.replace(/_/g, " ")}</Badge></td>
-                    <td><Badge variant={src.status?.includes("validated") || src.status?.includes("usable") ? "green" : src.status?.includes("pilot") ? "amber" : "gray"}>{src.status?.replace(/_/g, " ")}</Badge></td>
+                    <td>
+                      <Badge variant={src.status?.includes("validated") || src.status?.includes("usable") ? "green" : src.status?.includes("pilot") ? "amber" : "gray"}>
+                        {src.status?.replace(/_/g, " ")}
+                      </Badge>
+                    </td>
                     <td style={{ fontSize: 11, maxWidth: 200 }}>{src.supports}</td>
                     <td style={{ fontSize: 11, color: "var(--text-muted)", maxWidth: 200 }}>{src.cannot_prove}</td>
-                    <td style={{ fontSize: 11, color: "var(--text-secondary)", maxWidth: 200 }}>{src.required_for_validation}</td>
+                    <td><Eye size={13} style={{ color: "var(--text-muted)" }} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -170,61 +328,21 @@ export default function DataReadiness() {
         </ChartState>
       </SectionCard>
 
-      <div style={{ marginBottom: 22 }} />
+      <div style={{ marginBottom: 20 }} />
 
-      {/* WHAT WE HAVE NOW */}
-      <div className="section-label"><CheckCircle2 size={13} /> Evidence integrated and operational now</div>
-      <div className="source-chip-grid" style={{ padding: 0, marginBottom: 22 }}>
-        {HAVE_NOW.map(item => {
-          const Icon = item.icon;
-          return (
-            <div className="source-chip" key={item.label} style={{ borderLeft: "3px solid var(--green-500)" }}>
-              <div className="source-chip-status">
-                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                  <Icon size={14} color="var(--green-600)" />
-                  <span className="source-chip-name">{item.label}</span>
-                </div>
-                <Badge variant="green">{item.value}</Badge>
-              </div>
-              <span className="source-chip-meta">{item.note}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* PILOT ROADMAP */}
-      <div className="section-label"><Microscope size={13} /> Pilot collection roadmap — what the grant funds</div>
-      <div style={{ display: "grid", gap: 8, marginBottom: 22 }}>
-        {PILOT_COLLECT.map((item, i) => (
-          <div key={i} className={`readiness-item ${item.priority === "high" ? "pilot-item" : "readiness-item"}`}
-            style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: item.priority === "high" ? "linear-gradient(90deg,#fffbeb,#fff)" : "var(--surface-2)", borderLeft: `3px solid ${item.priority === "high" ? "var(--amber-500)" : "var(--border)"}`, borderRadius: "var(--radius)", border: "1px solid var(--border-light)" }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{item.label}</div>
-              <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 2 }}>Owner: {item.owner}</div>
-            </div>
-            <Badge variant={PRIORITY_BADGE[item.priority]}>{item.priority}</Badge>
-          </div>
-        ))}
-      </div>
-
-      {/* GOVERNANCE PIPELINE */}
-      <SectionCard title="Partner data governance pipeline — RBC/MoH and partners" icon={Database}>
+      {/* ── GOVERNANCE ── */}
+      <SectionCard title="Partner governance pipeline" icon={Database}>
         <PhaseTimeline phases={GOVERNANCE_PHASES} />
-      </SectionCard>
-
-      <div style={{ marginBottom: 22 }} />
-
-      {/* PARTNER GOVERNANCE TABLE */}
-      <SectionCard title="Partner governance status by dataset" icon={Database}>
-        <div style={{ padding: "16px 20px", display: "grid", gap: 8 }}>
-          {gL ? <Spinner /> : govRows.map(row => (
-            <div key={row.dataset} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: "var(--surface-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
+        <div style={{ padding: "12px 16px", display: "grid", gap: 6 }}>
+          {gL ? (
+            <div style={{ padding: 12, textAlign: "center", color: "var(--text-muted)", fontSize: 12 }}>Loading governance data…</div>
+          ) : govRows.map((row) => (
+            <div key={row.dataset} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: "var(--surface-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>{row.dataset}</div>
-                <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 2 }}>{row.partner} · {row.data_type}</div>
-                <div style={{ fontSize: 12, color: "var(--teal-700)", marginTop: 4, fontWeight: 600 }}>→ {row.next_step}</div>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>{row.dataset}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{row.partner} · {row.next_step}</div>
               </div>
-              <Badge variant={row.governance_status === "partial" ? "amber" : row.governance_status === "pilot_required" ? "orange" : "gray"}>
+              <Badge variant={row.governance_status === "partial" ? "amber" : "gray"}>
                 {String(row.governance_status).replace(/_/g, " ")}
               </Badge>
             </div>
@@ -232,30 +350,25 @@ export default function DataReadiness() {
         </div>
       </SectionCard>
 
-      <div style={{ marginBottom: 22 }} />
+      <div style={{ marginBottom: 20 }} />
 
-      {/* VALIDATED SOURCES */}
-      <SectionCard title="Validated public evidence registry" icon={CheckCircle2}>
-        <ChartState loading={vL} error={vE} rows={validRows} empty="Validation registry not loaded.">
-          <div style={{ padding: "16px 20px", display: "grid", gap: 8 }}>
-            {validRows.map(row => {
-              const isReady = ["usable","validated","downloaded"].some(k => String(row.status ?? "").includes(k));
-              return (
-                <div key={row.source_id} className={`readiness-item ${isReady ? "ready-item" : "pilot-item"}`}
-                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px" }}>
-                  <div className={`readiness-dot ${isReady ? "ready" : "partial"}`} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>{row.source_name}</div>
-                    <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 1 }}>{row.records_or_files} records/files · {row.frontend_use}</div>
-                  </div>
-                  <Badge variant={isReady ? "green" : "amber"}>{String(row.status).replace(/_/g, " ")}</Badge>
-                </div>
-              );
-            })}
-          </div>
-        </ChartState>
+      {/* ── PILOT ROADMAP ── */}
+      <SectionCard title="Pilot collection roadmap" icon={Microscope} action={<Badge variant="amber">{PILOT_ITEMS.length} items</Badge>}>
+        <div style={{ padding: "12px 16px", display: "grid", gap: 6 }}>
+          {PILOT_ITEMS.map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: item.priority === "high" ? "#fffbeb" : "var(--surface-2)", borderLeft: `3px solid ${item.priority === "high" ? "var(--amber-500)" : "var(--border)"}`, borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{item.owner}</div>
+              </div>
+              <Badge variant={item.priority === "high" ? "red" : "amber"}>{item.priority}</Badge>
+            </div>
+          ))}
+        </div>
       </SectionCard>
 
+      {/* ── SOURCE DETAIL DRAWER ── */}
+      <SourceDetailDrawer source={drawerSource} onClose={() => setDrawerSource(null)} />
     </div>
   );
 }
