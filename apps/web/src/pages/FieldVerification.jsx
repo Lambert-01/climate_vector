@@ -170,17 +170,27 @@ export default function FieldVerification() {
         />
       </SectionCard>
 
-      <InterpretationPanel
-        title="How field verification works"
-        verdict="When the system identifies a high-priority climate-vector signal, field teams can create a verification request to inspect the site, check for breeding habitats, and collect evidence. This module is the operational bridge between climate screening and ground truth."
-        tone="teal"
-        confidence="This module provides the operational workflow design. Actual field data collection begins during the funded pilot phase."
-        items={[
-          { label: "Workflow", value: "Create → Start → Collect → Verify → Complete", note: "Structured status progression" },
-          { label: "Checklists", value: `${templateItems.length} templates available`, note: "Larval inspection, adult trap, community observation" },
-          { label: "Data flow", value: "Pilot data pending", note: "Results will feed back into model validation" },
-        ]}
-      />
+      {/* ── WORKFLOW ── */}
+      <SectionCard title="How it works" icon={ClipboardCheck}>
+        <div style={{ padding: "12px 16px", display: "grid", gap: 6 }}>
+          {[
+            { step: "1", label: "Signal detected", desc: "Climate-vector screening identifies a priority district" },
+            { step: "2", label: "Request created", desc: "Team creates a field verification request with reason and trigger" },
+            { step: "3", label: "Field inspection", desc: "Team inspects site for breeding habitats and vector evidence" },
+            { step: "4", label: "Data collected", desc: "Results feed back into system for model validation" },
+          ].map((s, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "var(--surface-2)", borderRadius: "var(--radius-sm)" }}>
+              <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--teal-500)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{s.step}</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>{s.label}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{s.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <div style={{ marginBottom: 20 }} />
 
       <div className="grid-2" style={{ marginBottom: 22 }}>
         <SectionCard title="Climate triggers for verification" icon={ClipboardCheck}>
@@ -218,7 +228,11 @@ export default function FieldVerification() {
           </ChartState>
         </SectionCard>
 
-        <SectionCard title="Checklist templates" icon={FileText}>
+        <SectionCard title="Checklist templates" icon={FileText} action={
+          <button onClick={() => window.print()} style={{ padding: "5px 10px", fontSize: 11, fontWeight: 600, border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+            <Printer size={12} /> Print
+          </button>
+        }>
           <ChartState loading={tL} rows={templateItems} empty="No templates available.">
             <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
               {templateItems.map((t, i) => (
