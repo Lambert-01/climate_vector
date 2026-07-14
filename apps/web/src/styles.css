@@ -2006,6 +2006,48 @@ tbody tr:hover td { background: #f0fdf9; }
   .card { box-shadow: none !important; break-inside: avoid; }
 }
 
+/* ─── Sticky table headers ──────────────────────────────────────────────────── */
+.table-wrap {
+  overflow: auto; max-height: 500px;
+}
+.table-wrap table thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: linear-gradient(180deg, #fff 0%, #f8fbfa 100%);
+  border-bottom: 2px solid var(--border);
+}
+
+/* ─── Expandable details ────────────────────────────────────────────────────── */
+.expandable-trigger {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600; color: var(--teal-600);
+  cursor: pointer; background: none; border: none; padding: 0;
+}
+.expandable-trigger:hover { color: var(--teal-700); text-decoration: underline; }
+.expandable-content {
+  overflow: hidden; max-height: 0; transition: max-height .25s ease;
+}
+.expandable-content.open { max-height: 800px; }
+
+/* ─── Compact page header (for non-hero pages) ──────────────────────────────── */
+.page-header-compact {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border-light);
+}
+.page-header-compact h2 { font-size: 18px; font-weight: 800; margin: 0; }
+
+/* ─── Mobile improvements ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-header { flex-direction: column; }
+  .page-header-actions { width: 100%; }
+  .export-toolbar { flex-wrap: wrap; }
+  .priority-card { grid-template-columns: 4px 1fr; }
+  .priority-card-actions { flex-direction: row; border-left: none; border-top: 1px solid var(--border-light); padding: 10px 14px; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .data-control-tabs { overflow-x: auto; }
+  .source-drawer { width: 100vw; }
+}
+
 /* ─── Data Control tabs ─────────────────────────────────────────────────────── */
 .data-control-tabs {
   display: flex; gap: 2px; padding: 0 16px; border-bottom: 1px solid var(--border-light);
