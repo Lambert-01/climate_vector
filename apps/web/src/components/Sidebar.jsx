@@ -11,6 +11,7 @@ import {
   FileCheck,
   FlaskConical,
   Home,
+  BookOpen,
   Map,
   Shield,
   ShieldCheck,
@@ -50,6 +51,12 @@ const NAV_GROUPS = [
       { to: "/mosquito", label: "Vector Evidence", icon: Activity },
       { to: "/resistance", label: "Legacy Control", icon: FlaskConical },
       { to: "/data-readiness", label: "Data Control", icon: Database },
+    ],
+  },
+  {
+    label: "Reference",
+    items: [
+      { to: "/system-guide", label: "Platform Guide", icon: BookOpen },
     ],
   },
 ];

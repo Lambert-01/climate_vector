@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useCallback, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, Loader2, LogIn, LogOut, Map as MapIcon, Menu, Radar, Shield, ShieldCheck, Smartphone, X } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, Loader2, LogIn, LogOut, BookOpen, Map as MapIcon, Menu, Radar, Shield, ShieldCheck, Smartphone, X } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import { api, clearSession, getSessionUser } from "./api.js";
 
@@ -17,6 +17,7 @@ const Arboviral = lazy(() => import("./pages/Arboviral.jsx"));
 const DecisionRoom = lazy(() => import("./pages/DecisionRoom.jsx"));
 const FieldVerification = lazy(() => import("./pages/FieldVerification.jsx"));
 const DengueOperations = lazy(() => import("./pages/DengueOperations.jsx"));
+const SystemGuide = lazy(() => import("./pages/SystemGuide.jsx"));
 
 const PAGE_META = {
   "/":              { title: "Dengue Command Overview", sub: "Climate-informed Aedes preparedness · Proof of Concept", icon: Home },
@@ -32,6 +33,7 @@ const PAGE_META = {
   "/alerts":        { title: "Response Board",          sub: "Signal review and action workflow",                    icon: AlertTriangle },
   "/field-verification": { title: "Field Verification", sub: "Verification requests and pilot checklists",          icon: FileCheck },
   "/data-readiness":{ title: "Data Control",            sub: "Readiness · validation queue · governance",            icon: Database },
+  "/system-guide":  { title: "Platform Guide",          sub: "System documentation and user guidance",             icon: BookOpen },
 };
 
 function LoginModal({ onLogin }) {
@@ -193,6 +195,7 @@ export default function App() {
             <Route path="/alerts"        element={<Alerts />} />
             <Route path="/field-verification" element={<FieldVerification />} />
             <Route path="/data-readiness" element={<DataReadiness />} />
+            <Route path="/system-guide" element={<SystemGuide />} />
             <Route path="*"              element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
