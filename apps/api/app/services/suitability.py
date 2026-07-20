@@ -30,13 +30,13 @@ def _parse_nasa_csv(path: Path) -> list[dict]:
 
 
 def _temp_suitability(t: float) -> float:
-    if t < 16 or t > 34:
+    thermal_min = 17.8
+    thermal_optimum = 29.1
+    thermal_max = 34.6
+    if t <= thermal_min or t >= thermal_max:
         return 0.0
-    if t <= 25:
-        return (t - 16) / 9
-    if t <= 29:
-        return 1.0
-    return (34 - t) / 5
+    scale = thermal_optimum - thermal_min if t <= thermal_optimum else thermal_max - thermal_optimum
+    return max(0.0, min(1.0, 1.0 - ((t - thermal_optimum) / scale) ** 2))
 
 
 def _rainfall_suitability(r7: float, r30: float) -> float:
@@ -121,8 +121,8 @@ def compute_district_suitability(district: str) -> dict:
         "vectorial_capacity_proxy": round(vcp, 4),
         "risk_level": risk,
         "uncertainty_level": "high",
-        "model_version": "proxy-v1",
-        "note": "Transparent proxy model. Not a validated prediction. GPS, full dates, counts, and effort are missing.",
+        "model_version": "aedes-screen-v1",
+        "note": "Transparent Aedes climate-screening proxy. Not a validated dengue prediction; prospective Aedes and health outcomes are required.",
     }
 
 

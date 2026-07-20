@@ -24,6 +24,10 @@ See `docs/current/dengue_submission_technical_readiness.md` for proposal alignme
 implemented modules, deployment settings, evidence boundaries, and the remaining
 PI-side submission actions.
 
+See `docs/current/co_pi_climate_mathematical_modelling_framework.md` for the Co-PI
+climate analytics work package, equations currently applied, grant-period model
+ladder, validation protocol, governance boundaries, and proposal-ready role language.
+
 ## Clean Data Structure
 
 ```text

@@ -89,6 +89,7 @@ export const api = {
 
   dengueSubmissionReadiness: () => req("/dengue/submission-readiness"),
   dengueModelReadiness: () => req("/dengue/model-readiness"),
+  dengueMathematicalFramework: () => req("/dengue/mathematical-framework"),
   dengueCommunityReports: () => req("/dengue/community-reports"),
   createDengueCommunityReport: (body) => req("/dengue/community-reports", { method: "POST", body: JSON.stringify(body) }),
   updateDengueCommunityReportStatus: (id, status) => req(`/dengue/community-reports/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),

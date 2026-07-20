@@ -15,7 +15,7 @@ class DistrictRiskSignal:
     vectorial_capacity_proxy: float
     uncertainty_level: str
     reason: str
-    rule_or_model_version: str = "rule-v0-descriptive"
+    rule_or_model_version: str = "aedes-screen-v1"
 
 
 def clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
@@ -23,16 +23,20 @@ def clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
 
 
 def temperature_suitability(tmean_c: float | None) -> float:
-    """Piecewise thermal suitability proxy for Anopheles ecology."""
+    """Asymmetric Aedes thermal-window proxy for climate screening.
+
+    The bounds and optimum are informed by published Ae. aegypti transmission
+    thermal limits. This is not a locally calibrated transmission function.
+    """
     if tmean_c is None:
         return 0.0
-    if tmean_c < 16 or tmean_c > 34:
+    thermal_min = 17.8
+    thermal_optimum = 29.1
+    thermal_max = 34.6
+    if tmean_c <= thermal_min or tmean_c >= thermal_max:
         return 0.0
-    if tmean_c <= 25:
-        return clamp((tmean_c - 16) / 9)
-    if tmean_c <= 29:
-        return 1.0
-    return clamp((34 - tmean_c) / 5)
+    scale = thermal_optimum - thermal_min if tmean_c <= thermal_optimum else thermal_max - thermal_optimum
+    return clamp(1.0 - ((tmean_c - thermal_optimum) / scale) ** 2)
 
 
 def rainfall_suitability(rainfall_7d_mm: float | None, rainfall_30d_mm: float | None) -> float:

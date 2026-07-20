@@ -22,6 +22,7 @@ from app.models import (
 )
 from app.services.csv_store import read_csv
 from app.services.dengue_metrics import summarize_aedes_surveillance
+from app.services.mathematical_framework import mathematical_framework
 from app.services.audit import add_audit_event
 from app.core.security import require_operator
 
@@ -34,6 +35,11 @@ REPORT_STATUSES = {"pending_review", "accepted", "verification_requested", "clos
 SURVEILLANCE_STATUSES = {"pending_review", "validated", "needs_correction", "excluded"}
 SEQUENCING_STATUSES = {"not_started", "queued", "sequencing", "analysis", "complete", "failed"}
 GENOMIC_RESULTS = {"not_tested", "pending", "negative", "positive", "inconclusive"}
+
+
+@router.get("/dengue/mathematical-framework")
+def dengue_mathematical_framework() -> dict:
+    return mathematical_framework()
 
 
 def _now() -> datetime:

@@ -40,8 +40,15 @@ validation needed to move from preparedness prioritization to validated early wa
   positive containers exceeding inspected containers, oversized mosquito pools and unsupported serotype entries.
 - Aedes metrics are computed only from observed numerators and denominators: container index,
   eggs per trap, adults per 24 trap-hours, effort coverage, temporal coverage and district coverage.
+- The governed mathematical framework registers current screening models, their claim boundaries,
+  grant-period predictive models, required outcomes and spatial, temporal and probabilistic validation.
 - Missing evidence remains null or blocked. The model engine no longer inserts fabricated climate defaults
   or hardcoded district evidence counts.
+
+Co-PI NDACYAYISENGA Lambert leads essential climate-variable integration, mathematical
+modelling, uncertainty, validation and risk forecasting. The full scientific work
+package and proposal-ready role language are documented in
+`docs/current/co_pi_climate_mathematical_modelling_framework.md`.
 
 ### API and database
 
@@ -95,7 +102,7 @@ Run `.venv/bin/alembic upgrade head` during release or before starting the updat
 
 Set:
 
-- `VITE_API_BASE_URL`: Render API base ending in `/api`.
+- `VITE_API_BASE`: Render API base ending in `/api`.
 Authorized staff enter the operator key through the header control. It is retained only in browser session storage
 and is not compiled into the Vercel bundle. Public visitors remain read-only. Full user accounts and server-side
 roles remain the recommended post-pilot identity layer.

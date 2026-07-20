@@ -156,7 +156,12 @@ def _forecast_components(current: dict, daily: dict | None = None, hourly: dict 
     if hourly:
         rain48 = sum(_float(v) or 0 for v in hourly.get("precipitation", [])[:48])
 
-    s_temp = math.exp(-((temp - 26.0) / 7.0) ** 2)
+    thermal_min, thermal_optimum, thermal_max = 17.8, 29.1, 34.6
+    if temp <= thermal_min or temp >= thermal_max:
+        s_temp = 0.0
+    else:
+        thermal_scale = thermal_optimum - thermal_min if temp <= thermal_optimum else thermal_max - thermal_optimum
+        s_temp = _bounded(1.0 - ((temp - thermal_optimum) / thermal_scale) ** 2)
     s_humidity = _bounded((rh - 50.0) / 35.0)
     s_rain = _bounded((1 - math.exp(-rain7 / 35.0)) * math.exp(-max(0.0, rain7 - 110.0) / 80.0))
     s_balance = _bounded(1 / (1 + math.exp(-((rain7 - et07) - 5.0) / 18.0)))
@@ -328,9 +333,9 @@ def _model_spec() -> dict[str, object]:
         "name": "Live Climate Suitability Index",
         "version": "lcsi-v1",
         "scope": "Forecast-based mosquito habitat and field-verification screening only.",
-        "governance": "Not a confirmed arboviral outbreak, incidence, or official alert prediction.",
+        "governance": "Aedes climate-screening proxy only. Thermal limits are literature-informed and require local calibration; this is not a confirmed dengue outbreak, incidence, or official alert prediction.",
         "formulas": [
-            {"symbol": "S_T", "label": "Temperature", "formula": "exp(-((T-26)/7)^2)"},
+            {"symbol": "S_T", "label": "Aedes thermal window", "formula": "clip(1-((T-29.1)/d(T))^2,0,1), d(T)=11.3 below optimum and 5.5 above"},
             {"symbol": "S_H", "label": "Humidity", "formula": "clip((RH-50)/35, 0, 1)"},
             {"symbol": "S_R", "label": "Rainfall", "formula": "(1-exp(-R7/35))*exp(-max(0,R7-110)/80)"},
             {"symbol": "S_B", "label": "Moisture balance", "formula": "sigmoid(((R7-ET0_7)-5)/18)"},

@@ -1,5 +1,5 @@
 import React from "react";
-import { BrainCircuit, Calculator, CheckCircle2, Target, XCircle } from "lucide-react";
+import { BrainCircuit, Calculator, CheckCircle2, ShieldCheck, Target } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -22,6 +22,7 @@ export default function Modeling() {
   const { data: risk,      loading: rL, error: rE } = useFetch(() => api.districtRisk(30));
   const { data: readiness, loading: rdL            } = useFetch(api.modelingReadiness);
   const { data: scoring,   loading: scL            } = useFetch(api.arboviralScoring);
+  const { data: framework, loading: fwL            } = useFetch(api.dengueMathematicalFramework);
 
   const rows   = risk?.items ?? [];
   const high   = rows.filter(r => r.risk_level === "high").length;
@@ -79,6 +80,26 @@ export default function Modeling() {
           </div>
         </div>
       </div>
+
+      <SectionCard title="Scientific governance" icon={ShieldCheck}>
+        <MetricStrip items={[
+          { label: "Scientific lead", value: fwL ? "…" : framework?.scientific_lead?.name ?? "Not assigned" },
+          { label: "Current model", value: fwL ? "…" : framework?.current_operational_models?.[0]?.model_id ?? "Not registered" },
+          { label: "Current use", value: "Field priority" },
+          { label: "Forecast gate", value: "Prospective validation" },
+        ]} />
+        <div className="card-body" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+          <div style={{ minWidth: 240, flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 750 }}>Climate-to-action model governance</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+              Screening signals remain human-reviewed until spatial, temporal and calibration checks pass.
+            </div>
+          </div>
+          <Badge variant="amber">Unvalidated proxy</Badge>
+        </div>
+      </SectionCard>
+
+      <div style={{ marginBottom: 22 }} />
 
       {/* ── PRIORITY DISTRIBUTION ── */}
       <SectionCard title="District priority distribution" icon={BrainCircuit}>
