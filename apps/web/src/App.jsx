@@ -1,20 +1,21 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, Map as MapIcon, Radar, ShieldCheck, Smartphone } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
-import Overview from "./pages/Overview.jsx";
-import Sites from "./pages/Sites.jsx";
-import Mosquito from "./pages/Mosquito.jsx";
-import Resistance from "./pages/Resistance.jsx";
-import Climate from "./pages/Climate.jsx";
-import LiveWeather from "./pages/LiveWeather.jsx";
-import Alerts from "./pages/Alerts.jsx";
-import DataReadiness from "./pages/DataReadiness.jsx";
-import Modeling from "./pages/Modeling.jsx";
-import Arboviral from "./pages/Arboviral.jsx";
-import DecisionRoom from "./pages/DecisionRoom.jsx";
-import FieldVerification from "./pages/FieldVerification.jsx";
-import DengueOperations from "./pages/DengueOperations.jsx";
+
+const Overview = lazy(() => import("./pages/Overview.jsx"));
+const Sites = lazy(() => import("./pages/Sites.jsx"));
+const Mosquito = lazy(() => import("./pages/Mosquito.jsx"));
+const Resistance = lazy(() => import("./pages/Resistance.jsx"));
+const Climate = lazy(() => import("./pages/Climate.jsx"));
+const LiveWeather = lazy(() => import("./pages/LiveWeather.jsx"));
+const Alerts = lazy(() => import("./pages/Alerts.jsx"));
+const DataReadiness = lazy(() => import("./pages/DataReadiness.jsx"));
+const Modeling = lazy(() => import("./pages/Modeling.jsx"));
+const Arboviral = lazy(() => import("./pages/Arboviral.jsx"));
+const DecisionRoom = lazy(() => import("./pages/DecisionRoom.jsx"));
+const FieldVerification = lazy(() => import("./pages/FieldVerification.jsx"));
+const DengueOperations = lazy(() => import("./pages/DengueOperations.jsx"));
 
 const PAGE_META = {
   "/":              { title: "Dengue Command Overview", sub: "Climate-informed Aedes preparedness · Proof of Concept", icon: Home },
@@ -69,22 +70,24 @@ export default function App() {
       <Sidebar />
       <div className="main-content">
         <Topbar />
-        <Routes>
-          <Route path="/"              element={<Overview />} />
-          <Route path="/decision-room" element={<DecisionRoom />} />
-          <Route path="/arboviral"     element={<Arboviral />} />
-          <Route path="/dengue-operations" element={<DengueOperations />} />
-          <Route path="/sites"         element={<Sites />} />
-          <Route path="/mosquito"      element={<Mosquito />} />
-          <Route path="/resistance"    element={<Resistance />} />
-          <Route path="/climate"       element={<Climate />} />
-          <Route path="/live-weather"  element={<LiveWeather />} />
-          <Route path="/modeling"      element={<Modeling />} />
-          <Route path="/alerts"        element={<Alerts />} />
-          <Route path="/field-verification" element={<FieldVerification />} />
-          <Route path="/data-readiness" element={<DataReadiness />} />
-          <Route path="*"              element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<div className="page-loading" role="status">Loading workspace...</div>}>
+          <Routes>
+            <Route path="/"              element={<Overview />} />
+            <Route path="/decision-room" element={<DecisionRoom />} />
+            <Route path="/arboviral"     element={<Arboviral />} />
+            <Route path="/dengue-operations" element={<DengueOperations />} />
+            <Route path="/sites"         element={<Sites />} />
+            <Route path="/mosquito"      element={<Mosquito />} />
+            <Route path="/resistance"    element={<Resistance />} />
+            <Route path="/climate"       element={<Climate />} />
+            <Route path="/live-weather"  element={<LiveWeather />} />
+            <Route path="/modeling"      element={<Modeling />} />
+            <Route path="/alerts"        element={<Alerts />} />
+            <Route path="/field-verification" element={<FieldVerification />} />
+            <Route path="/data-readiness" element={<DataReadiness />} />
+            <Route path="*"              element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </div>
     </div>
   );

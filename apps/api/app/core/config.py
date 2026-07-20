@@ -20,13 +20,14 @@ class Settings(BaseSettings):
     database_sync_url: str = "sqlite:///./dev.db"
 
     api_secret_key: str = "dev-secret"
+    operator_api_key: str = ""
     api_cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
 
     jwt_secret: str = "dev-jwt-secret"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
 
-    project_name: str = "ArboRisk-GL"
+    project_name: str = "DengueEW-GL"
     project_env: str = "development"
 
     @property

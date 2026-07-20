@@ -2217,3 +2217,11 @@ tbody tr:hover td { background: #f0fdf9; }
   letter-spacing: .06em; color: var(--text-muted); min-width: 110px; flex-shrink: 0;
   padding-top: 2px;
 }
+.page-loading {
+  display: grid;
+  min-height: 45vh;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}

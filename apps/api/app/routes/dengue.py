@@ -21,6 +21,9 @@ from app.models import (
     ModelEvaluation,
 )
 from app.services.csv_store import read_csv
+from app.services.dengue_metrics import summarize_aedes_surveillance
+from app.services.audit import add_audit_event
+from app.core.security import require_operator
 
 
 router = APIRouter(tags=["dengue-pilot"])
@@ -218,7 +221,7 @@ async def list_community_reports(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/community-reports", status_code=201)
-async def create_community_report(payload: CommunityReportIn, db: AsyncSession = Depends(get_db)) -> dict:
+async def create_community_report(payload: CommunityReportIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
     item = CommunityReport(
         report_id=str(uuid.uuid4()),
         submitted_at=_now(),
@@ -227,6 +230,7 @@ async def create_community_report(payload: CommunityReportIn, db: AsyncSession =
     )
     try:
         db.add(item)
+        add_audit_event(db, action="create", table_name="community_reports", record_id=item.report_id, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(item)
         return {**_community_dict(item), "source": "database"}
@@ -240,14 +244,16 @@ async def create_community_report(payload: CommunityReportIn, db: AsyncSession =
 
 
 @router.patch("/dengue/community-reports/{report_id}/status")
-async def update_community_report(report_id: str, payload: StatusUpdate, db: AsyncSession = Depends(get_db)) -> dict:
+async def update_community_report(report_id: str, payload: StatusUpdate, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
     if payload.status not in REPORT_STATUSES:
         raise HTTPException(422, f"Invalid status. Allowed: {', '.join(sorted(REPORT_STATUSES))}")
     try:
         item = await db.get(CommunityReport, report_id)
         if not item:
             raise HTTPException(404, "Community report not found")
+        old_status = item.review_status
         item.review_status = payload.status
+        add_audit_event(db, action="status_change", table_name="community_reports", record_id=report_id, old_value={"status": old_status}, new_value={"status": payload.status})
         await db.commit()
         await db.refresh(item)
         return _community_dict(item)
@@ -278,7 +284,7 @@ async def list_aedes_surveillance(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/aedes-surveillance", status_code=201)
-async def create_aedes_surveillance(payload: AedesSurveillanceIn, db: AsyncSession = Depends(get_db)) -> dict:
+async def create_aedes_surveillance(payload: AedesSurveillanceIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
     row = AedesSurveillanceRecord(
         record_id=str(uuid.uuid4()),
         quality_status="pending_review",
@@ -287,6 +293,7 @@ async def create_aedes_surveillance(payload: AedesSurveillanceIn, db: AsyncSessi
     )
     try:
         db.add(row)
+        add_audit_event(db, action="create", table_name="aedes_surveillance_records", record_id=row.record_id, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(row)
         return {**_surveillance_dict(row), "source": "database"}
@@ -299,15 +306,26 @@ async def create_aedes_surveillance(payload: AedesSurveillanceIn, db: AsyncSessi
         return {**item, "source": "json_fallback"}
 
 
+@router.get("/dengue/aedes-summary")
+async def aedes_surveillance_summary(db: AsyncSession = Depends(get_db)) -> dict:
+    items, source = await _db_list(
+        db, AedesSurveillanceRecord, AedesSurveillanceRecord.collection_date,
+        _surveillance_dict, "aedes_surveillance",
+    )
+    return {**summarize_aedes_surveillance(items), "source": source}
+
+
 @router.patch("/dengue/aedes-surveillance/{record_id}/status")
-async def update_aedes_status(record_id: str, payload: StatusUpdate, db: AsyncSession = Depends(get_db)) -> dict:
+async def update_aedes_status(record_id: str, payload: StatusUpdate, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
     if payload.status not in SURVEILLANCE_STATUSES:
         raise HTTPException(422, f"Invalid status. Allowed: {', '.join(sorted(SURVEILLANCE_STATUSES))}")
     try:
         item = await db.get(AedesSurveillanceRecord, record_id)
         if not item:
             raise HTTPException(404, "Aedes surveillance record not found")
+        old_status = item.quality_status
         item.quality_status = payload.status
+        add_audit_event(db, action="status_change", table_name="aedes_surveillance_records", record_id=record_id, old_value={"status": old_status}, new_value={"status": payload.status})
         await db.commit()
         await db.refresh(item)
         return _surveillance_dict(item)
@@ -335,12 +353,13 @@ async def list_genomic_samples(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/genomic-samples", status_code=201)
-async def create_genomic_sample(payload: GenomicSampleIn, db: AsyncSession = Depends(get_db)) -> dict:
+async def create_genomic_sample(payload: GenomicSampleIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
     values = payload.model_dump()
     values["sample_id"] = values.get("sample_id") or f"DENV-{uuid.uuid4().hex[:10].upper()}"
     row = GenomicSample(created_at=_now(), **values)
     try:
         db.add(row)
+        add_audit_event(db, action="create", table_name="genomic_samples", record_id=row.sample_id, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(row)
         return {**_genomic_dict(row), "source": "database"}
@@ -362,10 +381,11 @@ async def list_model_evaluations(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/model-evaluations", status_code=201)
-async def create_model_evaluation(payload: ModelEvaluationIn, db: AsyncSession = Depends(get_db)) -> dict:
+async def create_model_evaluation(payload: ModelEvaluationIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
     row = ModelEvaluation(evaluation_id=str(uuid.uuid4()), **payload.model_dump())
     try:
         db.add(row)
+        add_audit_event(db, action="create", table_name="model_evaluations", record_id=row.evaluation_id, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(row)
         return {**_evaluation_dict(row), "source": "database"}
@@ -385,10 +405,11 @@ async def list_mel_observations(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/mel-observations", status_code=201)
-async def create_mel_observation(payload: MelObservationIn, db: AsyncSession = Depends(get_db)) -> dict:
+async def create_mel_observation(payload: MelObservationIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
     row = MelObservation(observation_id=str(uuid.uuid4()), **payload.model_dump())
     try:
         db.add(row)
+        add_audit_event(db, action="create", table_name="mel_observations", record_id=row.observation_id, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(row)
         return {**_mel_dict(row), "source": "database"}

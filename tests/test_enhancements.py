@@ -208,7 +208,7 @@ def test_field_verifications_list_empty_initially() -> None:
     payload = response.json()
     assert "items" in payload
     assert isinstance(payload["items"], list)
-    assert payload["source"] == "json_store"
+    assert payload["source"] in {"database", "json_fallback"}
 
 
 def test_field_verifications_create_and_retrieve() -> None:

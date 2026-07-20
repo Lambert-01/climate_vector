@@ -3,8 +3,9 @@ const trimmedBase = configuredBase.replace(/\/+$/, "");
 const BASE = trimmedBase.endsWith("/api") ? trimmedBase : `${trimmedBase}/api`;
 
 async function req(path, options = {}) {
+  const operatorKey = import.meta.env.VITE_OPERATOR_KEY;
   const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...options.headers },
+    headers: { "Content-Type": "application/json", ...(operatorKey ? { "X-Operator-Key": operatorKey } : {}), ...options.headers },
     ...options,
   });
   if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
@@ -75,6 +76,7 @@ export const api = {
   createDengueCommunityReport: (body) => req("/dengue/community-reports", { method: "POST", body: JSON.stringify(body) }),
   updateDengueCommunityReportStatus: (id, status) => req(`/dengue/community-reports/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
   dengueAedesSurveillance: () => req("/dengue/aedes-surveillance"),
+  dengueAedesSummary: () => req("/dengue/aedes-summary"),
   createDengueAedesSurveillance: (body) => req("/dengue/aedes-surveillance", { method: "POST", body: JSON.stringify(body) }),
   updateDengueAedesStatus: (id, status) => req(`/dengue/aedes-surveillance/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
   dengueGenomicSamples: () => req("/dengue/genomic-samples"),

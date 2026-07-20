@@ -10,7 +10,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import require_operator
 from app.models import Alert
+from app.services.audit import add_audit_event
 
 router = APIRouter(tags=["alerts"])
 
@@ -63,7 +65,11 @@ async def list_alerts(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/alerts", status_code=201)
-async def create_alert(payload: AlertIn, db: AsyncSession = Depends(get_db)) -> dict:
+async def create_alert(
+    payload: AlertIn,
+    db: AsyncSession = Depends(get_db),
+    _operator: str = Depends(require_operator),
+) -> dict:
     alert = Alert(
         alert_id=str(uuid.uuid4()),
         alert_date=date.today(),
@@ -72,9 +78,17 @@ async def create_alert(payload: AlertIn, db: AsyncSession = Depends(get_db)) -> 
     )
     try:
         db.add(alert)
+        add_audit_event(
+            db,
+            action="create",
+            table_name="alerts",
+            record_id=alert.alert_id,
+            new_value=payload.model_dump(),
+        )
         await db.commit()
         await db.refresh(alert)
     except Exception:
+        await db.rollback()
         fallback = _alert_payload_dict(alert)
         _IN_MEMORY_ALERTS.insert(0, fallback)
         return {**fallback, "source": "memory_fallback"}
@@ -86,6 +100,7 @@ async def update_alert_status(
     alert_id: str,
     payload: AlertStatusUpdate,
     db: AsyncSession = Depends(get_db),
+    _operator: str = Depends(require_operator),
 ) -> dict:
     valid = [
         "pending_review", "active", "field_verification_requested",
@@ -98,12 +113,22 @@ async def update_alert_status(
         if not alert:
             raise HTTPException(404, "Alert not found")
         _validate_transition(alert.status, payload.status)
+        old_status = alert.status
         alert.status = payload.status
+        add_audit_event(
+            db,
+            action="status_change",
+            table_name="alerts",
+            record_id=alert_id,
+            old_value={"status": old_status},
+            new_value={"status": payload.status},
+        )
         await db.commit()
         await db.refresh(alert)
     except HTTPException:
         raise
     except Exception:
+        await db.rollback()
         fallback = next((a for a in _IN_MEMORY_ALERTS if a["alert_id"] == alert_id), None)
         if not fallback:
             raise HTTPException(404, "Alert not found")

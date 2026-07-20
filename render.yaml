@@ -9,7 +9,7 @@ services:
       - key: PROJECT_ENV
         value: production
       - key: PROJECT_NAME
-        value: Rwanda Climate-Vector Intelligence System
+        value: DengueEW-GL
       - key: API_CORS_ORIGINS
         sync: false
       - key: DATABASE_URL
@@ -19,4 +19,6 @@ services:
       - key: API_SECRET_KEY
         generateValue: true
       - key: JWT_SECRET
+        generateValue: true
+      - key: OPERATOR_API_KEY
         generateValue: true

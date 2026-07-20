@@ -249,3 +249,28 @@ class MelObservation(Base):
     data_source: Mapped[str] = mapped_column(Text, nullable=False)
     verification_status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
     notes: Mapped[str | None] = mapped_column(Text)
+
+
+class FieldVerificationRecord(Base):
+    __tablename__ = "field_verification_records"
+    verification_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    alert_id: Mapped[str | None] = mapped_column(ForeignKey("alerts.alert_id"))
+    district: Mapped[str] = mapped_column(Text, nullable=False)
+    site_name: Mapped[str | None] = mapped_column(Text)
+    reason_for_visit: Mapped[str] = mapped_column(Text, nullable=False)
+    climate_trigger: Mapped[str | None] = mapped_column(Text)
+    suspected_vector_group: Mapped[str | None] = mapped_column(Text)
+    suspected_breeding_source: Mapped[str | None] = mapped_column(Text)
+    checklist_items: Mapped[str | None] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
+    gps_latitude: Mapped[float | None] = mapped_column(Double)
+    gps_longitude: Mapped[float | None] = mapped_column(Double)
+    photo_notes: Mapped[str | None] = mapped_column(Text)
+    larval_inspection_result: Mapped[str | None] = mapped_column(Text)
+    adult_collection_result: Mapped[str | None] = mapped_column(Text)
+    community_observation: Mapped[str | None] = mapped_column(Text)
+    action_taken: Mapped[str | None] = mapped_column(Text)
+    final_status: Mapped[str | None] = mapped_column(Text)
+    created_date: Mapped[date] = mapped_column(Date, nullable=False)
+    completed_date: Mapped[date | None] = mapped_column(Date)

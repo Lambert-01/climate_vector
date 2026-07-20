@@ -106,7 +106,7 @@ function ReadinessView({ readiness, modelReadiness }) {
   );
 }
 
-function AedesView({ payload, refresh }) {
+function AedesView({ payload, summary, refresh }) {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -118,7 +118,6 @@ function AedesView({ payload, refresh }) {
   });
   const rows = payload?.items ?? [];
   const validated = rows.filter((row) => row.quality_status === "validated").length;
-  const totalMosquitoes = rows.reduce((sum, row) => sum + Number(row.eggs_count ?? 0) + Number(row.larvae_count ?? 0) + Number(row.adults_count ?? 0), 0);
 
   async function submit(event) {
     event.preventDefault();
@@ -151,8 +150,8 @@ function AedesView({ payload, refresh }) {
       <MetricStrip items={[
         { label: "Pilot records", value: rows.length },
         { label: "Validated", value: validated },
-        { label: "Districts", value: new Set(rows.map((row) => row.district)).size },
-        { label: "Specimens counted", value: totalMosquitoes.toLocaleString() },
+        { label: "Container index", value: summary?.indices?.container_index_pct == null ? "Pending" : `${summary.indices.container_index_pct}%` },
+        { label: "Adults / 24 trap-hours", value: summary?.indices?.adults_per_24_trap_hours ?? "Pending" },
       ]} />
       <div className="pilot-toolbar">
         <ExportToolbar csvFilename="dengue_aedes_surveillance" csvRows={rows} jsonData={rows} />
@@ -330,6 +329,7 @@ export default function DengueOperations() {
   const model = useFetch(api.dengueModelReadiness);
   const community = useFetch(api.dengueCommunityReports);
   const surveillance = useFetch(api.dengueAedesSurveillance);
+  const aedesSummary = useFetch(api.dengueAedesSummary);
   const genomics = useFetch(api.dengueGenomicSamples);
   const mel = useFetch(api.dengueMelSummary);
 
@@ -360,7 +360,7 @@ export default function DengueOperations() {
 
       <div className="pilot-tab-panel">
         {activeTab === "readiness" && <ReadinessView readiness={submission.data} modelReadiness={model.data} />}
-        {activeTab === "aedes" && <AedesView payload={surveillance.data} refresh={surveillance.refresh} />}
+        {activeTab === "aedes" && <AedesView payload={surveillance.data} summary={aedesSummary.data} refresh={() => { surveillance.refresh(); aedesSummary.refresh(); }} />}
         {activeTab === "community" && <CommunityView payload={community.data} refresh={community.refresh} />}
         {activeTab === "genomics" && <GenomicsView payload={genomics.data} refresh={genomics.refresh} />}
         {activeTab === "mel" && <MelView summary={mel.data} />}
