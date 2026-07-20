@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
-  Activity, Bug, Database, Droplets, Download, Globe2, MapPin, Search, Shield,
+  Activity, Bug, Database, Droplets, Download, Globe2, MapPin, Search,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip,
