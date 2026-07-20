@@ -1,8 +1,8 @@
-import React, { lazy, Suspense, useState } from "react";
+import React, { lazy, Suspense, useCallback, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, LockKeyhole, Map as MapIcon, Menu, Radar, ShieldCheck, Smartphone, X } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, Loader2, LogIn, LogOut, Map as MapIcon, Menu, Radar, Shield, ShieldCheck, Smartphone, X } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
-import { api, clearSession, getSessionUser, hasOperatorKey } from "./api.js";
+import { api, clearSession, getSessionUser } from "./api.js";
 
 const Overview = lazy(() => import("./pages/Overview.jsx"));
 const Sites = lazy(() => import("./pages/Sites.jsx"));
@@ -34,14 +34,86 @@ const PAGE_META = {
   "/data-readiness":{ title: "Data Control",            sub: "Readiness · validation queue · governance",            icon: Database },
 };
 
-function Topbar({ mobileOpen, onToggleMobile }) {
+function LoginModal({ onLogin }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    setError(""); setLoading(true);
+    try {
+      const result = await api.login(email, password);
+      setSuccess(true);
+      setTimeout(() => onLogin(result.user), 800);
+    } catch (err) {
+      setError(err.message || "Login failed. Check your credentials.");
+    } finally { setLoading(false); }
+  }, [email, password, onLogin]);
+
+  if (success) {
+    return (
+      <div className="login-overlay">
+        <div className="login-modal login-success">
+          <div className="login-success-icon"><ShieldCheck size={48} /></div>
+          <h2>Welcome back</h2>
+          <p>Authenticated successfully. Loading workspace...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="login-overlay">
+      <div className="login-modal">
+        <div className="login-brand">
+          <div className="login-logo"><Shield size={28} color="#fff" /></div>
+          <h1>DengueEW-GL</h1>
+          <p>Climate-informed Aedes surveillance &amp; dengue early-warning</p>
+        </div>
+        <form onSubmit={handleSubmit} className="login-form">
+          <h2>Sign in to workspace</h2>
+          <p className="login-sub">Role-based access for authorized operators</p>
+          {error && <div className="login-error">{error}</div>}
+          <div className="login-field">
+            <label htmlFor="login-email">Email address</label>
+            <input
+              id="login-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@organization.org"
+              autoComplete="username"
+              required
+              autoFocus
+            />
+          </div>
+          <div className="login-field">
+            <label htmlFor="login-password">Password</label>
+            <input
+              id="login-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              autoComplete="current-password"
+              required
+            />
+          </div>
+          <button type="submit" className="login-submit" disabled={loading || !email || !password}>
+            {loading ? <><Loader2 size={16} className="spin" /> Signing in...</> : <><LogIn size={16} /> Sign in</>}
+          </button>
+          <p className="login-footer">Authorized personnel only. All access is audited.</p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function Topbar({ mobileOpen, onToggleMobile, sessionUser, onLogout }) {
   const { pathname } = useLocation();
-  const [accessOpen, setAccessOpen] = useState(false);
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
-  const [accessError, setAccessError] = useState("");
-  const [signingIn, setSigningIn] = useState(false);
-  const [operatorActive, setOperatorActive] = useState(hasOperatorKey());
-  const [sessionUser, setSessionUser] = useState(getSessionUser());
   const meta = PAGE_META[pathname] ?? PAGE_META["/"];
   const Icon = meta.icon;
   return (
@@ -60,59 +132,16 @@ function Topbar({ mobileOpen, onToggleMobile }) {
       <div className="topbar-right">
         <div className="operator-access">
           <button
-            className={`operator-access-trigger ${operatorActive ? "is-active" : ""}`}
-            onClick={() => setAccessOpen((open) => !open)}
-            title="Account access"
-            aria-label="Account access"
+            className="operator-access-trigger is-active"
+            title={`${sessionUser.full_name} (${sessionUser.role})`}
           >
-            {operatorActive ? <KeyRound size={14} /> : <LockKeyhole size={14} />}
-            <span>{sessionUser?.full_name?.split(" ")[0] || (operatorActive ? "Operator" : "Sign in")}</span>
+            <KeyRound size={14} />
+            <span>{sessionUser.full_name?.split(" ")[0]}</span>
           </button>
-          {accessOpen && (
-            <form
-              className="operator-access-panel"
-              onSubmit={async (event) => {
-                event.preventDefault();
-                setSigningIn(true); setAccessError("");
-                try {
-                  const result = await api.login(credentials.email, credentials.password);
-                  setSessionUser(result.user); setOperatorActive(true);
-                  setCredentials({ email: "", password: "" }); setAccessOpen(false);
-                } catch (error) { setAccessError(error.message); }
-                finally { setSigningIn(false); }
-              }}
-            >
-              <strong>{sessionUser ? sessionUser.full_name : "Secure workspace"}</strong>
-              <span>{sessionUser ? `${sessionUser.role.replace(/_/g, " ")} · session active` : "Role-based operator access"}</span>
-              {!sessionUser && <input
-                type="email"
-                value={credentials.email}
-                onChange={(event) => setCredentials({ ...credentials, email: event.target.value })}
-                placeholder="Work email"
-                autoComplete="username"
-                required
-              />}
-              {!sessionUser && <input
-                type="password"
-                value={credentials.password}
-                onChange={(event) => setCredentials({ ...credentials, password: event.target.value })}
-                placeholder="Password"
-                autoComplete="current-password"
-                required
-              />}
-              {accessError && <span className="form-error">{accessError}</span>}
-              <div>
-                {operatorActive && (
-                  <button type="button" className="btn btn-outline" onClick={() => {
-                    clearSession(); setSessionUser(null);
-                    setOperatorActive(false);
-                    setAccessOpen(false);
-                  }}>Sign out</button>
-                )}
-                {!sessionUser && <button className="btn btn-primary" disabled={signingIn}>{signingIn ? "Signing in..." : "Sign in"}</button>}
-              </div>
-            </form>
-          )}
+          <button className="operator-access-trigger" onClick={onLogout} title="Sign out">
+            <LogOut size={14} />
+            <span>Sign out</span>
+          </button>
         </div>
         <div className="topbar-status">
           <span className="topbar-status-dot" />
@@ -132,12 +161,23 @@ function Topbar({ mobileOpen, onToggleMobile }) {
 
 export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sessionUser, setSessionUser] = useState(getSessionUser());
+
+  const handleLogin = useCallback((user) => setSessionUser(user), []);
+  const handleLogout = useCallback(() => {
+    clearSession(); setSessionUser(null);
+  }, []);
+
+  if (!sessionUser) {
+    return <LoginModal onLogin={handleLogin} />;
+  }
+
   return (
     <div className="layout">
       <Sidebar mobileOpen={mobileOpen} onNavigate={() => setMobileOpen(false)} />
       {mobileOpen && <button className="sidebar-scrim" onClick={() => setMobileOpen(false)} aria-label="Close navigation" />}
       <div className="main-content">
-        <Topbar mobileOpen={mobileOpen} onToggleMobile={() => setMobileOpen((open) => !open)} />
+        <Topbar mobileOpen={mobileOpen} onToggleMobile={() => setMobileOpen((open) => !open)} sessionUser={sessionUser} onLogout={handleLogout} />
         <Suspense fallback={<div className="page-loading" role="status">Loading workspace...</div>}>
           <Routes>
             <Route path="/"              element={<Overview />} />
