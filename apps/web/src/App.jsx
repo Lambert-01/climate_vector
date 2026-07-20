@@ -1,8 +1,7 @@
-import React, { lazy, Suspense, useCallback, useState } from "react";
+import React, { lazy, Suspense, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, LogOut, BookOpen, Map as MapIcon, Menu, Radar, ShieldCheck, Smartphone, X } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, BookOpen, Map as MapIcon, Menu, Radar, ShieldCheck, Smartphone, X } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
-import { api, clearSession, getSessionUser } from "./api.js";
 
 const Overview = lazy(() => import("./pages/Overview.jsx"));
 const Sites = lazy(() => import("./pages/Sites.jsx"));
@@ -36,7 +35,7 @@ const PAGE_META = {
   "/system-guide":  { title: "Platform Guide",          sub: "System documentation and user guidance",             icon: BookOpen },
 };
 
-function Topbar({ mobileOpen, onToggleMobile, sessionUser, onLogout }) {
+function Topbar({ mobileOpen, onToggleMobile }) {
   const { pathname } = useLocation();
   const meta = PAGE_META[pathname] ?? PAGE_META["/"];
   const Icon = meta.icon;
@@ -54,19 +53,6 @@ function Topbar({ mobileOpen, onToggleMobile, sessionUser, onLogout }) {
         <p>{meta.sub}</p>
       </div>
       <div className="topbar-right">
-        <div className="operator-access">
-          <button
-            className="operator-access-trigger is-active"
-            title={`${sessionUser.full_name} (${sessionUser.role})`}
-          >
-            <KeyRound size={14} />
-            <span>{sessionUser.full_name?.split(" ")[0]}</span>
-          </button>
-          <button className="operator-access-trigger" onClick={onLogout} title="Sign out">
-            <LogOut size={14} />
-            <span>Sign out</span>
-          </button>
-        </div>
         <div className="topbar-status">
           <span className="topbar-status-dot" />
           System live
@@ -85,19 +71,13 @@ function Topbar({ mobileOpen, onToggleMobile, sessionUser, onLogout }) {
 
 export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sessionUser] = useState(() => getSessionUser() || { user_id: "dev", full_name: "Developer", email: "dev@local", role: "admin", active_status: "active" });
-
-  const handleLogout = useCallback(() => {
-    clearSession();
-    window.location.reload();
-  }, []);
 
   return (
     <div className="layout">
       <Sidebar mobileOpen={mobileOpen} onNavigate={() => setMobileOpen(false)} />
       {mobileOpen && <button className="sidebar-scrim" onClick={() => setMobileOpen(false)} aria-label="Close navigation" />}
       <div className="main-content">
-        <Topbar mobileOpen={mobileOpen} onToggleMobile={() => setMobileOpen((open) => !open)} sessionUser={sessionUser} onLogout={handleLogout} />
+        <Topbar mobileOpen={mobileOpen} onToggleMobile={() => setMobileOpen((open) => !open)} />
         <Suspense fallback={<div className="page-loading" role="status">Loading workspace...</div>}>
           <Routes>
             <Route path="/"              element={<Overview />} />
