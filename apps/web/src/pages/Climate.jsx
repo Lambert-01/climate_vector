@@ -25,6 +25,7 @@ function numberValue(value) {
 export default function Climate() {
   const [selectedDistrict, setSelectedDistrict] = useState("bugesera");
   const [days, setDays] = useState(90);
+  const [activeView, setActiveView] = useState("regional");
 
   const { data: districts } = useFetch(api.climateDistricts);
   const { data: publicFeatures } = useFetch(api.publicDistrictFeatures);
@@ -113,6 +114,13 @@ export default function Climate() {
         </div>
       </div>
 
+      <div className="workspace-tabs" role="tablist" aria-label="Climate views">
+        {[["regional", "Regional interpretation"], ["district", "District explorer"], ["baseline", "ERA5 & reference"]].map(([id, viewLabel]) => (
+          <button key={id} className={activeView === id ? "active" : ""} onClick={() => setActiveView(id)}>{viewLabel}</button>
+        ))}
+      </div>
+
+      {activeView === "regional" && <>
       <SectionCard title="Great Lakes climate intelligence" icon={Globe2}>
         <MetricStrip
           items={[
@@ -173,7 +181,9 @@ export default function Climate() {
           </ChartState>
         </SectionCard>
       </div>
+      </>}
 
+      {activeView === "district" && <>
       <div className="ops-toolbar">
         <select
           value={selectedDistrict}
@@ -270,7 +280,9 @@ export default function Climate() {
           </ChartState>
         </SectionCard>
       </div>
+      </>}
 
+      {activeView === "baseline" && <>
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <SectionCard title="ERA5-Land monthly Rwanda baseline" icon={Database}>
           <MetricStrip
@@ -325,6 +337,7 @@ export default function Climate() {
           </div>
         </ChartState>
       </SectionCard>
+      </>}
     </div>
   );
 }

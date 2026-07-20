@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ClipboardCheck, Database, FlaskConical, Gauge, Globe2, MapPin, TestTube2 } from "lucide-react";
 import {
   Bar,
@@ -34,6 +34,7 @@ function cleanRecord(row) {
 }
 
 export default function Resistance() {
+  const [activeView, setActiveView] = useState("interpretation");
   const { data: deathSummary, loading: dL, error: dError } = useFetch(api.resistanceDeathSummary);
   const { data: byDistrict, loading: distL, error: distError } = useFetch(api.resistanceByDistrict);
   const { data: records, loading: rL, error: rError } = useFetch(() => api.resistanceRecords(200));
@@ -103,6 +104,13 @@ export default function Resistance() {
         </div>
       </div>
 
+      <div className="workspace-tabs" role="tablist" aria-label="Legacy control evidence views">
+        {[["interpretation", "Interpretation"], ["governance", "Action & governance"], ["records", "PI records"]].map(([id, label]) => (
+          <button key={id} className={activeView === id ? "active" : ""} onClick={() => setActiveView(id)}>{label}</button>
+        ))}
+      </div>
+
+      {activeView === "interpretation" && <>
       <SectionCard title="Control evidence coverage" icon={FlaskConical}>
         <MetricStrip
           items={[
@@ -197,7 +205,9 @@ export default function Resistance() {
           </div>
         </SectionCard>
       </div>
+      </>}
 
+      {activeView === "governance" && <>
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <SectionCard title="Intervention action queue" icon={ClipboardCheck}>
           <ChartState loading={iL} error={iError} rows={actionRows} empty="No vector-control action rows loaded.">
@@ -219,7 +229,9 @@ export default function Resistance() {
           </ChartState>
         </SectionCard>
       </div>
+      </>}
 
+      {activeView === "records" && <>
       <SectionCard title="Insecticide summary from PI IR dataset" icon={FlaskConical}>
         <ChartState loading={dL} error={dError} rows={deathSummary?.items ?? []} empty="No death summary table rows loaded.">
           <div className="source-note">
@@ -257,6 +269,7 @@ export default function Resistance() {
           </ChartState>
         </SectionCard>
       </div>
+      </>}
     </div>
   );
 }

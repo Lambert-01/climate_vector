@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { BarChart3, CloudRain, Database, Droplets, Globe2, Map as MapIcon, MapPin, TestTube2 } from "lucide-react";
@@ -180,6 +180,7 @@ function RegionalMap({ sites, regionalPoints }) {
 }
 
 export default function Sites() {
+  const [activeView, setActiveView] = useState("map");
   const { data, loading, error } = useFetch(api.sites);
   const { data: sentinelData, loading: sL, error: sError } = useFetch(api.sentinelRegistry);
   const { data: candidates, loading: cL, error: cError } = useFetch(api.siteCoordinateCandidates);
@@ -335,12 +336,21 @@ export default function Sites() {
         ]}
       />
 
+      <div className="workspace-tabs" role="tablist" aria-label="Sentinel site views">
+        {[["map", "Operational maps"], ["analysis", "Coverage analysis"], ["records", "Site registry"]].map(([id, label]) => (
+          <button key={id} className={activeView === id ? "active" : ""} onClick={() => setActiveView(id)}>{label}</button>
+        ))}
+      </div>
+
+      {activeView === "analysis" && <>
       <div className="insight-grid">
         <div className="insight-card"><MapPin size={17} /><span>Highest-volume site</span><strong>{topSite}</strong></div>
         <div className="insight-card"><Droplets size={17} /><span>Main habitat signal</span><strong>{topHabitat}</strong></div>
         <div className="insight-card"><TestTube2 size={17} /><span>Main exposure signal</span><strong>{topInsecticide}</strong></div>
       </div>
+      </>}
 
+      {activeView === "map" && <>
       <div className="grid-2" style={{ marginTop: 20, marginBottom: 20 }}>
         <SectionCard title="Great Lakes operational map" icon={Globe2}>
           <div className="card-body">
@@ -358,7 +368,9 @@ export default function Sites() {
           </div>
         </SectionCard>
       </div>
+      </>}
 
+      {activeView === "analysis" && <>
       <div className="grid-2" style={{ marginBottom: 20 }}>
 
         <SectionCard title="Site volume" icon={BarChart3}>
@@ -391,7 +403,9 @@ export default function Sites() {
           </ChartState>
         </SectionCard>
       </div>
+      </>}
 
+      {activeView === "records" && <>
       <SectionCard title="Operational site registry" icon={MapPin}>
         <DataTable
           rows={mappedSites}
@@ -427,6 +441,7 @@ export default function Sites() {
           />
         </SectionCard>
       </div>
+      </>}
     </div>
   );
 }
