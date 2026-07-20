@@ -1,0 +1,16 @@
+name: API uptime check
+on:
+  schedule:
+    - cron: "12 * * * *"
+  workflow_dispatch:
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify API and database
+        env:
+          API_HEALTH_URL: ${{ vars.API_HEALTH_URL }}
+        run: |
+          test -n "$API_HEALTH_URL"
+          payload="$(curl --fail --retry 3 --retry-delay 10 --max-time 90 "$API_HEALTH_URL")"
+          echo "$payload" | jq -e '.status == "ok" and .database == "connected"'

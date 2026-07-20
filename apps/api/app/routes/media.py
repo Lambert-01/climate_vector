@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.security import Principal, require_roles
+from app.core.security import Principal, get_current_principal, require_roles
 from app.models import MediaAsset
 from app.services.audit import add_audit_event
 
@@ -44,7 +44,11 @@ async def upload_community_photo(
 
 
 @router.get("/{asset_id}")
-async def get_media(asset_id: str, db: AsyncSession = Depends(get_db)) -> Response:
+async def get_media(
+    asset_id: str,
+    db: AsyncSession = Depends(get_db),
+    _principal: Principal = Depends(get_current_principal),
+) -> Response:
     asset = await db.get(MediaAsset, asset_id)
     if not asset:
         raise HTTPException(404, "Media asset not found.")

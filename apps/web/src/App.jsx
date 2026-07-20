@@ -2,7 +2,7 @@ import React, { lazy, Suspense, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, LockKeyhole, Map as MapIcon, Menu, Radar, ShieldCheck, Smartphone, X } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
-import { hasOperatorKey, setOperatorKey } from "./api.js";
+import { api, clearSession, getSessionUser, hasOperatorKey } from "./api.js";
 
 const Overview = lazy(() => import("./pages/Overview.jsx"));
 const Sites = lazy(() => import("./pages/Sites.jsx"));
@@ -37,8 +37,11 @@ const PAGE_META = {
 function Topbar({ mobileOpen, onToggleMobile }) {
   const { pathname } = useLocation();
   const [accessOpen, setAccessOpen] = useState(false);
-  const [keyValue, setKeyValue] = useState("");
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const [accessError, setAccessError] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
   const [operatorActive, setOperatorActive] = useState(hasOperatorKey());
+  const [sessionUser, setSessionUser] = useState(getSessionUser());
   const meta = PAGE_META[pathname] ?? PAGE_META["/"];
   const Icon = meta.icon;
   return (
@@ -59,41 +62,54 @@ function Topbar({ mobileOpen, onToggleMobile }) {
           <button
             className={`operator-access-trigger ${operatorActive ? "is-active" : ""}`}
             onClick={() => setAccessOpen((open) => !open)}
-            title="Pilot operator access"
-            aria-label="Pilot operator access"
+            title="Account access"
+            aria-label="Account access"
           >
             {operatorActive ? <KeyRound size={14} /> : <LockKeyhole size={14} />}
-            <span>{operatorActive ? "Operator" : "Read only"}</span>
+            <span>{sessionUser?.full_name?.split(" ")[0] || (operatorActive ? "Operator" : "Sign in")}</span>
           </button>
           {accessOpen && (
             <form
               className="operator-access-panel"
-              onSubmit={(event) => {
+              onSubmit={async (event) => {
                 event.preventDefault();
-                setOperatorKey(keyValue);
-                setOperatorActive(Boolean(keyValue.trim()));
-                setKeyValue("");
-                setAccessOpen(false);
+                setSigningIn(true); setAccessError("");
+                try {
+                  const result = await api.login(credentials.email, credentials.password);
+                  setSessionUser(result.user); setOperatorActive(true);
+                  setCredentials({ email: "", password: "" }); setAccessOpen(false);
+                } catch (error) { setAccessError(error.message); }
+                finally { setSigningIn(false); }
               }}
             >
-              <strong>Pilot operator</strong>
-              <span>Session-only write access</span>
-              <input
+              <strong>{sessionUser ? sessionUser.full_name : "Secure workspace"}</strong>
+              <span>{sessionUser ? `${sessionUser.role.replace(/_/g, " ")} · session active` : "Role-based operator access"}</span>
+              {!sessionUser && <input
+                type="email"
+                value={credentials.email}
+                onChange={(event) => setCredentials({ ...credentials, email: event.target.value })}
+                placeholder="Work email"
+                autoComplete="username"
+                required
+              />}
+              {!sessionUser && <input
                 type="password"
-                value={keyValue}
-                onChange={(event) => setKeyValue(event.target.value)}
-                placeholder="Operator key"
-                autoComplete="off"
-              />
+                value={credentials.password}
+                onChange={(event) => setCredentials({ ...credentials, password: event.target.value })}
+                placeholder="Password"
+                autoComplete="current-password"
+                required
+              />}
+              {accessError && <span className="form-error">{accessError}</span>}
               <div>
                 {operatorActive && (
                   <button type="button" className="btn btn-outline" onClick={() => {
-                    setOperatorKey("");
+                    clearSession(); setSessionUser(null);
                     setOperatorActive(false);
                     setAccessOpen(false);
-                  }}>Lock</button>
+                  }}>Sign out</button>
                 )}
-                <button className="btn btn-primary" disabled={!keyValue.trim()}>Unlock</button>
+                {!sessionUser && <button className="btn btn-primary" disabled={signingIn}>{signingIn ? "Signing in..." : "Sign in"}</button>}
               </div>
             </form>
           )}

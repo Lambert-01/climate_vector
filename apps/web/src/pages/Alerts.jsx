@@ -125,6 +125,7 @@ function KanbanView({ items, onStatusChange, onRequestVerification }) {
 
 export default function Alerts() {
   const { data, loading, refresh } = useFetch(api.alerts);
+  const { data: actionsData, refresh: refreshActions } = useFetch(api.responseActions);
   const { data: intelligence, loading: iL } = useFetch(api.arboviralIntelligence);
 
   const [viewMode, setViewMode] = useState("kanban");
@@ -135,9 +136,28 @@ export default function Alerts() {
   const [form, setForm] = useState({ district: "Bugesera", risk_level: "medium", risk_reason: "", recommended_action: "" });
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showActionForm, setShowActionForm] = useState(false);
+  const [actionForm, setActionForm] = useState({ alert_id: "", action_type: "", responsible_organization: "", action_due_date: "" });
 
   const items = data?.items ?? [];
   const actionRows = intelligence?.action_queue ?? [];
+  const responseActions = actionsData?.items ?? [];
+
+  async function handleCreateAction(event) {
+    event.preventDefault();
+    try {
+      await api.createResponseAction({ ...actionForm, action_due_date: actionForm.action_due_date || null });
+      setShowActionForm(false); setActionForm({ alert_id: "", action_type: "", responsible_organization: "", action_due_date: "" });
+      refreshActions(); setToast({ message: "Response action assigned", type: "success" });
+    } catch (error) { setToast({ message: error.message, type: "error" }); }
+  }
+
+  async function advanceAction(action, nextStatus) {
+    const evidence = nextStatus === "completed" ? window.prompt("Enter completion evidence or follow-up result") : null;
+    if (nextStatus === "completed" && !evidence) return;
+    try { await api.updateResponseAction(action.action_id, { action_status: nextStatus, follow_up_result: evidence }); refreshActions(); }
+    catch (error) { setToast({ message: error.message, type: "error" }); }
+  }
 
   const filteredItems = items.filter((a) => {
     if (districtFilter !== "all" && a.district !== districtFilter) return false;
@@ -302,6 +322,20 @@ export default function Alerts() {
             ))}
           </div>
         )}
+      </SectionCard>
+
+      <div style={{ marginBottom: 20 }} />
+      <SectionCard title="Assigned response actions" icon={Users} action={<button className="btn btn-primary" onClick={() => setShowActionForm((value) => !value)}><Plus size={12} /> Assign</button>}>
+        {showActionForm && <form onSubmit={handleCreateAction} className="pilot-form-band">
+          <div className="pilot-form-grid">
+            <label className="pilot-field"><span>Alert *</span><select required value={actionForm.alert_id} onChange={(e) => setActionForm({ ...actionForm, alert_id: e.target.value })}><option value="">Select alert</option>{items.map((alert) => <option value={alert.alert_id} key={alert.alert_id}>{alert.district} · {alert.alert_date}</option>)}</select></label>
+            <label className="pilot-field"><span>Action *</span><input required value={actionForm.action_type} onChange={(e) => setActionForm({ ...actionForm, action_type: e.target.value })} placeholder="Larval source inspection" /></label>
+            <label className="pilot-field"><span>Responsible organization *</span><input required value={actionForm.responsible_organization} onChange={(e) => setActionForm({ ...actionForm, responsible_organization: e.target.value })} /></label>
+            <label className="pilot-field"><span>Due date</span><input type="date" value={actionForm.action_due_date} onChange={(e) => setActionForm({ ...actionForm, action_due_date: e.target.value })} /></label>
+          </div>
+          <div className="pilot-form-actions"><button className="btn btn-primary">Assign action</button></div>
+        </form>}
+        {!responseActions.length ? <EmptyState icon={Users} title="No response actions assigned" description="Approve a signal, then assign an accountable field or service response." /> : <div className="table-wrap"><table><thead><tr><th>Action</th><th>Organization</th><th>Due</th><th>Status</th><th>Follow-up</th><th>Next</th></tr></thead><tbody>{responseActions.map((action) => { const next = { assigned: "acknowledged", acknowledged: "in_progress", in_progress: "completed" }[action.action_status]; return <tr key={action.action_id}><td><strong>{action.action_type}</strong></td><td>{action.responsible_organization}</td><td>{action.action_due_date ?? "—"}</td><td><Badge variant={action.action_status === "completed" ? "green" : "blue"}>{action.action_status?.replace(/_/g, " ")}</Badge></td><td>{action.follow_up_result ?? "—"}</td><td>{next ? <button className="btn btn-outline" onClick={() => advanceAction(action, next)}>{next.replace(/_/g, " ")}</button> : "—"}</td></tr>; })}</tbody></table></div>}
       </SectionCard>
     </div>
   );

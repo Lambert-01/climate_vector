@@ -108,6 +108,8 @@ export default function DataReadiness() {
   const { data: governance, loading: gL } = useFetch(api.arboviralPartnerGovernance);
   const { data: sourceRegistry, loading: srL } = useFetch(api.sourceRegistry);
   const { data: valEngine, loading: veL } = useFetch(api.validationEngine);
+  const { data: operations } = useFetch(api.operationalStatus);
+  const { data: persistedRegistry } = useFetch(api.operationalDatasets);
 
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
@@ -159,7 +161,7 @@ export default function DataReadiness() {
           <h2>Data Control</h2>
           <div className="page-subtitle">Evidence source registry, validation engine, and governance tracking</div>
           <div className="page-header-badges">
-            <Badge variant="green">{registryItems.length} sources</Badge>
+            <Badge variant="green">{persistedRegistry?.items?.length ?? registryItems.length} persisted sources</Badge>
             <Badge variant="blue">{valPassed}/{valTotal} checks pass</Badge>
             <Badge variant="amber">{PILOT_ITEMS.length} pilot items</Badge>
           </div>
@@ -174,10 +176,10 @@ export default function DataReadiness() {
       </div>
 
       <div className="command-metrics">
-        <div className="command-metric tone-neutral"><span>Tracked sources</span><strong>{registryItems.length}</strong><small>with provenance</small></div>
+        <div className="command-metric tone-neutral"><span>Tracked sources</span><strong>{persistedRegistry?.items?.length ?? registryItems.length}</strong><small>database registry</small></div>
         <div className="command-metric tone-good"><span>Usable now</span><strong>{usableSrc}</strong><small>validated or downloaded</small></div>
         <div className={`command-metric ${valIssueCount ? "tone-warning" : "tone-good"}`}><span>Quality issues</span><strong>{valIssueCount}</strong><small>{valWarnings} warning · {valFailed + valMissing} blocked</small></div>
-        <div className="command-metric tone-neutral"><span>Readiness</span><strong>{readyPct}%</strong><small>{valPassed}/{valTotal} checks pass</small></div>
+        <div className={`command-metric ${operations?.database === "connected" ? "tone-good" : "tone-warning"}`}><span>Platform state</span><strong>{operations?.database === "connected" ? "Live" : "Check"}</strong><small>{operations?.audit_event_count ?? 0} audited changes</small></div>
       </div>
 
       <div className="workspace-tabs" role="tablist" aria-label="Data Control views">

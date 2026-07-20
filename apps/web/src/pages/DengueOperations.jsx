@@ -193,12 +193,14 @@ function CommunityView({ payload, refresh }) {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [photo, setPhoto] = useState(null);
   const [form, setForm] = useState({ reporter_role: "community_health_worker", district: "", site_name: "", latitude: "", longitude: "", breeding_source: "", water_present: "unknown", larvae_seen: "unknown", mosquito_level: "unknown", action_taken: "", notes: "", consent_confirmed: false });
   const rows = payload?.items ?? [];
 
   async function submit(event) {
     event.preventDefault(); setSaving(true); setError("");
     try {
+      const uploaded = photo ? await api.uploadCommunityPhoto(photo) : null;
       await api.createDengueCommunityReport({
         ...form,
         site_name: form.site_name || null,
@@ -206,8 +208,10 @@ function CommunityView({ payload, refresh }) {
         water_present: form.water_present === "unknown" ? null : form.water_present === "yes",
         larvae_seen: form.larvae_seen === "unknown" ? null : form.larvae_seen === "yes",
         action_taken: form.action_taken || null, notes: form.notes || null,
+        photo_asset_id: uploaded?.asset_id ?? null,
+        photo_reference: uploaded?.url ?? null,
       });
-      setShowForm(false); refresh();
+      setPhoto(null); setShowForm(false); refresh();
     } catch (requestError) { setError(requestError.message); }
     finally { setSaving(false); }
   }
@@ -235,6 +239,7 @@ function CommunityView({ payload, refresh }) {
             <Field label="Larvae seen"><select value={form.larvae_seen} onChange={(e) => setForm({ ...form, larvae_seen: e.target.value })}><option value="unknown">Unknown</option><option value="yes">Yes</option><option value="no">No</option></select></Field>
             <Field label="Mosquito level"><select value={form.mosquito_level} onChange={(e) => setForm({ ...form, mosquito_level: e.target.value })}><option value="unknown">Unknown</option><option value="low">Low</option><option value="moderate">Moderate</option><option value="high">High</option></select></Field>
             <Field label="Action taken"><input value={form.action_taken} onChange={(e) => setForm({ ...form, action_taken: e.target.value })} placeholder="Source reduction / referred" /></Field>
+            <Field label="Site photo"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></Field>
           </div>
           <label className="pilot-consent"><input type="checkbox" checked={form.consent_confirmed} onChange={(e) => setForm({ ...form, consent_confirmed: e.target.checked })} /><span>I confirm informed participation and that this report contains no personal health information.</span></label>
           {error && <div className="form-error">{error}</div>}
@@ -242,18 +247,19 @@ function CommunityView({ payload, refresh }) {
         </form>
       )}
       <SectionCard title="Community observation queue" icon={ClipboardList}>
-        {!rows.length ? <EmptyState icon={Smartphone} title="No community reports yet" description="The consent-aware reporting workflow is ready for pilot deployment." /> : <div className="table-wrap"><table><thead><tr><th>Submitted</th><th>District</th><th>Reporter</th><th>Source</th><th>Water</th><th>Larvae</th><th>Level</th><th>Status</th></tr></thead><tbody>{rows.map((row) => <tr key={row.report_id}><td>{String(row.submitted_at).slice(0, 10)}</td><td><strong>{row.district}</strong></td><td>{label(row.reporter_role)}</td><td>{row.breeding_source}</td><td>{row.water_present == null ? "—" : row.water_present ? "Yes" : "No"}</td><td>{row.larvae_seen == null ? "—" : row.larvae_seen ? "Yes" : "No"}</td><td>{label(row.mosquito_level)}</td><td><Badge variant={statusBadge(row.review_status)}>{label(row.review_status)}</Badge></td></tr>)}</tbody></table></div>}
+        {!rows.length ? <EmptyState icon={Smartphone} title="No community reports yet" description="The consent-aware reporting workflow is ready for pilot deployment." /> : <div className="table-wrap"><table><thead><tr><th>Submitted</th><th>District</th><th>Reporter</th><th>Source</th><th>Photo</th><th>Water</th><th>Larvae</th><th>Level</th><th>Status</th></tr></thead><tbody>{rows.map((row) => <tr key={row.report_id}><td>{String(row.submitted_at).slice(0, 10)}</td><td><strong>{row.district}</strong></td><td>{label(row.reporter_role)}</td><td>{row.breeding_source}</td><td>{row.photo_asset_id ? <button type="button" className="btn btn-outline" onClick={() => api.viewMedia(row.photo_asset_id)}>View</button> : "—"}</td><td>{row.water_present == null ? "—" : row.water_present ? "Yes" : "No"}</td><td>{row.larvae_seen == null ? "—" : row.larvae_seen ? "Yes" : "No"}</td><td>{label(row.mosquito_level)}</td><td><Badge variant={statusBadge(row.review_status)}>{label(row.review_status)}</Badge></td></tr>)}</tbody></table></div>}
       </SectionCard>
     </>
   );
 }
 
-function GenomicsView({ payload, refresh }) {
+function GenomicsView({ payload, artifacts, refresh }) {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ sample_id: "", surveillance_record_id: "", district: "", collection_date: today(), mosquito_species: "Aedes aegypti", pool_size: "", extraction_status: "registered", sequencing_platform: "Oxford Nanopore MinION", sequencing_status: "not_started", dengue_result: "not_tested", qc_status: "pending", notes: "" });
   const rows = payload?.items ?? [];
+  const artifactRows = artifacts?.items ?? [];
 
   async function submit(event) {
     event.preventDefault(); setSaving(true); setError("");
@@ -271,6 +277,7 @@ function GenomicsView({ payload, refresh }) {
         { label: "Sequencing complete", value: rows.filter((row) => row.sequencing_status === "complete").length },
         { label: "Dengue positive", value: rows.filter((row) => row.dengue_result === "positive").length },
         { label: "QC passed", value: rows.filter((row) => row.qc_status === "passed").length },
+        { label: "Reviewed artifacts", value: artifactRows.filter((row) => row.review_status === "accepted").length },
       ]} />
       <div className="pilot-toolbar"><ExportToolbar csvFilename="dengue_genomic_registry" csvRows={rows} jsonData={rows} /><button className="btn btn-primary" onClick={() => setShowForm((value) => !value)}><Plus size={14} /> Register pool</button></div>
       {showForm && <form className="pilot-form-band" onSubmit={submit}>
@@ -293,6 +300,9 @@ function GenomicsView({ payload, refresh }) {
       </form>}
       <SectionCard title="Dengue virome workflow" icon={Dna}>
         {!rows.length ? <EmptyState icon={Dna} title="No mosquito pools registered" description="The MinION-compatible registry is ready; it does not create inferred or simulated genomic results." /> : <div className="table-wrap"><table><thead><tr><th>Sample</th><th>Date</th><th>District</th><th>Species</th><th>Pool</th><th>Extraction</th><th>Sequencing</th><th>Dengue</th><th>QC</th></tr></thead><tbody>{rows.map((row) => <tr key={row.sample_id}><td><strong>{row.sample_id}</strong></td><td>{row.collection_date}</td><td>{row.district}</td><td>{row.mosquito_species ?? "Pending"}</td><td>{row.pool_size}</td><td>{label(row.extraction_status)}</td><td><Badge variant={statusBadge(row.sequencing_status)}>{label(row.sequencing_status)}</Badge></td><td><Badge variant={row.dengue_result === "positive" ? "red" : row.dengue_result === "negative" ? "green" : "gray"}>{label(row.dengue_result)}</Badge></td><td>{label(row.qc_status)}</td></tr>)}</tbody></table></div>}
+      </SectionCard>
+      <SectionCard title="Lineage and phylogenetic products" icon={Dna}>
+        {!artifactRows.length ? <EmptyState icon={Dna} title="No sequence artifacts available" description="Lineage calls, consensus sequences and Newick trees appear here only after laboratory analysis." /> : <div className="table-wrap"><table><thead><tr><th>Sample</th><th>Product</th><th>Method</th><th>Version</th><th>Review</th></tr></thead><tbody>{artifactRows.map((row) => <tr key={row.artifact_id}><td>{row.sample_id ?? "Batch"}</td><td><strong>{label(row.artifact_type)}</strong></td><td>{row.method ?? "—"}</td><td>{row.software_version ?? "—"}</td><td><Badge variant={statusBadge(row.review_status)}>{label(row.review_status)}</Badge></td></tr>)}</tbody></table></div>}
       </SectionCard>
     </>
   );
@@ -331,6 +341,7 @@ export default function DengueOperations() {
   const surveillance = useFetch(api.dengueAedesSurveillance);
   const aedesSummary = useFetch(api.dengueAedesSummary);
   const genomics = useFetch(api.dengueGenomicSamples);
+  const genomicArtifacts = useFetch(api.dengueGenomicArtifacts);
   const mel = useFetch(api.dengueMelSummary);
 
   const allExports = useMemo(() => ({
@@ -362,7 +373,7 @@ export default function DengueOperations() {
         {activeTab === "readiness" && <ReadinessView readiness={submission.data} modelReadiness={model.data} />}
         {activeTab === "aedes" && <AedesView payload={surveillance.data} summary={aedesSummary.data} refresh={() => { surveillance.refresh(); aedesSummary.refresh(); }} />}
         {activeTab === "community" && <CommunityView payload={community.data} refresh={community.refresh} />}
-        {activeTab === "genomics" && <GenomicsView payload={genomics.data} refresh={genomics.refresh} />}
+        {activeTab === "genomics" && <GenomicsView payload={genomics.data} artifacts={genomicArtifacts.data} refresh={() => { genomics.refresh(); genomicArtifacts.refresh(); }} />}
         {activeTab === "mel" && <MelView summary={mel.data} />}
       </div>
     </div>

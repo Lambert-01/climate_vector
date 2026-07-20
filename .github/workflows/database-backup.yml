@@ -1,0 +1,28 @@
+name: Verified Neon backup
+on:
+  schedule:
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Dump and verify catalog
+        env:
+          DATABASE_SYNC_URL: ${{ secrets.DATABASE_SYNC_URL }}
+        run: |
+          test -n "$DATABASE_SYNC_URL"
+          pg_dump "$DATABASE_SYNC_URL" --format=custom --no-owner --file=dengueew-gl.dump
+          pg_restore --list dengueew-gl.dump > dengueew-gl.restore-list.txt
+          test -s dengueew-gl.dump
+          test -s dengueew-gl.restore-list.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dengueew-gl-neon-${{ github.run_id }}
+          path: |
+            dengueew-gl.dump
+            dengueew-gl.restore-list.txt
+          retention-days: 14

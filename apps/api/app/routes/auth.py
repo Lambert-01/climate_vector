@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,16 +16,29 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
 class LoginIn(BaseModel):
-    email: EmailStr
+    email: str = Field(min_length=5, max_length=254)
     password: str = Field(min_length=8, max_length=200)
+
+    @field_validator("email")
+    @classmethod
+    def valid_email(cls, value: str) -> str:
+        email = value.strip().lower()
+        if email.count("@") != 1 or "." not in email.split("@", 1)[1]:
+            raise ValueError("Enter a valid email address.")
+        return email
 
 
 class UserIn(BaseModel):
     full_name: str = Field(min_length=2, max_length=120)
-    email: EmailStr
+    email: str = Field(min_length=5, max_length=254)
     password: str = Field(min_length=12, max_length=200)
     role: str
     organization_id: str | None = None
+
+    @field_validator("email")
+    @classmethod
+    def valid_email(cls, value: str) -> str:
+        return LoginIn.valid_email(value)
 
 
 def user_dict(user: User) -> dict:

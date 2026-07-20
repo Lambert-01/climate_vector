@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r apps/api/requirements.txt
-    startCommand: uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port $PORT
+    startCommand: alembic upgrade head && uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port $PORT
     envVars:
       - key: PROJECT_ENV
         value: production
