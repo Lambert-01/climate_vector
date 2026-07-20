@@ -7,6 +7,32 @@ raw_sources:
     path: data/raw/IR_data.xls
     status: preserved_raw
     purpose: enhanced ecology and preliminary insecticide-resistance test information
+  sentinel_sites:
+    path: Map- 33 sentinel.xls
+    status: preserved_raw_at_project_root
+    purpose: lecturer-provided candidate sentinel coordinates and labels
+
+pilot_sources:
+  aedes_surveillance:
+    storage: aedes_surveillance_records
+    status: workflow_ready_data_pending
+    purpose: prospective effort-standardized Aedes observations
+  community_reports:
+    storage: community_reports
+    status: workflow_ready_data_pending
+    purpose: consented breeding-site observations and source-reduction follow-up
+  dengue_genomics:
+    storage: genomic_samples
+    status: workflow_ready_data_pending
+    purpose: mosquito-pool sequencing, dengue result, serotype and QC registry
+  model_evaluation:
+    storage: model_evaluations
+    status: blocked_until_outcomes
+    purpose: temporal and spatial validation, calibration and lead-time evidence
+  mel:
+    storage: mel_observations
+    status: workflow_ready_baseline_pending
+    purpose: baseline, monthly, midline and endline implementation evidence
 
 external_sources:
   boundaries:
@@ -30,4 +56,3 @@ external_sources:
   population:
     path: data/external/population
     purpose: population exposure context
-
