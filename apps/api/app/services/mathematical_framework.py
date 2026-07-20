@@ -5,8 +5,7 @@ def mathematical_framework() -> dict:
     """Return the governed model ladder without implying unavailable validation."""
     return {
         "scientific_lead": {
-            "role": "Co-PI",
-            "name": "NDACYAYISENGA Lambert",
+            "role": "Climate modelling lead",
             "institution": "University of Rwanda",
             "responsibility": "Essential climate variables, mathematical modelling, predictive modelling, uncertainty, validation, and risk forecasting",
         },

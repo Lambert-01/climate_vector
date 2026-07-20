@@ -6,12 +6,13 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_framework_identifies_co_pi_and_current_model_boundary() -> None:
+def test_framework_identifies_modeling_role_and_current_model_boundary() -> None:
     response = client.get("/api/dengue/mathematical-framework")
     assert response.status_code == 200
     payload = response.json()
 
-    assert payload["scientific_lead"]["name"] == "NDACYAYISENGA Lambert"
+    assert payload["scientific_lead"]["role"] == "Climate modelling lead"
+    assert "mathematical modelling" in payload["scientific_lead"]["responsibility"]
     assert payload["current_operational_models"][0]["model_id"] == "aedes-screen-v1"
     assert "not dengue incidence" in payload["current_operational_models"][0]["claim_boundary"]
 

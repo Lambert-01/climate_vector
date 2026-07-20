@@ -9,11 +9,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.routes import alerts, arboviral, auth, climate, dashboard, dengue, field_verification, live_weather, media, modeling, mosquito, operations, public_data, readiness, resistance, sites, source_registry, summaries
 
-if settings.sentry_dsn:
-    import sentry_sdk
-    sentry_sdk.init(dsn=settings.sentry_dsn, environment=settings.project_env, traces_sample_rate=0.1)
-
 logger = logging.getLogger("dengueew.api")
+
+_sentry_dsn = str(settings.sentry_dsn or "").strip().strip("'\"")
+if _sentry_dsn:
+    try:
+        import sentry_sdk
+
+        sentry_sdk.init(dsn=_sentry_dsn, environment=settings.project_env, traces_sample_rate=0.1)
+    except Exception:
+        logging.getLogger("dengueew.api").warning("Sentry disabled because SENTRY_DSN is not valid.", exc_info=True)
 
 app = FastAPI(
     title=settings.project_name,
