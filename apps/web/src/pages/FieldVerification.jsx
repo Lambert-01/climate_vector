@@ -28,7 +28,7 @@ const VF_STATUS_LABELS = {
 };
 
 const DISTRICTS = ["Bugesera", "Gasabo", "Kicukiro", "Nyarugenge", "Musanze", "Rubavu", "Huye", "Nyagatare", "Rwamagana", "Kayonza"];
-const VECTOR_GROUPS = ["Aedes", "Culex", "Anopheles", "Unknown"];
+const VECTOR_GROUPS = ["Aedes", "Unknown"];
 const BREEDING_SOURCES = ["Water storage container", "Tire", "Roof gutter", "Flower pot", "Pond", "Drainage channel", "Rice paddy", "Natural pool", "Other"];
 
 function VerificationCard({ v, onUpdate }) {

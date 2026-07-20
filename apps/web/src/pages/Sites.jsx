@@ -313,7 +313,7 @@ export default function Sites() {
 
       <InterpretationPanel
         title="Spatial interpretation"
-        verdict="The map is now operational: regional climate points frame the Great Lakes system, while 33 Rwanda sentinel sites provide the proof-of-concept field network."
+        verdict="The map supports pilot planning: regional climate points frame the Great Lakes context, while 33 lecturer-provided locations remain candidate sentinel sites until PI and district validation."
         tone="blue"
         confidence="Lecturer WKT coordinates are usable for MVP mapping; official PI confirmation is still recommended before formal reporting."
         items={[

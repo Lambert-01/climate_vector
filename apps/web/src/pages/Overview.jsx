@@ -1,8 +1,8 @@
 import React from "react";
 import {
-  Activity, BarChart3, CheckCircle2, CloudRain,
-  Database, FlaskConical, Globe2, MapPin,
-  ShieldCheck, Target, Zap,
+  CheckCircle2, CloudRain,
+  Database, Dna, MapPin, Microscope,
+  ShieldCheck, Smartphone, Target, Zap,
 } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
@@ -13,7 +13,7 @@ import { useFetch } from "../hooks/useFetch";
 import {
   Badge, ChartState, MetricStrip, PhaseTimeline,
   ProgressBar, PulseIndicator, SectionCard, StatCard,
-  SkeletonStatCard, SkeletonLine,
+  SkeletonStatCard,
 } from "../components/UI";
 import ExportToolbar from "../components/ExportToolbar";
 
@@ -29,29 +29,32 @@ const PHASES = [
 ];
 
 const EVIDENCE_NOW = [
-  { name: "mosquito_behavior_raw.xls", desc: "3,547 ecology rows — breeding sites, habitats, agricultural exposure", badge: "green", tag: "PI primary" },
-  { name: "IR_data.xls",               desc: "3,547 susceptibility rows — insecticide, concentration, 24h deaths",  badge: "green", tag: "PI primary" },
   { name: "NASA POWER",                desc: "30 Rwanda districts × 4 years daily climate (2021–2025)",             badge: "blue",  tag: "Public" },
-  { name: "GBIF vector occurrence",    desc: "329 Aedes + 51 Culex regional records across Great Lakes",            badge: "blue",  tag: "Public" },
+  { name: "GBIF Aedes occurrence",     desc: "329 regional presence-only records for surveillance context",         badge: "blue",  tag: "Public" },
   { name: "ERA5-Land monthly",         desc: "Rwanda bbox rainfall, temperature, dewpoint, runoff baseline",        badge: "blue",  tag: "Public" },
-  { name: "33 sentinel sites",         desc: "Lecturer WKT coordinates — mapped and operational for MVP",           badge: "teal",  tag: "Spatial" },
+  { name: "33 sentinel candidates",    desc: "Lecturer WKT coordinates — mapped for pilot planning",                badge: "teal",  tag: "Spatial" },
+  { name: "mosquito_behavior_raw.xls", desc: "3,547 legacy ecology rows — field-infrastructure context",            badge: "gray",  tag: "Legacy PI" },
+  { name: "IR_data.xls",               desc: "3,547 legacy susceptibility rows — secondary control evidence",       badge: "gray",  tag: "Legacy PI" },
 ];
 
 export default function Overview() {
-  const { data: stats,    loading: sL  } = useFetch(api.stats);
+  const { loading: sL } = useFetch(api.stats);
   const { data: dbStatus, loading: dbL } = useFetch(api.databaseStatus);
   const { data: climate,  loading: cL  } = useFetch(api.climateSummary);
   const { data: features, loading: fL  } = useFetch(api.publicDistrictFeatures);
   const { data: valid,    loading: vL  } = useFetch(api.publicValidation);
   const { data: risk,     loading: rL  } = useFetch(() => api.districtRisk(30));
-  const { data: gbif               } = useFetch(() => api.publicGbif(1));
   const { data: readiness          } = useFetch(api.readiness);
+  const { data: submission         } = useFetch(api.dengueSubmissionReadiness);
+  const { data: dengueContext      } = useFetch(api.arboviralOverview);
 
   const validRows   = valid?.items ?? [];
   const featureRows = features?.items ?? [];
   const readyItems  = (readiness?.items ?? []).filter(r => String(r.ready).toLowerCase() === "true");
   const readyPct    = readiness?.items?.length ? Math.round((readyItems.length / readiness.items.length) * 100) : 0;
   const usableSrc   = validRows.filter(r => ["usable","validated","downloaded"].some(k => String(r.status).includes(k))).length;
+  const pilotCounts = submission?.counts ?? {};
+  const aedesRecords = n(dengueContext?.summary?.aedes_occurrence_records);
 
   const climateRows = (climate?.items ?? []).slice(-60).map(r => ({
     date: r.date ?? r.DATE ?? "",
@@ -96,16 +99,16 @@ export default function Overview() {
 
         <div className="page-hero-kpis">
           <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{sL ? <span className="skeleton skeleton-line w40" style={{ display: "inline-block", width: 60, height: 24 }} /> : fmt(stats?.mosquito_observations)}</div>
-            <div className="page-hero-kpi-label">Ecology rows</div>
+            <div className="page-hero-kpi-value">{fmt(pilotCounts.aedes_surveillance_records)}</div>
+            <div className="page-hero-kpi-label">Prospective Aedes records</div>
           </div>
           <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">{sL ? <span className="skeleton skeleton-line w40" style={{ display: "inline-block", width: 60, height: 24 }} /> : fmt(stats?.resistance_tests)}</div>
-            <div className="page-hero-kpi-label">Susceptibility rows</div>
+            <div className="page-hero-kpi-value">{fmt(pilotCounts.community_reports)}</div>
+            <div className="page-hero-kpi-label">Community reports</div>
           </div>
           <div className="page-hero-kpi">
-            <div className="page-hero-kpi-value">33</div>
-            <div className="page-hero-kpi-label">Sentinel sites mapped</div>
+            <div className="page-hero-kpi-value">{fmt(pilotCounts.genomic_samples)}</div>
+            <div className="page-hero-kpi-label">Mosquito pools registered</div>
           </div>
           <div className="page-hero-kpi">
             <div className="page-hero-kpi-value">{vL ? <span className="skeleton skeleton-line w40" style={{ display: "inline-block", width: 40, height: 24 }} /> : usableSrc}</div>
@@ -120,17 +123,17 @@ export default function Overview() {
           <>
             <div className="kpi-tile">
               <div className="kpi-tile-accent teal" />
-              <div className="kpi-tile-label">PI ecology records</div>
-              <div className="kpi-tile-value">{fmt(stats?.mosquito_observations)}</div>
-              <div className="kpi-tile-sub">mosquito_behavior_raw.xls · Rwanda PoC</div>
-              <Activity size={48} className="kpi-tile-icon" />
+              <div className="kpi-tile-label">Aedes public context</div>
+              <div className="kpi-tile-value">{fmt(aedesRecords)}</div>
+              <div className="kpi-tile-sub">GBIF presence-only · Great Lakes</div>
+              <Microscope size={48} className="kpi-tile-icon" />
             </div>
             <div className="kpi-tile">
               <div className="kpi-tile-accent amber" />
-              <div className="kpi-tile-label">Susceptibility assay rows</div>
-              <div className="kpi-tile-value">{fmt(stats?.resistance_tests)}</div>
-              <div className="kpi-tile-sub">IR_data.xls · vector-control context</div>
-              <FlaskConical size={48} className="kpi-tile-icon" />
+              <div className="kpi-tile-label">Pilot data workflows</div>
+              <div className="kpi-tile-value">4</div>
+              <div className="kpi-tile-sub">Aedes · community · genomics · MEL</div>
+              <Smartphone size={48} className="kpi-tile-icon" />
             </div>
             <div className="kpi-tile">
               <div className="kpi-tile-accent blue" />
@@ -141,10 +144,10 @@ export default function Overview() {
             </div>
             <div className="kpi-tile">
               <div className="kpi-tile-accent green" />
-              <div className="kpi-tile-label">GBIF vector records</div>
-              <div className="kpi-tile-value">{fmt(gbif?.count)}</div>
-              <div className="kpi-tile-sub">Aedes + Culex · Great Lakes region</div>
-              <Globe2 size={48} className="kpi-tile-icon" />
+              <div className="kpi-tile-label">Candidate sentinel sites</div>
+              <div className="kpi-tile-value">33</div>
+              <div className="kpi-tile-sub">Lecturer WKT · PI validation pending</div>
+              <MapPin size={48} className="kpi-tile-icon" />
             </div>
           </>
         )}
@@ -264,8 +267,8 @@ export default function Overview() {
       <div className="stats-grid">
         {sL ? Array.from({ length: 4 }).map((_, i) => <SkeletonStatCard key={i} />) : (
           <>
-            <StatCard icon={Activity}    label="Mosquito ecology rows"    value={fmt(stats?.mosquito_observations)} sub="Rwanda PoC vector ecology"            color="teal"   accent="teal" />
-            <StatCard icon={FlaskConical} label="Susceptibility rows"     value={fmt(stats?.resistance_tests)}      sub="Vector-control context · IR_data.xls"  color="orange" accent="amber" />
+            <StatCard icon={Microscope} label="Aedes pilot records" value={fmt(pilotCounts.aedes_surveillance_records)} sub="Prospective evidence only" color="teal" accent="teal" />
+            <StatCard icon={Dna} label="Genomic pools" value={fmt(pilotCounts.genomic_samples)} sub="Laboratory registry" color="orange" accent="amber" />
             <StatCard icon={MapPin}       label="Sentinel sites"          value="33"                                sub="Lecturer WKT coordinates · mapped"     color="blue"   accent="blue" />
             <StatCard icon={CheckCircle2} label="Usable evidence sources" value={usableSrc}                         sub={`of ${validRows.length} total indexed`} color="green"  accent="green" />
           </>

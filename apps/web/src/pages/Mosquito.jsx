@@ -117,7 +117,7 @@ export default function Mosquito() {
       <div className="page-header">
         <div className="page-header-text">
           <h2>Vector Evidence</h2>
-          <div className="page-subtitle">Aedes/Culex arboviral focus with Anopheles surveillance context</div>
+          <div className="page-subtitle">Aedes evidence for the dengue pilot with legacy vector-surveillance context</div>
           <div className="page-header-badges">
             <Badge variant="green">PI ecology loaded</Badge>
             <Badge variant="blue">GBIF regional context</Badge>
@@ -136,8 +136,8 @@ export default function Mosquito() {
       {/* ── VECTOR GROUP CARDS ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, marginBottom: 20 }}>
         <VectorGroupCard label="Aedes" count={aedesCount} icon={Bug} color="#0d9488" relevance="Dengue/chikungunya/Zika/yellow fever" priority="high" />
-        <VectorGroupCard label="Culex" count={culexCount} icon={Bug} color="#f59e0b" relevance="RVF / West Nile / lymphatic filariasis" priority="moderate" />
-        <VectorGroupCard label="Anopheles" count={totalRecords} icon={Bug} color="#3b82f6" relevance="Malaria surveillance context" priority="context-only" />
+        <VectorGroupCard label="Other public vectors" count={culexCount} icon={Bug} color="#f59e0b" relevance="Future scale context" priority="secondary" />
+        <VectorGroupCard label="Legacy PI ecology" count={totalRecords} icon={Bug} color="#3b82f6" relevance="Field-infrastructure evidence; not dengue surveillance" priority="context-only" />
       </div>
 
       {/* ── CHARTS ROW ── */}
@@ -233,11 +233,11 @@ export default function Mosquito() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "#fffbeb", borderRadius: "var(--radius-sm)", border: "1px solid #fde68a" }}>
             <Badge variant="amber">moderate</Badge>
-            <div style={{ fontSize: 12, fontWeight: 600 }}>Culex: Moderate One Health watch — adult traps needed</div>
+            <div style={{ fontSize: 12, fontWeight: 600 }}>Other vector records: retained only for future scale context</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "var(--surface-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
             <Badge variant="gray">context</Badge>
-            <div style={{ fontSize: 12, fontWeight: 600 }}>Anopheles: Context only — malaria infrastructure reference</div>
+            <div style={{ fontSize: 12, fontWeight: 600 }}>Legacy PI ecology: field-infrastructure context, not Aedes evidence</div>
           </div>
         </div>
       </SectionCard>

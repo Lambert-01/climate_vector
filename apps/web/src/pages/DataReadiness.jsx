@@ -31,13 +31,13 @@ const GOVERNANCE_PHASES = [
 ];
 
 const PILOT_ITEMS = [
-  { label: "Full sample dates", priority: "high", owner: "PI / field team" },
-  { label: "GPS coordinates for sentinel sites", priority: "high", owner: "PI / field officer" },
-  { label: "Mosquito counts and sampling effort", priority: "high", owner: "Entomology team" },
-  { label: "Susceptibility test denominator", priority: "high", owner: "PI / lab team" },
-  { label: "Aedes/Culex field surveillance", priority: "high", owner: "Entomology team" },
-  { label: "Arboviral case data (RBC/MoH)", priority: "medium", owner: "Formal access" },
-  { label: "Livestock density and RVF events", priority: "medium", owner: "Rwanda Agriculture Board" },
+  { label: "Prospective Aedes counts and sampling effort", priority: "high", owner: "Entomology team" },
+  { label: "Approved dengue outcome series", priority: "high", owner: "RBC / MoH governance" },
+  { label: "Mosquito-pool virome and dengue results", priority: "high", owner: "Virology + genomics team" },
+  { label: "Consented community breeding-site reports", priority: "high", owner: "Community engagement team" },
+  { label: "Official validation of candidate sentinel sites", priority: "high", owner: "PI / district teams" },
+  { label: "Population and aggregate mobility exposure", priority: "medium", owner: "NISR + approved partner" },
+  { label: "Temporal and spatial model evaluation", priority: "medium", owner: "Modelling team" },
 ];
 
 const DOMAIN_ICONS = { pi: FlaskConical, climate: Globe2, vector: Globe2, spatial: MapPin, public: Globe2 };

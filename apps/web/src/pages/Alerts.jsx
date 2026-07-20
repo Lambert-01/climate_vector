@@ -160,7 +160,7 @@ export default function Alerts() {
         reason_for_visit: alert.recommended_action || `Field verification for ${alert.district} preparedness signal`,
         climate_trigger: alert.risk_reason,
         alert_id: alert.alert_id,
-        suspected_vector_group: "Aedes/Culex",
+        suspected_vector_group: "Aedes",
       });
       setToast({ message: `Verification request created for ${alert.district}`, type: "success" });
     } catch {

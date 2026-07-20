@@ -77,10 +77,10 @@ export default function Resistance() {
     <div className="page">
       <div className="page-header">
         <div className="page-header-text">
-          <h2>Intervention readiness</h2>
-          <div className="page-subtitle">Vector control intelligence — susceptibility, intervention readiness, and pilot actions</div>
+          <h2>Legacy vector-control evidence</h2>
+          <div className="page-subtitle">PI susceptibility baseline retained for provenance; not primary dengue/Aedes evidence</div>
           <div className="page-header-badges">
-            <Badge variant="green">IR data loaded</Badge>
+            <Badge variant="gray">Secondary proposal context</Badge>
             <Badge variant="amber">Lab validation pending</Badge>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function Resistance() {
 
       <InterpretationPanel
         title="Vector-control interpretation"
-        verdict="The IR dataset is useful as vector-control intelligence, but protocol and denominator confirmation are required before policy classification of susceptibility or resistance."
+        verdict="The IR dataset documents prior vector-control work, but it cannot be interpreted as Aedes susceptibility evidence for the dengue pilot."
         tone="amber"
         confidence="Preliminary laboratory context only; do not convert to official resistance status without PI/lab confirmation."
         items={[
@@ -132,8 +132,8 @@ export default function Resistance() {
           },
           {
             label: "Policy use",
-            value: "Prepare intervention readiness discussion",
-            note: "Frame as vector-control context, not final resistance certification.",
+            value: "Legacy field-infrastructure context",
+            note: "Keep outside the primary dengue evidence pathway unless Aedes species and protocol are confirmed.",
           },
         ]}
       />
