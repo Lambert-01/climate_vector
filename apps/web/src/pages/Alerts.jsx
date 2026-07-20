@@ -205,7 +205,7 @@ export default function Alerts() {
           </div>
         </div>
         <div className="page-header-actions">
-          <ExportToolbar csvFilename="arborisk_alerts" csvRows={csvRows} jsonData={filteredItems} />
+          <ExportToolbar csvFilename="dengueew_gl_alerts" csvRows={csvRows} jsonData={filteredItems} />
           <button className="btn btn-primary" onClick={() => setShowForm(!showForm)} style={{ fontSize: 12 }}>
             <Plus size={13} /> New Alert
           </button>

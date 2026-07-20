@@ -102,7 +102,7 @@ Start Command: uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port $PO
 
 ```text
 PROJECT_ENV=production
-PROJECT_NAME=ArboRisk-GL Arboviral Intelligence System
+PROJECT_NAME=DengueEW-GL
 API_CORS_ORIGINS=https://YOUR-VERCEL-PROJECT.vercel.app
 ```
 

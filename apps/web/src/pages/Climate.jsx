@@ -100,7 +100,7 @@ export default function Climate() {
         </div>
         <div className="page-header-actions">
           <ExportToolbar
-            csvFilename="arborisk_climate_regional"
+            csvFilename="dengueew_gl_climate_regional"
             csvRows={regionalRows.map((r) => ({
               location: r.location,
               country: r.country,

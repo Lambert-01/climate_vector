@@ -9,7 +9,7 @@ from app.routes import alerts, arboviral, climate, dashboard, dengue, live_weath
 app = FastAPI(
     title=settings.project_name,
     version="1.0.0",
-    description="Climate-informed arboviral and vector preparedness API for the African Great Lakes region.",
+    description="Climate-informed Aedes surveillance and dengue early-warning proof-of-concept API for Rwanda, with African Great Lakes regional context.",
 )
 
 app.add_middleware(

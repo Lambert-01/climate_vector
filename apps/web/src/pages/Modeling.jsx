@@ -56,7 +56,7 @@ export default function Modeling() {
           <Badge variant="amber">Pilot-grade · validation next</Badge>
           <Badge variant="blue">30 Rwanda districts</Badge>
           <ExportToolbar
-            csvFilename="arborisk_modeling_screening"
+            csvFilename="dengueew_gl_modeling_screening"
             csvRows={rows.map((d) => ({ district: d.district, risk_level: d.risk_level, suitability_index: d.suitability_index, reason: d.reason }))}
             jsonData={rows}
           />

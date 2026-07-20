@@ -287,7 +287,7 @@ export default function Sites() {
         </div>
         <div className="page-header-actions">
           <ExportToolbar
-            csvFilename="arborisk_sentinel_sites"
+            csvFilename="dengueew_gl_sentinel_sites"
             csvRows={mappedSites.map((s) => ({
               district: s.district,
               name: s.site_name,

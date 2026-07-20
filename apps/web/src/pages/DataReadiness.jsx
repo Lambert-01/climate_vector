@@ -166,7 +166,7 @@ export default function DataReadiness() {
         </div>
         <div className="page-header-actions">
           <ExportToolbar
-            csvFilename="arborisk_data_control"
+            csvFilename="dengueew_gl_data_control"
             csvRows={csvRows}
             jsonData={{ sources: tabFilteredRegistry, validation: valChecks }}
           />

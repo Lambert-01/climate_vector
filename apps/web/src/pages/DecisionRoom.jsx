@@ -217,7 +217,7 @@ export default function DecisionRoom() {
         </div>
         <div className="page-header-actions">
           <ExportToolbar
-            csvFilename="arborisk_decision_room"
+            csvFilename="dengueew_gl_decision_room"
             csvRows={csvRows}
             jsonData={{ date: today(), high_risk: highRisk.length, medium_risk: medRisk.length, confidence: confidenceIdx, districts: csvRows }}
             copyText={briefText}

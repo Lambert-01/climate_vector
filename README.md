@@ -11,7 +11,8 @@ The project uses:
 - `data/raw/IR_data.xls`
 - `data/raw/mosquito_behavior_raw.xls`
 - useful public climate, environment, population, boundary, and mosquito-occurrence data in `data/external/`
-- the updated proposal in `proposal.doc`
+- the original proposal in `proposal.doc` and aligned submission copy in
+  `proposal_submission_ready.docx`
 
 The current system supports operational pilot preparation and transparent evidence
 review. It does not claim a validated dengue outbreak forecast. Prospective Aedes
@@ -20,9 +21,12 @@ and external validation are grant-period activities.
 
 ## Submission Readiness
 
-See `docs/current/dengue_submission_technical_readiness.md` for proposal alignment,
-implemented modules, deployment settings, evidence boundaries, and the remaining
-PI-side submission actions.
+Start with `docs/current/dengueew_gl_submission_master.md` for the canonical project
+identity, geographic positioning, evidence ladder, claim controls, grant-period
+deliverables, and submission language.
+
+See `docs/current/dengue_submission_technical_readiness.md` for implementation,
+deployment settings, evidence boundaries, and the remaining PI-side actions.
 
 See `docs/current/co_pi_climate_mathematical_modelling_framework.md` for the Co-PI
 climate analytics work package, equations currently applied, grant-period model

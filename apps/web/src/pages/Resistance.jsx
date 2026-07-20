@@ -87,7 +87,7 @@ export default function Resistance() {
         </div>
         <div className="page-header-actions">
           <ExportToolbar
-            csvFilename="arborisk_intervention_readiness"
+            csvFilename="dengueew_gl_intervention_readiness"
             csvRows={tableRows.map((r) => ({
               replicate_id: r.replicate_id,
               district: r.district,

@@ -65,7 +65,7 @@ def arboviral_overview() -> dict:
 
 @router.get("/arboviral/intelligence")
 def arboviral_intelligence() -> dict:
-    """Single policy-ready intelligence bundle for the rebuilt ArboRisk-GL dashboard."""
+    """Policy-ready regional context bundle for the DengueEW-GL dashboard."""
     validation = read_csv("data/processed/data_source_validation_summary.csv")
     sentinel = read_csv("data/processed/context/sentinel_sites_33.csv")
     climate = read_csv("data/processed/context/great_lakes_climate_summary.csv")

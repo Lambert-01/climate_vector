@@ -148,7 +148,7 @@ export default function LiveWeather() {
         </div>
         <div className="page-header-actions">
           <ExportToolbar
-            csvFilename={`arborisk_live_weather_${selected}`}
+            csvFilename={`dengueew_gl_live_weather_${selected}`}
             csvRows={hourly.map((h) => ({ time: h.time, temp: h.temp, rain: h.rain, humidity: h.humidity, wind: h.wind }))}
             jsonData={{ district: selected, summary, hourly }}
           />
@@ -166,7 +166,7 @@ export default function LiveWeather() {
       {summaryLoading && <Spinner />}
       {summaryError && <div className="empty">Live weather is temporarily unavailable.<small>{summaryError}</small></div>}
 
-      <SectionCard title="Live-weather role in ArboRisk-GL" icon={Globe2}>
+      <SectionCard title="Live-weather role in DengueEW-GL" icon={Globe2}>
         <MetricStrip
           items={[
             { label: "Rwanda live districts", value: summaryLoading ? "..." : districts.length },

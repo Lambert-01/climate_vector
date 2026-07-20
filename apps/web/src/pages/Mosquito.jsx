@@ -127,7 +127,7 @@ export default function Mosquito() {
         </div>
         <div className="page-header-actions">
           <ExportToolbar
-            csvFilename="arborisk_vector_evidence"
+            csvFilename="dengueew_gl_vector_evidence"
             csvRows={filteredRecords}
             jsonData={{ districts: districtRows, species: speciesRows, breeding: breedingRows, taxonomy: taxonomyRows }}
           />
@@ -269,7 +269,7 @@ export default function Mosquito() {
               <option value="all">All species</option>
               {speciesList.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
-            <button onClick={() => downloadCsv(`arborisk_ecology_${new Date().toISOString().slice(0,10)}.csv`, filteredRecords)} style={{ padding: "5px 9px", fontSize: 11, fontWeight: 600, border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+            <button onClick={() => downloadCsv(`dengueew_gl_ecology_${new Date().toISOString().slice(0,10)}.csv`, filteredRecords)} style={{ padding: "5px 9px", fontSize: 11, fontWeight: 600, border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
               <Download size={12} /> CSV
             </button>
           </div>

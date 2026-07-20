@@ -38,7 +38,7 @@ cleanup_old_pids
 check_port "$API_PORT"
 check_port "$WEB_PORT"
 
-echo "Starting Climate Vector Rwanda..."
+echo "Starting DengueEW-GL..."
 echo "API: http://$HOST:$API_PORT"
 echo "Web: http://$HOST:$WEB_PORT"
 echo "Logs: $LOG_DIR"
