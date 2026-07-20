@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, Double, ForeignKey, Integer, Text
+from sqlalchemy import Boolean, Date, DateTime, Double, ForeignKey, Integer, LargeBinary, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -169,6 +169,7 @@ class CommunityReport(Base):
     mosquito_level: Mapped[str | None] = mapped_column(Text)
     action_taken: Mapped[str | None] = mapped_column(Text)
     photo_reference: Mapped[str | None] = mapped_column(Text)
+    photo_asset_id: Mapped[str | None] = mapped_column(ForeignKey("media_assets.asset_id"))
     notes: Mapped[str | None] = mapped_column(Text)
     consent_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     review_status: Mapped[str] = mapped_column(Text, nullable=False, default="pending_review")
@@ -215,6 +216,34 @@ class GenomicSample(Base):
     qc_status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+
+class MediaAsset(Base):
+    __tablename__ = "media_assets"
+    asset_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    purpose: Mapped[str] = mapped_column(Text, nullable=False)
+    original_name: Mapped[str] = mapped_column(Text, nullable=False)
+    content_type: Mapped[str] = mapped_column(Text, nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    uploaded_by: Mapped[str | None] = mapped_column(ForeignKey("users.user_id"))
+
+
+class GenomicArtifact(Base):
+    __tablename__ = "genomic_artifacts"
+    artifact_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    sample_id: Mapped[str | None] = mapped_column(ForeignKey("genomic_samples.sample_id"))
+    artifact_type: Mapped[str] = mapped_column(Text, nullable=False)
+    method: Mapped[str | None] = mapped_column(Text)
+    software_version: Mapped[str | None] = mapped_column(Text)
+    result_value: Mapped[str | None] = mapped_column(Text)
+    external_url: Mapped[str | None] = mapped_column(Text)
+    file_checksum: Mapped[str | None] = mapped_column(Text)
+    review_status: Mapped[str] = mapped_column(Text, nullable=False, default="pending_review")
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_by: Mapped[str | None] = mapped_column(ForeignKey("users.user_id"))
 
 
 class ModelEvaluation(Base):

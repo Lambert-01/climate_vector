@@ -15,13 +15,14 @@ def add_audit_event(
     action: str,
     table_name: str,
     record_id: str,
+    user_id: str | None = None,
     old_value=None,
     new_value=None,
 ) -> None:
     db.add(
         AuditLog(
             audit_id=str(uuid.uuid4()),
-            user_id=None,
+            user_id=user_id,
             action=action,
             table_name=table_name,
             record_id=record_id,

@@ -16,6 +16,7 @@ from app.models import (
     AedesSurveillanceRecord,
     Alert,
     CommunityReport,
+    GenomicArtifact,
     GenomicSample,
     MelObservation,
     ModelEvaluation,
@@ -26,7 +27,7 @@ from app.services.csv_store import read_csv
 from app.services.dengue_metrics import summarize_aedes_surveillance
 from app.services.mathematical_framework import mathematical_framework
 from app.services.audit import add_audit_event
-from app.core.security import require_operator
+from app.core.security import Principal, require_write_access, require_roles
 
 
 router = APIRouter(tags=["dengue-pilot"])
@@ -82,6 +83,7 @@ class CommunityReportIn(BaseModel):
     mosquito_level: Literal["low", "moderate", "high", "unknown"] | None = "unknown"
     action_taken: str | None = Field(default=None, max_length=500)
     photo_reference: str | None = Field(default=None, max_length=500)
+    photo_asset_id: str | None = Field(default=None, max_length=120)
     notes: str | None = Field(default=None, max_length=1000)
     consent_confirmed: bool
 
@@ -159,6 +161,23 @@ class GenomicSampleIn(BaseModel):
         return self
 
 
+class GenomicArtifactIn(BaseModel):
+    sample_id: str | None = Field(default=None, max_length=120)
+    artifact_type: Literal["lineage", "consensus_fasta", "phylogeny_newick", "qc_report"]
+    method: str | None = Field(default=None, max_length=160)
+    software_version: str | None = Field(default=None, max_length=80)
+    result_value: str | None = Field(default=None, max_length=100000)
+    external_url: str | None = Field(default=None, max_length=1000)
+    file_checksum: str | None = Field(default=None, max_length=128)
+    review_status: Literal["pending_review", "accepted", "rejected"] = "pending_review"
+
+    @model_validator(mode="after")
+    def validate_artifact(self):
+        if not self.result_value and not self.external_url:
+            raise ValueError("An artifact result or external URL is required.")
+        return self
+
+
 class ModelEvaluationIn(BaseModel):
     model_name: str = Field(min_length=2, max_length=120)
     model_version: str = Field(min_length=1, max_length=80)
@@ -229,7 +248,7 @@ async def list_community_reports(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/community-reports", status_code=201)
-async def create_community_report(payload: CommunityReportIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
+async def create_community_report(payload: CommunityReportIn, db: AsyncSession = Depends(get_db), principal: Principal = Depends(require_roles("admin", "field_officer", "data_manager"))) -> dict:
     item = CommunityReport(
         report_id=str(uuid.uuid4()),
         submitted_at=_now(),
@@ -238,7 +257,7 @@ async def create_community_report(payload: CommunityReportIn, db: AsyncSession =
     )
     try:
         db.add(item)
-        add_audit_event(db, action="create", table_name="community_reports", record_id=item.report_id, new_value=payload.model_dump())
+        add_audit_event(db, action="create", table_name="community_reports", record_id=item.report_id, user_id=principal.user_id if principal.auth_method == "jwt" else None, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(item)
         return {**_community_dict(item), "source": "database"}
@@ -252,7 +271,7 @@ async def create_community_report(payload: CommunityReportIn, db: AsyncSession =
 
 
 @router.patch("/dengue/community-reports/{report_id}/status")
-async def update_community_report(report_id: str, payload: StatusUpdate, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
+async def update_community_report(report_id: str, payload: StatusUpdate, db: AsyncSession = Depends(get_db), principal: Principal = Depends(require_roles("admin", "field_officer", "data_manager", "technical_reviewer"))) -> dict:
     if payload.status not in REPORT_STATUSES:
         raise HTTPException(422, f"Invalid status. Allowed: {', '.join(sorted(REPORT_STATUSES))}")
     try:
@@ -261,7 +280,7 @@ async def update_community_report(report_id: str, payload: StatusUpdate, db: Asy
             raise HTTPException(404, "Community report not found")
         old_status = item.review_status
         item.review_status = payload.status
-        add_audit_event(db, action="status_change", table_name="community_reports", record_id=report_id, old_value={"status": old_status}, new_value={"status": payload.status})
+        add_audit_event(db, action="status_change", table_name="community_reports", record_id=report_id, user_id=principal.user_id if principal.auth_method == "jwt" else None, old_value={"status": old_status}, new_value={"status": payload.status})
         await db.commit()
         await db.refresh(item)
         return _community_dict(item)
@@ -292,7 +311,7 @@ async def list_aedes_surveillance(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/aedes-surveillance", status_code=201)
-async def create_aedes_surveillance(payload: AedesSurveillanceIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
+async def create_aedes_surveillance(payload: AedesSurveillanceIn, db: AsyncSession = Depends(get_db), principal: Principal = Depends(require_roles("admin", "field_officer", "data_manager"))) -> dict:
     row = AedesSurveillanceRecord(
         record_id=str(uuid.uuid4()),
         quality_status="pending_review",
@@ -301,7 +320,7 @@ async def create_aedes_surveillance(payload: AedesSurveillanceIn, db: AsyncSessi
     )
     try:
         db.add(row)
-        add_audit_event(db, action="create", table_name="aedes_surveillance_records", record_id=row.record_id, new_value=payload.model_dump())
+        add_audit_event(db, action="create", table_name="aedes_surveillance_records", record_id=row.record_id, user_id=principal.user_id if principal.auth_method == "jwt" else None, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(row)
         return {**_surveillance_dict(row), "source": "database"}
@@ -324,7 +343,7 @@ async def aedes_surveillance_summary(db: AsyncSession = Depends(get_db)) -> dict
 
 
 @router.patch("/dengue/aedes-surveillance/{record_id}/status")
-async def update_aedes_status(record_id: str, payload: StatusUpdate, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
+async def update_aedes_status(record_id: str, payload: StatusUpdate, db: AsyncSession = Depends(get_db), principal: Principal = Depends(require_roles("admin", "data_manager", "technical_reviewer"))) -> dict:
     if payload.status not in SURVEILLANCE_STATUSES:
         raise HTTPException(422, f"Invalid status. Allowed: {', '.join(sorted(SURVEILLANCE_STATUSES))}")
     try:
@@ -333,7 +352,7 @@ async def update_aedes_status(record_id: str, payload: StatusUpdate, db: AsyncSe
             raise HTTPException(404, "Aedes surveillance record not found")
         old_status = item.quality_status
         item.quality_status = payload.status
-        add_audit_event(db, action="status_change", table_name="aedes_surveillance_records", record_id=record_id, old_value={"status": old_status}, new_value={"status": payload.status})
+        add_audit_event(db, action="status_change", table_name="aedes_surveillance_records", record_id=record_id, user_id=principal.user_id if principal.auth_method == "jwt" else None, old_value={"status": old_status}, new_value={"status": payload.status})
         await db.commit()
         await db.refresh(item)
         return _surveillance_dict(item)
@@ -361,13 +380,13 @@ async def list_genomic_samples(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/genomic-samples", status_code=201)
-async def create_genomic_sample(payload: GenomicSampleIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
+async def create_genomic_sample(payload: GenomicSampleIn, db: AsyncSession = Depends(get_db), principal: Principal = Depends(require_roles("admin", "lab_analyst", "data_manager"))) -> dict:
     values = payload.model_dump()
     values["sample_id"] = values.get("sample_id") or f"DENV-{uuid.uuid4().hex[:10].upper()}"
     row = GenomicSample(created_at=_now(), **values)
     try:
         db.add(row)
-        add_audit_event(db, action="create", table_name="genomic_samples", record_id=row.sample_id, new_value=payload.model_dump())
+        add_audit_event(db, action="create", table_name="genomic_samples", record_id=row.sample_id, user_id=principal.user_id if principal.auth_method == "jwt" else None, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(row)
         return {**_genomic_dict(row), "source": "database"}
@@ -382,6 +401,38 @@ async def create_genomic_sample(payload: GenomicSampleIn, db: AsyncSession = Dep
         return {**item, "source": "json_fallback"}
 
 
+@router.get("/dengue/genomic-artifacts")
+async def list_genomic_artifacts(sample_id: str | None = None, db: AsyncSession = Depends(get_db)) -> dict:
+    query = select(GenomicArtifact).order_by(GenomicArtifact.created_at.desc())
+    if sample_id:
+        query = query.where(GenomicArtifact.sample_id == sample_id)
+    rows = (await db.execute(query)).scalars().all()
+    return {
+        "items": [{column.name: getattr(row, column.name) for column in row.__table__.columns} for row in rows],
+        "governance": "Only laboratory-generated artifacts are registered; no lineage or tree is inferred from climate data.",
+    }
+
+
+@router.post("/dengue/genomic-artifacts", status_code=201)
+async def create_genomic_artifact(
+    payload: GenomicArtifactIn,
+    db: AsyncSession = Depends(get_db),
+    principal: Principal = Depends(require_roles("admin", "lab_analyst", "data_manager")),
+) -> dict:
+    if payload.sample_id and not await db.get(GenomicSample, payload.sample_id):
+        raise HTTPException(404, "Genomic sample not found.")
+    row = GenomicArtifact(
+        artifact_id=str(uuid.uuid4()), created_at=_now(),
+        created_by=principal.user_id if principal.auth_method == "jwt" else None,
+        **payload.model_dump(),
+    )
+    db.add(row)
+    add_audit_event(db, action="create", table_name="genomic_artifacts", record_id=row.artifact_id, user_id=row.created_by, new_value=payload.model_dump())
+    await db.commit()
+    await db.refresh(row)
+    return {column.name: getattr(row, column.name) for column in row.__table__.columns}
+
+
 @router.get("/dengue/model-evaluations")
 async def list_model_evaluations(db: AsyncSession = Depends(get_db)) -> dict:
     items, source = await _db_list(db, ModelEvaluation, ModelEvaluation.evaluation_date, _evaluation_dict, "model_evaluations")
@@ -389,11 +440,11 @@ async def list_model_evaluations(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/model-evaluations", status_code=201)
-async def create_model_evaluation(payload: ModelEvaluationIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
+async def create_model_evaluation(payload: ModelEvaluationIn, db: AsyncSession = Depends(get_db), principal: Principal = Depends(require_roles("admin", "technical_reviewer", "data_manager"))) -> dict:
     row = ModelEvaluation(evaluation_id=str(uuid.uuid4()), **payload.model_dump())
     try:
         db.add(row)
-        add_audit_event(db, action="create", table_name="model_evaluations", record_id=row.evaluation_id, new_value=payload.model_dump())
+        add_audit_event(db, action="create", table_name="model_evaluations", record_id=row.evaluation_id, user_id=principal.user_id if principal.auth_method == "jwt" else None, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(row)
         return {**_evaluation_dict(row), "source": "database"}
@@ -413,11 +464,11 @@ async def list_mel_observations(db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/dengue/mel-observations", status_code=201)
-async def create_mel_observation(payload: MelObservationIn, db: AsyncSession = Depends(get_db), _operator: str = Depends(require_operator)) -> dict:
+async def create_mel_observation(payload: MelObservationIn, db: AsyncSession = Depends(get_db), principal: Principal = Depends(require_roles("admin", "data_manager"))) -> dict:
     row = MelObservation(observation_id=str(uuid.uuid4()), **payload.model_dump())
     try:
         db.add(row)
-        add_audit_event(db, action="create", table_name="mel_observations", record_id=row.observation_id, new_value=payload.model_dump())
+        add_audit_event(db, action="create", table_name="mel_observations", record_id=row.observation_id, user_id=principal.user_id if principal.auth_method == "jwt" else None, new_value=payload.model_dump())
         await db.commit()
         await db.refresh(row)
         return {**_mel_dict(row), "source": "database"}

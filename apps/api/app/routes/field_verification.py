@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.security import require_operator
+from app.core.security import Principal, require_roles
 from app.models import FieldVerificationRecord
 from app.services.audit import add_audit_event
 
@@ -104,7 +104,7 @@ async def list_verifications(db: AsyncSession = Depends(get_db)) -> dict:
 async def create_verification(
     payload: FieldVerificationIn,
     db: AsyncSession = Depends(get_db),
-    _operator: str = Depends(require_operator),
+    principal: Principal = Depends(require_roles("admin", "field_officer", "technical_reviewer")),
 ) -> dict:
     row = FieldVerificationRecord(
         verification_id=str(uuid.uuid4()),
@@ -119,6 +119,7 @@ async def create_verification(
             action="create",
             table_name="field_verification_records",
             record_id=row.verification_id,
+            user_id=principal.user_id if principal.auth_method == "jwt" else None,
             new_value=payload.model_dump(),
         )
         await db.commit()
@@ -151,7 +152,7 @@ async def update_verification(
     verification_id: str,
     payload: FieldVerificationUpdate,
     db: AsyncSession = Depends(get_db),
-    _operator: str = Depends(require_operator),
+    principal: Principal = Depends(require_roles("admin", "field_officer", "technical_reviewer")),
 ) -> dict:
     updates = payload.model_dump(exclude_unset=True)
     try:
@@ -171,6 +172,7 @@ async def update_verification(
                 action="update",
                 table_name="field_verification_records",
                 record_id=verification_id,
+                user_id=principal.user_id if principal.auth_method == "jwt" else None,
                 old_value=old_value,
                 new_value=updates,
             )

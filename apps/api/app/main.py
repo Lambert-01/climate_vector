@@ -1,10 +1,19 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
+import logging
+import uuid
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routes import alerts, arboviral, climate, dashboard, dengue, live_weather, modeling, mosquito, public_data, readiness, resistance, sites, summaries, source_registry, field_verification
+from app.routes import alerts, arboviral, auth, climate, dashboard, dengue, field_verification, live_weather, media, modeling, mosquito, operations, public_data, readiness, resistance, sites, source_registry, summaries
+
+if settings.sentry_dsn:
+    import sentry_sdk
+    sentry_sdk.init(dsn=settings.sentry_dsn, environment=settings.project_env, traces_sample_rate=0.1)
+
+logger = logging.getLogger("dengueew.api")
 
 app = FastAPI(
     title=settings.project_name,
@@ -20,6 +29,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def request_context(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    try:
+        response = await call_next(request)
+    except Exception:
+        logger.exception("Unhandled API error request_id=%s path=%s", request_id, request.url.path)
+        raise
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 for router in [
     dashboard.router,
@@ -37,6 +58,9 @@ for router in [
     summaries.router,
     source_registry.router,
     field_verification.router,
+    auth.router,
+    operations.router,
+    media.router,
 ]:
     app.include_router(router, prefix="/api")
 

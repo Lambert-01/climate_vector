@@ -27,8 +27,18 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
 
+    bootstrap_admin_email: str = ""
+    bootstrap_admin_password: str = ""
+    bootstrap_admin_name: str = "Platform Administrator"
+    sentry_dsn: str = ""
+    max_upload_mb: int = 5
+
     project_name: str = "DengueEW-GL"
     project_env: str = "development"
+
+    @property
+    def is_production(self) -> bool:
+        return self.project_env.strip().lower() in {"production", "staging"}
 
     @property
     def cors_origins(self) -> list[str]:

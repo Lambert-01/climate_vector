@@ -22,3 +22,11 @@ services:
         generateValue: true
       - key: OPERATOR_API_KEY
         sync: false
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_NAME
+        value: Platform Administrator
+      - key: SENTRY_DSN
+        sync: false
