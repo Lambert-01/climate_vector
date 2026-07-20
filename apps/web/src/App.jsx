@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useCallback, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, Loader2, LogIn, LogOut, BookOpen, Map as MapIcon, Menu, Radar, Shield, ShieldCheck, Smartphone, X } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, LogOut, BookOpen, Map as MapIcon, Menu, Radar, ShieldCheck, Smartphone, X } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import { api, clearSession, getSessionUser } from "./api.js";
 
@@ -35,97 +35,6 @@ const PAGE_META = {
   "/data-readiness":{ title: "Data Control",            sub: "Readiness · validation queue · governance",            icon: Database },
   "/system-guide":  { title: "Platform Guide",          sub: "System documentation and user guidance",             icon: BookOpen },
 };
-
-function LoginModal({ onLogin }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    setError(""); setLoading(true);
-    try {
-      const result = await api.login(email, password);
-      setSuccess(true);
-      setTimeout(() => onLogin(result.user), 800);
-    } catch (err) {
-      setError(err.message || "Login failed. Check your credentials.");
-    } finally { setLoading(false); }
-  }, [email, password, onLogin]);
-
-  if (success) {
-    return (
-      <div className="login-overlay">
-        <div className="login-modal login-success">
-          <div className="login-success-icon"><ShieldCheck size={48} /></div>
-          <h2>Welcome back</h2>
-          <p>Authenticated successfully. Loading workspace...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="login-overlay">
-      <div className="login-modal">
-        <div className="login-brand">
-          <div className="login-logo"><Shield size={28} color="#fff" /></div>
-          <h1>DengueEW-GL</h1>
-          <p>Climate-informed Aedes surveillance &amp; dengue early-warning</p>
-        </div>
-        <form onSubmit={handleSubmit} className="login-form">
-          <h2>Sign in to workspace</h2>
-          <p className="login-sub">Role-based access for authorized operators</p>
-          {error && <div className="login-error">{error}</div>}
-          <div className="login-field">
-            <label htmlFor="login-email">Email address</label>
-            <input
-              id="login-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@organization.org"
-              autoComplete="username"
-              required
-              autoFocus
-            />
-          </div>
-          <div className="login-field">
-            <label htmlFor="login-password">Password</label>
-            <input
-              id="login-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              autoComplete="current-password"
-              required
-            />
-          </div>
-          <button type="submit" className="login-submit" disabled={loading || !email || !password}>
-            {loading ? <><Loader2 size={16} className="spin" /> Signing in...</> : <><LogIn size={16} /> Sign in</>}
-          </button>
-          <div className="login-demo-hint">
-            <div className="login-demo-label">Demo credentials</div>
-            <div className="login-demo-row">
-              <span>Email</span>
-              <code>info@system.com</code>
-              <button type="button" className="login-demo-copy" onClick={() => { navigator.clipboard?.writeText("info@system.com"); }}>Copy</button>
-            </div>
-            <div className="login-demo-row">
-              <span>Password</span>
-              <code>admin123!Pass</code>
-              <button type="button" className="login-demo-copy" onClick={() => { navigator.clipboard?.writeText("admin123!Pass"); }}>Copy</button>
-            </div>
-          </div>
-          <p className="login-footer">Authorized personnel only. All access is audited.</p>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 function Topbar({ mobileOpen, onToggleMobile, sessionUser, onLogout }) {
   const { pathname } = useLocation();
@@ -176,16 +85,12 @@ function Topbar({ mobileOpen, onToggleMobile, sessionUser, onLogout }) {
 
 export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sessionUser, setSessionUser] = useState(getSessionUser());
+  const [sessionUser] = useState(() => getSessionUser() || { user_id: "dev", full_name: "Developer", email: "dev@local", role: "admin", active_status: "active" });
 
-  const handleLogin = useCallback((user) => setSessionUser(user), []);
   const handleLogout = useCallback(() => {
-    clearSession(); setSessionUser(null);
+    clearSession();
+    window.location.reload();
   }, []);
-
-  if (!sessionUser) {
-    return <LoginModal onLogin={handleLogin} />;
-  }
 
   return (
     <div className="layout">
