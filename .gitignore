@@ -65,6 +65,7 @@ data/processed/
 !data/processed/
 !data/processed/*.csv
 data/processed/field_verifications.json
+data/processed/dengue_pilot_operations.json
 !data/sites/
 !data/sites/*.csv
 

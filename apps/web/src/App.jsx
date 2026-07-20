@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, Map as MapIcon, Radar, ShieldCheck } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, Map as MapIcon, Radar, ShieldCheck, Smartphone } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import Overview from "./pages/Overview.jsx";
 import Sites from "./pages/Sites.jsx";
@@ -14,11 +14,13 @@ import Modeling from "./pages/Modeling.jsx";
 import Arboviral from "./pages/Arboviral.jsx";
 import DecisionRoom from "./pages/DecisionRoom.jsx";
 import FieldVerification from "./pages/FieldVerification.jsx";
+import DengueOperations from "./pages/DengueOperations.jsx";
 
 const PAGE_META = {
-  "/":              { title: "Command Overview",        sub: "Great Lakes climate-vector preparedness intelligence", icon: Home },
-  "/decision-room": { title: "Decision Room",           sub: "Policy-facing preparedness action brief",              icon: ShieldCheck },
-  "/arboviral":     { title: "Arboviral Preparedness",  sub: "Aedes · Culex · RVF · Great Lakes regional context",  icon: Biohazard },
+  "/":              { title: "Dengue Command Overview", sub: "Climate-informed Aedes preparedness · Proof of Concept", icon: Home },
+  "/decision-room": { title: "Decision Room",           sub: "Dengue preparedness signals and review actions",         icon: ShieldCheck },
+  "/arboviral":     { title: "Dengue Intelligence",     sub: "Aedes · climate · Great Lakes regional context",          icon: Biohazard },
+  "/dengue-operations": { title: "Pilot Operations",    sub: "Aedes surveillance · community · genomics · MEL",         icon: Smartphone },
   "/sites":         { title: "Spatial Operations",      sub: "33 sentinel sites · coordinate status · map view",     icon: MapIcon },
   "/mosquito":      { title: "Vector Evidence",         sub: "Ecology · species context · habitats",                 icon: Activity },
   "/resistance":    { title: "Vector Control Context",  sub: "Susceptibility assay signal review",                   icon: FlaskConical },
@@ -53,7 +55,7 @@ function Topbar() {
           <Radar size={12} />
           <span>Readiness</span>
           <span>Aedes</span>
-          <span>RVF</span>
+          <span>Dengue</span>
           <span>Climate</span>
         </div>
       </div>
@@ -71,6 +73,7 @@ export default function App() {
           <Route path="/"              element={<Overview />} />
           <Route path="/decision-room" element={<DecisionRoom />} />
           <Route path="/arboviral"     element={<Arboviral />} />
+          <Route path="/dengue-operations" element={<DengueOperations />} />
           <Route path="/sites"         element={<Sites />} />
           <Route path="/mosquito"      element={<Mosquito />} />
           <Route path="/resistance"    element={<Resistance />} />
