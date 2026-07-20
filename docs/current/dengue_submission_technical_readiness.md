@@ -96,14 +96,13 @@ Run `.venv/bin/alembic upgrade head` during release or before starting the updat
 Set:
 
 - `VITE_API_BASE_URL`: Render API base ending in `/api`.
-- `VITE_OPERATOR_KEY`: same operator key only for a controlled internal demonstration deployment.
-
-Do not expose `VITE_OPERATOR_KEY` in a public deployment because Vite variables are delivered to the browser.
-For public field operation, replace the demonstration key with authenticated user sessions and server-side roles.
+Authorized staff enter the operator key through the header control. It is retained only in browser session storage
+and is not compiled into the Vercel bundle. Public visitors remain read-only. Full user accounts and server-side
+roles remain the recommended post-pilot identity layer.
 
 ### Release verification
 
-1. Call `/health` and confirm the expected project environment.
+1. Call `/api/health` and confirm the expected project environment.
 2. Call `/api/dengue/submission-readiness` and `/api/dengue/model-readiness`.
 3. Confirm the Vercel origin receives valid CORS headers.
 4. Submit one controlled test observation, verify persistence, then remove or mark it as excluded.
@@ -112,9 +111,9 @@ For public field operation, replace the demonstration key with authenticated use
 
 ## Technical verification completed
 
-- Backend automated tests: 58 passing.
+- Backend automated tests: 60 passing.
 - Frontend production build: passing.
-- Frontend initial JavaScript bundle reduced from approximately 929 KB to 186 KB through route splitting.
+- Frontend initial JavaScript bundle reduced from approximately 929 KB to approximately 188 KB through route splitting.
 - Alembic migration head: `c5e807db8a10` after release migration.
 - Validation, provenance, claim boundaries and empty-state behavior are automated and visible.
 

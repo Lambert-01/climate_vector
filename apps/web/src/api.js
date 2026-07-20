@@ -1,9 +1,26 @@
 const configuredBase = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000/api";
 const trimmedBase = configuredBase.replace(/\/+$/, "");
 const BASE = trimmedBase.endsWith("/api") ? trimmedBase : `${trimmedBase}/api`;
+const OPERATOR_KEY_STORAGE = "dengueew_operator_key";
+
+function getOperatorKey() {
+  if (typeof window === "undefined") return "";
+  return window.sessionStorage.getItem(OPERATOR_KEY_STORAGE) ?? "";
+}
+
+export function setOperatorKey(value) {
+  if (typeof window === "undefined") return;
+  const key = String(value ?? "").trim();
+  if (key) window.sessionStorage.setItem(OPERATOR_KEY_STORAGE, key);
+  else window.sessionStorage.removeItem(OPERATOR_KEY_STORAGE);
+}
+
+export function hasOperatorKey() {
+  return Boolean(getOperatorKey());
+}
 
 async function req(path, options = {}) {
-  const operatorKey = import.meta.env.VITE_OPERATOR_KEY;
+  const operatorKey = getOperatorKey();
   const res = await fetch(`${BASE}${path}`, {
     headers: { "Content-Type": "application/json", ...(operatorKey ? { "X-Operator-Key": operatorKey } : {}), ...options.headers },
     ...options,

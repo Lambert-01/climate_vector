@@ -1,7 +1,8 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, Map as MapIcon, Radar, ShieldCheck, Smartphone } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, LockKeyhole, Map as MapIcon, Radar, ShieldCheck, Smartphone } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
+import { hasOperatorKey, setOperatorKey } from "./api.js";
 
 const Overview = lazy(() => import("./pages/Overview.jsx"));
 const Sites = lazy(() => import("./pages/Sites.jsx"));
@@ -35,6 +36,9 @@ const PAGE_META = {
 
 function Topbar() {
   const { pathname } = useLocation();
+  const [accessOpen, setAccessOpen] = useState(false);
+  const [keyValue, setKeyValue] = useState("");
+  const [operatorActive, setOperatorActive] = useState(hasOperatorKey());
   const meta = PAGE_META[pathname] ?? PAGE_META["/"];
   const Icon = meta.icon;
   return (
@@ -48,6 +52,49 @@ function Topbar() {
         <p>{meta.sub}</p>
       </div>
       <div className="topbar-right">
+        <div className="operator-access">
+          <button
+            className={`operator-access-trigger ${operatorActive ? "is-active" : ""}`}
+            onClick={() => setAccessOpen((open) => !open)}
+            title="Pilot operator access"
+            aria-label="Pilot operator access"
+          >
+            {operatorActive ? <KeyRound size={14} /> : <LockKeyhole size={14} />}
+            <span>{operatorActive ? "Operator" : "Read only"}</span>
+          </button>
+          {accessOpen && (
+            <form
+              className="operator-access-panel"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setOperatorKey(keyValue);
+                setOperatorActive(Boolean(keyValue.trim()));
+                setKeyValue("");
+                setAccessOpen(false);
+              }}
+            >
+              <strong>Pilot operator</strong>
+              <span>Session-only write access</span>
+              <input
+                type="password"
+                value={keyValue}
+                onChange={(event) => setKeyValue(event.target.value)}
+                placeholder="Operator key"
+                autoComplete="off"
+              />
+              <div>
+                {operatorActive && (
+                  <button type="button" className="btn btn-outline" onClick={() => {
+                    setOperatorKey("");
+                    setOperatorActive(false);
+                    setAccessOpen(false);
+                  }}>Lock</button>
+                )}
+                <button className="btn btn-primary" disabled={!keyValue.trim()}>Unlock</button>
+              </div>
+            </form>
+          )}
+        </div>
         <div className="topbar-status">
           <span className="topbar-status-dot" />
           System live
