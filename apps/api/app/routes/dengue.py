@@ -19,6 +19,8 @@ from app.models import (
     GenomicSample,
     MelObservation,
     ModelEvaluation,
+    ResponseAction,
+    Site,
 )
 from app.services.csv_store import read_csv
 from app.services.dengue_metrics import summarize_aedes_surveillance
@@ -464,6 +466,179 @@ async def dengue_model_readiness(db: AsyncSession = Depends(get_db)) -> dict:
             "sensitivity, specificity, precision, recall, F1, ROC-AUC and PR-AUC",
             "operational lead-time comparison against routine surveillance",
         ],
+    }
+
+
+@router.get("/dengue/executive-summary")
+async def dengue_executive_summary(db: AsyncSession = Depends(get_db)) -> dict:
+    """Return proposal-aligned indicators without converting absent pilot data to evidence."""
+    community, community_source = await _db_list(
+        db, CommunityReport, CommunityReport.submitted_at, _community_dict, "community_reports"
+    )
+    surveillance, surveillance_source = await _db_list(
+        db,
+        AedesSurveillanceRecord,
+        AedesSurveillanceRecord.collection_date,
+        _surveillance_dict,
+        "aedes_surveillance",
+    )
+    genomics, genomics_source = await _db_list(
+        db, GenomicSample, GenomicSample.collection_date, _genomic_dict, "genomic_samples"
+    )
+
+    database_source = "database"
+    try:
+        alerts = (await db.execute(select(Alert))).scalars().all()
+        actions = (await db.execute(select(ResponseAction))).scalars().all()
+        registered_sites = (await db.execute(select(func.count()).select_from(Site))).scalar_one()
+    except Exception:
+        await db.rollback()
+        alerts = []
+        actions = []
+        registered_sites = 0
+        database_source = "database_unavailable"
+
+    sentinel = read_csv("data/processed/context/sentinel_sites_33.csv")
+    candidate_sites = len(sentinel)
+    candidate_gps = sum(
+        bool(row.get("latitude")) and bool(row.get("longitude")) for row in sentinel
+    )
+    validated_site_gps = sum(
+        str(row.get("coordinate_quality", "")).lower() in {"validated", "field_validated"}
+        for row in sentinel
+    )
+
+    aedes_summary = summarize_aedes_surveillance(surveillance)
+    ovitrap_deployments = sum(
+        int(row.get("traps_deployed") or 0)
+        for row in surveillance
+        if "ovi" in str(row.get("trap_type", "")).lower()
+    )
+    bg_deployments = sum(
+        int(row.get("traps_deployed") or 0)
+        for row in surveillance
+        if "bg" in str(row.get("trap_type", "")).lower()
+    )
+
+    analysed_results = {"positive", "negative", "inconclusive"}
+    analysed_pools = [
+        row for row in genomics if str(row.get("dengue_result", "")).lower() in analysed_results
+    ]
+    positive_pools = [
+        row for row in genomics if str(row.get("dengue_result", "")).lower() == "positive"
+    ]
+    serotypes = sorted(
+        {str(row.get("dengue_serotype")) for row in positive_pools if row.get("dengue_serotype")}
+    )
+    sequence_complete = sum(
+        str(row.get("sequencing_status", "")).lower() == "complete" for row in genomics
+    )
+    lineage_ready = sum(bool(row.get("genome_accession")) for row in genomics)
+
+    alert_statuses = [str(row.status or "pending_review").lower() for row in alerts]
+    completed_action_statuses = {"completed", "resolved", "closed", "verified"}
+    completed_actions = sum(
+        str(row.action_status or "").lower() in completed_action_statuses for row in actions
+    )
+
+    effort_missing = sum(
+        row.get("trap_hours") is None
+        and row.get("containers_inspected") is None
+        and row.get("traps_deployed") is None
+        for row in surveillance
+    )
+    species_missing = sum(not row.get("species") for row in surveillance)
+    genomic_result_missing = sum(
+        str(row.get("dengue_result", "not_tested")).lower() in {"not_tested", "pending", ""}
+        for row in genomics
+    )
+    community_pending = sum(
+        str(row.get("review_status", "pending_review")).lower() == "pending_review"
+        for row in community
+    )
+
+    metrics = [
+        {"key": "study_sites", "label": "Candidate study sites", "value": candidate_sites, "state": "candidate_registry", "note": f"{candidate_gps} have lecturer-provided coordinates; field validation pending"},
+        {"key": "aedes_records", "label": "Aedes records", "value": len(surveillance), "state": "observed" if surveillance else "pilot_collection_pending", "note": "Prospective observations only"},
+        {"key": "ovitraps_deployed", "label": "Ovitraps deployed", "value": ovitrap_deployments, "state": "observed" if ovitrap_deployments else "pilot_collection_pending", "note": "Sum of recorded deployments"},
+        {"key": "bg_sentinel_deployments", "label": "BG-Sentinel deployments", "value": bg_deployments, "state": "observed" if bg_deployments else "pilot_collection_pending", "note": "Sum of recorded deployments"},
+        {"key": "pools_analysed", "label": "Mosquito pools analysed", "value": len(analysed_pools), "state": "laboratory_result" if analysed_pools else "pilot_collection_pending", "note": f"{len(genomics)} pools registered"},
+        {"key": "positive_pools", "label": "Dengue-positive pools", "value": len(positive_pools), "state": "laboratory_result" if analysed_pools else "not_yet_tested", "note": "Displayed only after laboratory review"},
+        {"key": "community_reports", "label": "Community reports", "value": len(community), "state": "observed" if community else "pilot_collection_pending", "note": "Consented reports received"},
+        {"key": "alerts_generated", "label": "Review signals generated", "value": len(alerts), "state": "workflow_activity" if alerts else "none_generated", "note": "Human-reviewed signals, not automatic outbreak alerts"},
+        {"key": "actions_completed", "label": "Response actions completed", "value": completed_actions, "state": "workflow_activity" if actions else "none_assigned", "note": f"{len(actions)} actions assigned"},
+    ]
+
+    model_gates = [
+        {"key": "climate_history", "label": "Climate history", "ready": True},
+        {"key": "aedes_outcome", "label": "Validated Aedes outcomes", "ready": aedes_summary["validated_records"] >= 100},
+        {"key": "sampling_effort", "label": "Complete trap effort", "ready": bool(surveillance) and effort_missing == 0},
+        {"key": "dengue_outcome", "label": "Governed dengue outcomes", "ready": False},
+        {"key": "genomic_results", "label": "Reviewed pool results", "ready": bool(analysed_pools)},
+        {"key": "spatiotemporal_coverage", "label": "Seasonal site coverage", "ready": False},
+    ]
+    ready_gate_count = sum(gate["ready"] for gate in model_gates)
+
+    return {
+        "project": "DengueEW-GL",
+        "scope": "Rwanda proof-of-concept operations with exploratory Great Lakes context",
+        "metrics": metrics,
+        "sites": {
+            "candidate": candidate_sites,
+            "registered_database": registered_sites,
+            "coordinates_available": candidate_gps,
+            "field_validated_coordinates": validated_site_gps,
+        },
+        "aedes": aedes_summary,
+        "genomics": {
+            "registered_pools": len(genomics),
+            "analysed_pools": len(analysed_pools),
+            "positive_pools": len(positive_pools),
+            "serotypes": serotypes,
+            "sequencing_complete": sequence_complete,
+            "lineage_records": lineage_ready,
+        },
+        "community": {
+            "reports": len(community),
+            "with_gps": sum(row.get("latitude") is not None and row.get("longitude") is not None for row in community),
+            "with_photo": sum(bool(row.get("photo_reference")) for row in community),
+            "validated": sum(str(row.get("review_status", "")).lower() in {"accepted", "closed"} for row in community),
+            "pending_validation": community_pending,
+            "with_action": sum(bool(row.get("action_taken")) for row in community),
+        },
+        "alerts_and_actions": {
+            "generated": len(alerts),
+            "draft": alert_statuses.count("pending_review"),
+            "under_technical_review": sum(status in {"active", "field_verification_requested", "verified", "escalated"} for status in alert_statuses),
+            "approved": sum(bool(row.approved_by) for row in alerts),
+            "acknowledged": alert_statuses.count("acknowledged"),
+            "assigned_actions": len(actions),
+            "completed_actions": completed_actions,
+        },
+        "data_gaps": [
+            {"key": "site_gps", "label": "Site coordinates needing field validation", "value": candidate_sites - validated_site_gps, "state": "review_required" if candidate_sites > validated_site_gps else "complete"},
+            {"key": "sample_dates", "label": "Prospective records missing collection date", "value": 0, "state": "awaiting_collection" if not surveillance else "complete"},
+            {"key": "trap_effort", "label": "Aedes records missing trap effort", "value": effort_missing, "state": "awaiting_collection" if not surveillance else ("review_required" if effort_missing else "complete")},
+            {"key": "species", "label": "Aedes records missing species", "value": species_missing, "state": "awaiting_collection" if not surveillance else ("review_required" if species_missing else "complete")},
+            {"key": "genomic_result", "label": "Pools without reviewed dengue result", "value": genomic_result_missing, "state": "awaiting_collection" if not genomics else ("review_required" if genomic_result_missing else "complete")},
+            {"key": "community_validation", "label": "Community reports pending validation", "value": community_pending, "state": "awaiting_collection" if not community else ("review_required" if community_pending else "complete")},
+        ],
+        "model_readiness": {
+            "score_pct": round((ready_gate_count / len(model_gates)) * 100),
+            "ready_gates": ready_gate_count,
+            "total_gates": len(model_gates),
+            "gates": model_gates,
+            "current_output": "Prototype climate suitability and field-priority screening",
+            "blocked_output": "Validated Aedes abundance and dengue-risk forecasting",
+        },
+        "sources": {
+            "community": community_source,
+            "aedes": surveillance_source,
+            "genomics": genomics_source,
+            "operations": database_source,
+            "sites": "lecturer_provided_candidate_registry",
+        },
+        "claim_boundary": "Zero means no reviewed pilot observation is currently registered; it does not mean dengue or Aedes is absent. Current risk outputs are prototype climate-suitability signals, not validated outbreak forecasts.",
     }
 
 

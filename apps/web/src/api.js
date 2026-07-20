@@ -88,6 +88,7 @@ export const api = {
   arboviralPartnerGovernance: () => req("/arboviral/partner-governance"),
 
   dengueSubmissionReadiness: () => req("/dengue/submission-readiness"),
+  dengueExecutiveSummary: () => req("/dengue/executive-summary"),
   dengueModelReadiness: () => req("/dengue/model-readiness"),
   dengueMathematicalFramework: () => req("/dengue/mathematical-framework"),
   dengueCommunityReports: () => req("/dengue/community-reports"),

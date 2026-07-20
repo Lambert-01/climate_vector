@@ -98,3 +98,26 @@ def test_mel_summary_has_proposal_indicators_without_fake_targets() -> None:
     assert payload["indicators"]
     assert payload["evaluation_schedule"] == ["baseline", "monthly monitoring", "midline", "endline"]
     assert "Targets must be approved" in payload["governance"]
+
+
+def test_executive_summary_uses_proposal_indicators_and_honest_zero_states() -> None:
+    response = client.get("/api/dengue/executive-summary")
+    assert response.status_code == 200
+    payload = response.json()
+    metrics = {row["key"]: row for row in payload["metrics"]}
+
+    assert set(metrics) == {
+        "study_sites",
+        "aedes_records",
+        "ovitraps_deployed",
+        "bg_sentinel_deployments",
+        "pools_analysed",
+        "positive_pools",
+        "community_reports",
+        "alerts_generated",
+        "actions_completed",
+    }
+    assert metrics["study_sites"]["state"] == "candidate_registry"
+    assert payload["genomics"]["positive_pools"] <= payload["genomics"]["analysed_pools"]
+    assert payload["model_readiness"]["score_pct"] < 100
+    assert "Zero means no reviewed pilot observation" in payload["claim_boundary"]
