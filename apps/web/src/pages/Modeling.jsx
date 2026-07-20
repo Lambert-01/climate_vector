@@ -4,7 +4,6 @@ import {
   BarChart3,
   BrainCircuit,
   CheckCircle2,
-  ClipboardCheck,
   Gauge,
   MapPinned,
   Radar,
@@ -243,33 +242,6 @@ export default function Modeling() {
           </div>
         </SectionCard>
       </div>
-
-      <SectionCard title="What this page contributes" icon={ClipboardCheck}>
-        <div className="decision-grid compact">
-          <div className="decision-card">
-            <span>Climate analytics</span>
-            <strong>Turns rainfall, temperature and humidity into usable preparedness signals.</strong>
-            <small>Supports the Co-PI technical role: essential climate variables, climate-health analytics and risk screening.</small>
-          </div>
-          <div className="decision-card">
-            <span>Surveillance planning</span>
-            <strong>Ranks where field teams should prioritize Aedes verification.</strong>
-            <small>Useful for ovitrap placement, BG-Sentinel deployment planning and field supervision.</small>
-          </div>
-          <div className="decision-card">
-            <span>Governance</span>
-            <strong>Separates screening signals from validated dengue forecasts.</strong>
-            <small>Keeps the Nexa proposal defensible: current system supports preparedness, grant work validates prediction.</small>
-          </div>
-          <div className="decision-card">
-            <span>Action linkage</span>
-            <strong>Feeds technical review, alerts and field-verification workflows.</strong>
-            <small>Districts with stronger signals become candidates for review, not automatic public-health alerts.</small>
-          </div>
-        </div>
-      </SectionCard>
-
-      <div style={{ marginBottom: 22 }} />
 
       <div className="grid-2" style={{ marginBottom: 22 }}>
         <SectionCard title="Model readiness gate" icon={ShieldCheck}>
