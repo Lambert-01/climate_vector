@@ -152,3 +152,100 @@ class AuditLog(Base):
     timestamp: Mapped[datetime | None] = mapped_column(DateTime)
     old_value: Mapped[str | None] = mapped_column(Text)
     new_value: Mapped[str | None] = mapped_column(Text)
+
+
+class CommunityReport(Base):
+    __tablename__ = "community_reports"
+    report_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    submitted_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    reporter_role: Mapped[str] = mapped_column(Text, nullable=False)
+    district: Mapped[str] = mapped_column(Text, nullable=False)
+    site_name: Mapped[str | None] = mapped_column(Text)
+    latitude: Mapped[float | None] = mapped_column(Double)
+    longitude: Mapped[float | None] = mapped_column(Double)
+    breeding_source: Mapped[str] = mapped_column(Text, nullable=False)
+    water_present: Mapped[bool | None] = mapped_column(Boolean)
+    larvae_seen: Mapped[bool | None] = mapped_column(Boolean)
+    mosquito_level: Mapped[str | None] = mapped_column(Text)
+    action_taken: Mapped[str | None] = mapped_column(Text)
+    photo_reference: Mapped[str | None] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
+    consent_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    review_status: Mapped[str] = mapped_column(Text, nullable=False, default="pending_review")
+
+
+class AedesSurveillanceRecord(Base):
+    __tablename__ = "aedes_surveillance_records"
+    record_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    site_id: Mapped[str | None] = mapped_column(ForeignKey("sites.site_id"))
+    district: Mapped[str] = mapped_column(Text, nullable=False)
+    collection_date: Mapped[date] = mapped_column(Date, nullable=False)
+    trap_type: Mapped[str] = mapped_column(Text, nullable=False)
+    trap_hours: Mapped[float | None] = mapped_column(Double)
+    traps_deployed: Mapped[int | None] = mapped_column(Integer)
+    containers_inspected: Mapped[int | None] = mapped_column(Integer)
+    containers_positive: Mapped[int | None] = mapped_column(Integer)
+    eggs_count: Mapped[int | None] = mapped_column(Integer)
+    larvae_count: Mapped[int | None] = mapped_column(Integer)
+    adults_count: Mapped[int | None] = mapped_column(Integer)
+    species: Mapped[str | None] = mapped_column(Text)
+    identification_method: Mapped[str | None] = mapped_column(Text)
+    collector_code: Mapped[str | None] = mapped_column(Text)
+    quality_status: Mapped[str] = mapped_column(Text, nullable=False, default="pending_review")
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+
+class GenomicSample(Base):
+    __tablename__ = "genomic_samples"
+    sample_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    surveillance_record_id: Mapped[str | None] = mapped_column(
+        ForeignKey("aedes_surveillance_records.record_id")
+    )
+    district: Mapped[str] = mapped_column(Text, nullable=False)
+    collection_date: Mapped[date] = mapped_column(Date, nullable=False)
+    mosquito_species: Mapped[str | None] = mapped_column(Text)
+    pool_size: Mapped[int] = mapped_column(Integer, nullable=False)
+    extraction_status: Mapped[str] = mapped_column(Text, nullable=False, default="registered")
+    sequencing_platform: Mapped[str | None] = mapped_column(Text)
+    sequencing_status: Mapped[str] = mapped_column(Text, nullable=False, default="not_started")
+    dengue_result: Mapped[str] = mapped_column(Text, nullable=False, default="not_tested")
+    dengue_serotype: Mapped[str | None] = mapped_column(Text)
+    genome_accession: Mapped[str | None] = mapped_column(Text)
+    qc_status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+
+class ModelEvaluation(Base):
+    __tablename__ = "model_evaluations"
+    evaluation_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    model_name: Mapped[str] = mapped_column(Text, nullable=False)
+    model_version: Mapped[str] = mapped_column(Text, nullable=False)
+    evaluation_date: Mapped[date] = mapped_column(Date, nullable=False)
+    validation_design: Mapped[str] = mapped_column(Text, nullable=False)
+    sensitivity: Mapped[float | None] = mapped_column(Double)
+    specificity: Mapped[float | None] = mapped_column(Double)
+    precision: Mapped[float | None] = mapped_column(Double)
+    recall: Mapped[float | None] = mapped_column(Double)
+    f1_score: Mapped[float | None] = mapped_column(Double)
+    roc_auc: Mapped[float | None] = mapped_column(Double)
+    pr_auc: Mapped[float | None] = mapped_column(Double)
+    brier_score: Mapped[float | None] = mapped_column(Double)
+    lead_time_days: Mapped[float | None] = mapped_column(Double)
+    outcome_definition: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="draft")
+    notes: Mapped[str | None] = mapped_column(Text)
+
+
+class MelObservation(Base):
+    __tablename__ = "mel_observations"
+    observation_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    indicator_code: Mapped[str] = mapped_column(Text, nullable=False)
+    observation_date: Mapped[date] = mapped_column(Date, nullable=False)
+    value: Mapped[float] = mapped_column(Double, nullable=False)
+    unit: Mapped[str] = mapped_column(Text, nullable=False)
+    district: Mapped[str | None] = mapped_column(Text)
+    data_source: Mapped[str] = mapped_column(Text, nullable=False)
+    verification_status: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
+    notes: Mapped[str | None] = mapped_column(Text)
