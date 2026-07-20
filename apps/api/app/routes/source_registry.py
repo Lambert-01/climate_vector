@@ -131,7 +131,7 @@ _SOURCE_ENTRIES = [
         "source_type": "public_api",
         "record_count_source": "Per-location forecast",
         "date_range": "Current + 7-16 day forecast",
-        "supports": "Real-time climate suitability screening and field window identification",
+        "supports": "Live climate screening and field-window identification",
         "cannot_prove": "Historical trends, confirmed disease association",
         "quality_limitations": "Forecast uncertainty increases beyond 3 days; offline fallback available",
         "status": "validated",

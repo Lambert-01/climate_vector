@@ -134,13 +134,18 @@ export default function LiveWeather() {
   const insights = current?.insights ?? [];
   const sourceStatus = detail?.source_status ?? summary?.source_status ?? "checking";
   const regionalPoints = intelligence?.regional_climate?.top_wetness_points ?? [];
+  const lastRefreshed = useMemo(() => {
+    if (!current?.time || current.time === "offline-fallback") return null;
+    const observedAt = new Date(current.time);
+    return Number.isNaN(observedAt.getTime()) ? null : observedAt;
+  }, [current?.time]);
 
   return (
     <div className="page live-weather-page">
       <div className="page-header">
         <div className="page-header-text">
           <h2>Live weather</h2>
-          <div className="page-subtitle">Real-time Open-Meteo nowcast with regional preparedness signals</div>
+          <div className="page-subtitle">Live Open-Meteo conditions for field planning and preparedness review</div>
           <div className="page-header-badges">
             <Badge variant="blue">{selected.charAt(0).toUpperCase() + selected.slice(1)}</Badge>
             {lastRefreshed && <Badge variant="gray">Updated {lastRefreshed.toLocaleTimeString()}</Badge>}

@@ -118,7 +118,7 @@ roles remain the recommended post-pilot identity layer.
 
 ## Technical verification completed
 
-- Backend automated tests: 60 passing.
+- Backend automated tests: 64 passing.
 - Frontend production build: passing.
 - Frontend initial JavaScript bundle reduced from approximately 929 KB to approximately 188 KB through route splitting.
 - Alembic migration head: `c5e807db8a10` after release migration.

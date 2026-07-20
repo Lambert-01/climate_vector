@@ -8,7 +8,7 @@ set HOST=127.0.0.1
 if not "%1"=="" set API_PORT=%1
 if not "%2"=="" set WEB_PORT=%2
 
-echo Starting Climate Vector Rwanda
+echo Starting DengueEW-GL
 echo API: http://%HOST%:%API_PORT%
 echo Web: http://%HOST%:%WEB_PORT%
 
