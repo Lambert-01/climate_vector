@@ -81,24 +81,30 @@ export function SectionCard({ title, icon: Icon, children, action }) {
   );
 }
 
-export function DataTable({ rows, columns, maxRows = 50 }) {
+export function DataTable({ rows, columns, maxRows = 50, expanded = false }) {
   if (!rows?.length) return <div className="empty">No data available.</div>;
   const cols = columns ?? Object.keys(rows[0]);
   return (
-    <div className="table-wrap">
-      <table>
-        <thead>
-          <tr>{cols.map((c) => <th key={c}>{c.replace(/_/g, " ")}</th>)}</tr>
-        </thead>
-        <tbody>
-          {rows.slice(0, maxRows).map((row, i) => (
-            <tr key={i}>
-              {cols.map((c) => <td key={c}>{String(row[c] ?? "").trim() || "—"}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <details className="data-table-disclosure" open={expanded}>
+      <summary>
+        <span>View record detail</span>
+        <strong>{Math.min(rows.length, maxRows)} of {rows.length}</strong>
+      </summary>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>{cols.map((c) => <th key={c}>{c.replace(/_/g, " ")}</th>)}</tr>
+          </thead>
+          <tbody>
+            {rows.slice(0, maxRows).map((row, i) => (
+              <tr key={i}>
+                {cols.map((c) => <td key={c}>{String(row[c] ?? "").trim() || "—"}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
   );
 }
 

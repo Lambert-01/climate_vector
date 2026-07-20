@@ -78,6 +78,7 @@ export default function Mosquito() {
   const [searchQuery, setSearchQuery] = useState("");
   const [districtFilter, setDistrictFilter] = useState("all");
   const [speciesFilter, setSpeciesFilter] = useState("all");
+  const [activeView, setActiveView] = useState("summary");
 
   const tableRows = (records?.items ?? []).map(cleanRecord);
   const districtRows = byDistrict?.items ?? [];
@@ -133,7 +134,21 @@ export default function Mosquito() {
         </div>
       </div>
 
+      <div className="workspace-tabs" role="tablist" aria-label="Vector evidence views">
+        {[["summary", "Interpretation"], ["habitats", "Breeding sources"], ["context", "Regional context"], ["records", "PI records"]].map(([id, label]) => (
+          <button key={id} className={activeView === id ? "active" : ""} onClick={() => setActiveView(id)}>{label}</button>
+        ))}
+      </div>
+
+      {activeView === "summary" && (
+        <div className="evidence-brief">
+          <div><span>Primary interpretation</span><strong>Regional Aedes occurrence supports pilot targeting, not local dengue transmission claims.</strong></div>
+          <div><Badge variant="red">Priority</Badge><span>Deploy standardized Aedes traps and larval-source surveys at approved sentinel sites.</span></div>
+        </div>
+      )}
+
       {/* ── VECTOR GROUP CARDS ── */}
+      {activeView === "summary" && <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, marginBottom: 20 }}>
         <VectorGroupCard label="Aedes" count={aedesCount} icon={Bug} color="#0d9488" relevance="Dengue/chikungunya/Zika/yellow fever" priority="high" />
         <VectorGroupCard label="Other public vectors" count={culexCount} icon={Bug} color="#f59e0b" relevance="Future scale context" priority="secondary" />
@@ -176,8 +191,10 @@ export default function Mosquito() {
           </ChartState>
         </SectionCard>
       </div>
+      </>}
 
       {/* ── BREEDING SOURCE GRID ── */}
+      {activeView === "habitats" && <>
       <SectionCard title="Breeding source distribution" icon={Droplets}>
         <ChartState loading={bL} rows={breedingRows} empty="No breeding source data.">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8, padding: "14px 16px" }}>
@@ -192,8 +209,10 @@ export default function Mosquito() {
       </SectionCard>
 
       <div style={{ marginBottom: 20 }} />
+      </>}
 
       {/* ── EVIDENCE QUALITY MATRIX ── */}
+      {activeView === "context" && <>
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <SectionCard title="Great Lakes vector occurrence" icon={Globe2}>
           <ChartState loading={iL} rows={vectorContext} empty="No regional context.">
@@ -223,28 +242,10 @@ export default function Mosquito() {
           </ChartState>
         </SectionCard>
       </div>
-
-      {/* ── ACTION SUMMARY ── */}
-      <SectionCard title="What this means for action" icon={Shield}>
-        <div style={{ padding: "14px 16px", display: "grid", gap: 6 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "#fef2f2", borderRadius: "var(--radius-sm)", border: "1px solid #fecaca" }}>
-            <Badge variant="red">high</Badge>
-            <div style={{ fontSize: 12, fontWeight: 600 }}>Aedes: High surveillance priority — pilot ovitraps needed</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "#fffbeb", borderRadius: "var(--radius-sm)", border: "1px solid #fde68a" }}>
-            <Badge variant="amber">moderate</Badge>
-            <div style={{ fontSize: 12, fontWeight: 600 }}>Other vector records: retained only for future scale context</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "var(--surface-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
-            <Badge variant="gray">context</Badge>
-            <div style={{ fontSize: 12, fontWeight: 600 }}>Legacy PI ecology: field-infrastructure context, not Aedes evidence</div>
-          </div>
-        </div>
-      </SectionCard>
-
-      <div style={{ marginBottom: 20 }} />
+      </>}
 
       {/* ── PI ECOLOGY EXPLORER ── */}
+      {activeView === "records" && <>
       <SectionCard
         title="PI ecology explorer"
         icon={Activity}
@@ -284,6 +285,7 @@ export default function Mosquito() {
           />
         </ChartState>
       </SectionCard>
+      </>}
     </div>
   );
 }
