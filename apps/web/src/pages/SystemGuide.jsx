@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import {
   Activity, AlertTriangle, ArrowRight, Biohazard, BrainCircuit, CheckCircle2,
   ChevronRight, ClipboardCheck, Cloud, CloudSun, Database, FileCheck,
-  FlaskConical, Globe, HelpCircle, Home, ShieldCheck, Map, MapPin, Radar,
-  Smartphone, Target, Thermometer, Users, Zap, BookOpen, Layers,
+  FlaskConical, HelpCircle, Home, ShieldCheck, Map, MapPin,
+  Smartphone, Target, Users, Zap, BookOpen, Layers,
   Lock, Eye, Microscope, BarChart3, Workflow,
 } from "lucide-react";
 import { Badge, SectionCard, ProgressBar } from "../components/UI";
@@ -434,9 +434,9 @@ function PageCard({ page }) {
               <div className="guide-page-field-value guide-page-caution">{page.caveat}</div>
             </div>
           </div>
-          <div className="guide-page-nexa">
-            <Globe size={14} />
-            <span><strong>Nexa proposal link:</strong> {page.nexa}</span>
+          <div className="guide-page-contribution">
+            <Zap size={14} />
+            <span><strong>Pipeline contribution:</strong> {page.nexa}</span>
           </div>
         </div>
       )}

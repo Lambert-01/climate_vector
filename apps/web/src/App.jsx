@@ -107,6 +107,19 @@ function LoginModal({ onLogin }) {
           <button type="submit" className="login-submit" disabled={loading || !email || !password}>
             {loading ? <><Loader2 size={16} className="spin" /> Signing in...</> : <><LogIn size={16} /> Sign in</>}
           </button>
+          <div className="login-demo-hint">
+            <div className="login-demo-label">Demo credentials</div>
+            <div className="login-demo-row">
+              <span>Email</span>
+              <code>info@system.com</code>
+              <button type="button" className="login-demo-copy" onClick={() => { navigator.clipboard?.writeText("info@system.com"); }}>Copy</button>
+            </div>
+            <div className="login-demo-row">
+              <span>Password</span>
+              <code>admin123!Pass</code>
+              <button type="button" className="login-demo-copy" onClick={() => { navigator.clipboard?.writeText("admin123!Pass"); }}>Copy</button>
+            </div>
+          </div>
           <p className="login-footer">Authorized personnel only. All access is audited.</p>
         </form>
       </div>
