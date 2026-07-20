@@ -17,6 +17,7 @@ import {
   Radar,
   Shield,
   ShieldCheck,
+  Smartphone,
 } from "lucide-react";
 import { api } from "../api";
 
@@ -26,7 +27,8 @@ const NAV_GROUPS = [
     items: [
       { to: "/",             label: "Overview",       icon: Home,         hint: "MVP status",     pulse: true },
       { to: "/decision-room", label: "Decision Room", icon: ShieldCheck,  hint: "Action brief" },
-      { to: "/arboviral",    label: "Arboviral Prep", icon: Biohazard,    hint: "Great Lakes" },
+      { to: "/arboviral",    label: "Dengue Intelligence", icon: Biohazard, hint: "Aedes + climate" },
+      { to: "/dengue-operations", label: "Pilot Operations", icon: Smartphone, hint: "Field + community" },
       { to: "/data-readiness", label: "Data Control", icon: Database,     hint: "Quality centre" },
     ],
   },
@@ -34,7 +36,7 @@ const NAV_GROUPS = [
     label: "Evidence",
     items: [
       { to: "/mosquito",    label: "Vector Evidence", icon: Activity,     hint: "PI + GBIF" },
-      { to: "/resistance",  label: "Control Context", icon: FlaskConical, hint: "24h mortality" },
+      { to: "/resistance",  label: "Legacy Control Evidence", icon: FlaskConical, hint: "PI baseline" },
       { to: "/sites",       label: "Sites + Map",     icon: Map,          hint: "33 sentinel" },
     ],
   },
@@ -50,7 +52,7 @@ const NAV_GROUPS = [
   },
 ];
 
-const MVP_STEPS = ["Readiness", "Aedes", "RVF", "Climate", "Response"];
+const MVP_STEPS = ["Climate", "Aedes", "Community", "Genomics", "Response"];
 
 function SystemStatusPanel() {
   const [status, setStatus] = useState({ api: "checking", db: "checking" });
@@ -97,13 +99,13 @@ export default function Sidebar() {
             <Shield size={17} color="#fff" />
           </div>
           <div className="sidebar-logo-text">
-            <strong>ArboRisk-GL</strong>
-            <span>Arboviral intelligence · v1.0</span>
+            <strong>DengueEW-GL</strong>
+            <span>Climate + Aedes PoC · v1.1</span>
           </div>
         </div>
         <div className="sidebar-product-meta">
           <span>Great Lakes</span>
-          <span>Preparedness</span>
+          <span>Dengue PoC</span>
           <span>MVP</span>
         </div>
       </div>
