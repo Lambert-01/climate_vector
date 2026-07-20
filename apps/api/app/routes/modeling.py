@@ -120,10 +120,10 @@ def _generate_reason_codes(signal, r7: float, r30: float, tmean: float | None, r
             codes.append({"code": "temp_out_of_range", "message": f"Temperature {tmean:.1f}C below or above mosquito activity range", "category": "climate"})
         else:
             codes.append({"code": "temp_moderate", "message": f"Temperature {tmean:.1f}C in marginal suitability range", "category": "climate"})
-    if r7 > 35:
-        codes.append({"code": "rainfall_7d_high", "message": f"7-day rainfall {r7:.0f}mm suitable for breeding habitat activation", "category": "climate"})
-    elif r7 > 90:
+    if r7 > 90:
         codes.append({"code": "rainfall_flushing", "message": f"7-day rainfall {r7:.0f}mm may flush breeding habitats", "category": "climate"})
+    elif r7 > 35:
+        codes.append({"code": "rainfall_7d_high", "message": f"7-day rainfall {r7:.0f}mm suitable for breeding habitat activation", "category": "climate"})
     else:
         codes.append({"code": "rainfall_7d_low", "message": f"7-day rainfall {r7:.0f}mm below optimal breeding threshold", "category": "climate"})
     if records >= 20:

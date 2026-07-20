@@ -158,8 +158,10 @@ def test_source_registry_returns_all_sources() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert payload["items"]
-    assert len(payload["items"]) == 13
-    assert payload["summary"]["total_sources"] == 13
+    assert len(payload["items"]) >= 18
+    assert payload["summary"]["total_sources"] >= 18
+    source_ids = {item["source_id"] for item in payload["items"]}
+    assert {"community_surveillance", "dengue_genomics", "model_evaluation", "mel_observations"}.issubset(source_ids)
     first = payload["items"][0]
     assert {"source_id", "name", "domain", "source_type", "status", "supports", "cannot_prove"}.issubset(first)
 

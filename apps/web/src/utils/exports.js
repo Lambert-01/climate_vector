@@ -27,8 +27,10 @@ export function downloadJson(filename, data) {
   URL.revokeObjectURL(url);
 }
 
-export function printSection() {
+export function printSection(sectionId) {
+  if (sectionId) document.getElementById(sectionId)?.setAttribute("data-print-target", "true");
   window.print();
+  if (sectionId) document.getElementById(sectionId)?.removeAttribute("data-print-target");
 }
 
 export function copyText(text) {

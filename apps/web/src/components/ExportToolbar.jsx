@@ -2,7 +2,7 @@ import React from "react";
 import { Copy, Download, FileJson, Printer } from "lucide-react";
 import { downloadCsv, downloadJson, printSection, copyText, todayStamp } from "../utils/exports";
 
-export default function ExportToolbar({ csvFilename, csvRows, jsonData, printId, copyText: copyContent, label }) {
+export default function ExportToolbar({ csvFilename = "export", csvRows, jsonData, printId, copyText: copyContent, label }) {
   const date = todayStamp();
   return (
     <div className="export-toolbar">
@@ -16,11 +16,9 @@ export default function ExportToolbar({ csvFilename, csvRows, jsonData, printId,
           <FileJson size={13} /><span>JSON</span>
         </button>
       )}
-      {printId && (
-        <button className="export-btn" onClick={() => printSection()} title="Print">
-          <Printer size={13} /><span>Print</span>
-        </button>
-      )}
+      <button className="export-btn" onClick={() => printSection(printId)} title="Print or save as PDF">
+        <Printer size={13} /><span>Print</span>
+      </button>
       {copyContent && (
         <button className="export-btn" onClick={() => copyText(copyContent)} title="Copy brief">
           <Copy size={13} /><span>Copy</span>

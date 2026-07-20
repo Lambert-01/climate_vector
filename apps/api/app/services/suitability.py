@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import math
+import csv
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
@@ -70,35 +70,37 @@ def _get_recent_climate(district: str, window: int = 30) -> tuple[float, float, 
     """Return (mean_temp, r7, r30) from the last available days."""
     path = NASA_DIR / f"{district.lower()}_nasa_power_2021_2025.csv"
     if not path.exists():
-        return 20.0, 5.0, 40.0
+        raise ValueError(f"No NASA POWER climate file for district: {district}")
     rows = _parse_nasa_csv(path)
     if not rows:
-        return 20.0, 5.0, 40.0
+        raise ValueError(f"NASA POWER climate file has no rows for district: {district}")
     recent = rows[-window:]
     last7 = rows[-7:]
     r7 = sum(float(r.get("PRECTOTCORR", 0) or 0) for r in last7)
     r30 = sum(float(r.get("PRECTOTCORR", 0) or 0) for r in recent)
     temps = [float(r.get("T2M", 20) or 20) for r in recent if r.get("T2M")]
-    tmean = sum(temps) / len(temps) if temps else 20.0
+    if not temps:
+        raise ValueError(f"NASA POWER climate file has no valid temperature rows for district: {district}")
+    tmean = sum(temps) / len(temps)
     return tmean, r7, r30
 
 
-# Approximate mosquito record counts per district from processed data
-_DISTRICT_EVIDENCE: dict[str, int] = {
-    "bugesera": 45, "gasabo": 38, "kicukiro": 32, "nyarugenge": 28,
-    "musanze": 22, "rubavu": 18, "huye": 15, "nyagatare": 12,
-    "rwamagana": 20, "kayonza": 14, "kirehe": 10, "ngoma": 8,
-    "gatsibo": 9, "gicumbi": 11, "rulindo": 7, "gakenke": 6,
-    "burera": 5, "nyabihu": 8, "ngororero": 6, "rusizi": 12,
-    "karongi": 9, "rutsiro": 7, "nyamasheke": 10, "nyamagabe": 8,
-    "nyaruguru": 6, "gisagara": 7, "nyanza": 9, "ruhango": 11,
-    "muhanga": 13, "kamonyi": 10,
-}
+def _district_evidence_counts() -> dict[str, int]:
+    path = ROOT / "data" / "processed" / "mosquito_ecology_preliminary.csv"
+    counts: dict[str, int] = {}
+    if not path.exists():
+        return counts
+    with path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            district = str(row.get("district_raw") or "").strip().lower()
+            if district:
+                counts[district] = counts.get(district, 0) + 1
+    return counts
 
 
 def compute_district_suitability(district: str) -> dict:
     tmean, r7, r30 = _get_recent_climate(district)
-    evidence = _DISTRICT_EVIDENCE.get(district.lower(), 5)
+    evidence = _district_evidence_counts().get(district.lower(), 0)
 
     s_t = _temp_suitability(tmean)
     s_r = _rainfall_suitability(r7, r30)

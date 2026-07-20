@@ -15,6 +15,7 @@ import {
   ProgressBar, PulseIndicator, SectionCard, StatCard,
   SkeletonStatCard, SkeletonLine,
 } from "../components/UI";
+import ExportToolbar from "../components/ExportToolbar";
 
 function n(v) { const x = Number(v); return Number.isFinite(x) ? x : 0; }
 function fmt(v) { return Number(v ?? 0).toLocaleString(); }
@@ -82,6 +83,11 @@ export default function Overview() {
           <Badge variant="amber">Descriptive · not validated prediction</Badge>
           <Badge variant="blue">Pilot validation built in</Badge>
           <Badge variant="teal">Nexa PoC eligible</Badge>
+          <ExportToolbar
+            csvFilename="dengue_poc_evidence_sources"
+            csvRows={validRows}
+            jsonData={{ readiness: readiness?.items ?? [], district_priorities: risk?.items ?? [], evidence_sources: validRows }}
+          />
         </div>
         <div style={{ display: "flex", gap: 20, marginTop: 4 }}>
           <PulseIndicator label="System live" active />
