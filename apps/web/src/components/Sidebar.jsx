@@ -3,10 +3,8 @@ import { NavLink } from "react-router-dom";
 import {
   Activity,
   AlertTriangle,
-  BarChart3,
   Biohazard,
   BrainCircuit,
-  CheckCircle2,
   Cloud,
   CloudSun,
   Database,
@@ -14,7 +12,6 @@ import {
   FlaskConical,
   Home,
   Map,
-  Radar,
   Shield,
   ShieldCheck,
   Smartphone,
@@ -25,34 +22,37 @@ const NAV_GROUPS = [
   {
     label: "Command",
     items: [
-      { to: "/",             label: "Overview",       icon: Home,         hint: "MVP status",     pulse: true },
-      { to: "/decision-room", label: "Decision Room", icon: ShieldCheck,  hint: "Action brief" },
-      { to: "/arboviral",    label: "Dengue Intelligence", icon: Biohazard, hint: "Aedes + climate" },
-      { to: "/dengue-operations", label: "Pilot Operations", icon: Smartphone, hint: "Field + community" },
-      { to: "/data-readiness", label: "Data Control", icon: Database,     hint: "Quality centre" },
+      { to: "/", label: "Overview", icon: Home },
+      { to: "/decision-room", label: "Decision Room", icon: ShieldCheck },
     ],
   },
   {
-    label: "Evidence",
+    label: "Operations",
     items: [
-      { to: "/mosquito",    label: "Vector Evidence", icon: Activity,     hint: "PI + GBIF" },
-      { to: "/resistance",  label: "Legacy Control Evidence", icon: FlaskConical, hint: "PI baseline" },
-      { to: "/sites",       label: "Sites + Map",     icon: Map,          hint: "33 sentinel" },
+      { to: "/dengue-operations", label: "Pilot Workspace", icon: Smartphone },
+      { to: "/alerts", label: "Response Board", icon: AlertTriangle },
+      { to: "/field-verification", label: "Field Verification", icon: FileCheck },
     ],
   },
   {
-    label: "Climate to Action",
+    label: "Intelligence",
     items: [
-      { to: "/climate",      label: "Climate Context", icon: Cloud,         hint: "RWA + GL" },
-      { to: "/live-weather", label: "Live Weather",    icon: CloudSun,      hint: "nowcast" },
-      { to: "/modeling",     label: "Priority Engine", icon: BrainCircuit,  hint: "screening" },
-      { to: "/alerts",       label: "Response Board",  icon: AlertTriangle, hint: "review flow" },
-      { to: "/field-verification", label: "Field Verification", icon: FileCheck, hint: "pilot ready" },
+      { to: "/arboviral", label: "Dengue Intelligence", icon: Biohazard },
+      { to: "/climate", label: "Climate Context", icon: Cloud },
+      { to: "/live-weather", label: "Live Weather", icon: CloudSun },
+      { to: "/modeling", label: "Priority Engine", icon: BrainCircuit },
+    ],
+  },
+  {
+    label: "Evidence & Data",
+    items: [
+      { to: "/sites", label: "Sites & Map", icon: Map },
+      { to: "/mosquito", label: "Vector Evidence", icon: Activity },
+      { to: "/resistance", label: "Legacy Control", icon: FlaskConical },
+      { to: "/data-readiness", label: "Data Control", icon: Database },
     ],
   },
 ];
-
-const MVP_STEPS = ["Climate", "Aedes", "Community", "Genomics", "Response"];
 
 function SystemStatusPanel() {
   const [status, setStatus] = useState({ api: "checking", db: "checking" });
@@ -90,9 +90,9 @@ function SystemStatusPanel() {
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen = false, onNavigate }) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
       <div className="sidebar-brand-panel">
         <div className="sidebar-logo-mark">
           <div className="sidebar-logo-icon">
@@ -103,45 +103,25 @@ export default function Sidebar() {
             <span>Climate + Aedes PoC · v1.1</span>
           </div>
         </div>
-        <div className="sidebar-product-meta">
-          <span>Great Lakes</span>
-          <span>Dengue PoC</span>
-          <span>MVP</span>
-        </div>
-      </div>
-
-      <div className="sidebar-mission">
-        <div className="mission-title">
-          <Radar size={13} />
-          MVP Modules
-        </div>
-        <div className="mission-steps">
-          {MVP_STEPS.map((step) => (
-            <div className="mission-step" key={step}>
-              <CheckCircle2 size={11} />
-              <span>{step}</span>
-            </div>
-          ))}
-        </div>
+        <div className="sidebar-product-meta"><span>Great Lakes pilot</span></div>
       </div>
 
       <nav className="sidebar-nav">
         {NAV_GROUPS.map((group) => (
           <div className="nav-group" key={group.label}>
             <div className="sidebar-section-label">{group.label}</div>
-            {group.items.map(({ to, label, icon: Icon, hint, pulse }) => (
+            {group.items.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={to === "/"}
+                onClick={onNavigate}
                 className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
               >
                 <Icon size={15} />
                 <span className="nav-copy">
                   <strong>{label}</strong>
-                  <small>{hint}</small>
                 </span>
-                {pulse && <span className="nav-pulse" />}
               </NavLink>
             ))}
           </div>
@@ -150,28 +130,6 @@ export default function Sidebar() {
 
       <div className="sidebar-footer">
         <SystemStatusPanel />
-        <div className="sidebar-kpis">
-          <div>
-            <span>Records</span>
-            <strong>13k+</strong>
-          </div>
-          <div>
-            <span>Sentinel sites</span>
-            <strong>33</strong>
-          </div>
-          <div>
-            <span>GL points</span>
-            <strong>7</strong>
-          </div>
-          <div>
-            <span>Evidence layers</span>
-            <strong>18</strong>
-          </div>
-        </div>
-        <div className="sidebar-badge">
-          <BarChart3 size={12} />
-          Field validation ready
-        </div>
       </div>
     </aside>
   );

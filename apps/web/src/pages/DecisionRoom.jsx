@@ -114,6 +114,7 @@ export default function DecisionRoom() {
   const [toast, setToast] = useState(null);
   const [creatingAlert, setCreatingAlert] = useState(null);
   const [creatingVerify, setCreatingVerify] = useState(null);
+  const [activeView, setActiveView] = useState("priorities");
 
   const riskItems = risk?.items ?? [];
   const highRisk = riskItems.filter((r) => r.risk_level === "high");
@@ -174,9 +175,9 @@ export default function DecisionRoom() {
   }, []);
 
   const briefText = [
-    `ArboRisk-GL Decision Brief — ${today()}`,
-    `System: ArboRisk-GL v1.0 — Great Lakes Arboviral Intelligence Prototype`,
-    `Status: Proof of Concept — descriptive preparedness context`,
+    `DengueEW-GL Decision Brief — ${today()}`,
+    `System: DengueEW-GL — climate-informed dengue preparedness`,
+    `Status: Proof of Concept — screening and human review`,
     ``,
     `High-priority districts: ${highRisk.length}`,
     `Medium-priority districts: ${medRisk.length}`,
@@ -224,7 +225,18 @@ export default function DecisionRoom() {
         </div>
       </div>
 
+      <div className="workspace-tabs" role="tablist" aria-label="Decision Room views">
+        {[
+          ["priorities", "Priority queue"],
+          ["evidence", "Confidence & limits"],
+          ["workflow", "Response workflow"],
+        ].map(([id, label]) => (
+          <button key={id} className={activeView === id ? "active" : ""} onClick={() => setActiveView(id)}>{label}</button>
+        ))}
+      </div>
+
       {/* ── TOP METRICS ── */}
+      {activeView === "priorities" && <>
       <div className="kpi-row">
         {rL ? Array.from({ length: 4 }).map((_, i) => <SkeletonStatCard key={i} />) : (
           <>
@@ -259,8 +271,10 @@ export default function DecisionRoom() {
           </>
         )}
       </div>
+      </>}
 
       {/* ── ACTION PIPELINE ── */}
+      {activeView === "workflow" && <>
       <SectionCard title="Action pipeline" icon={Zap}>
         <div className="action-pipeline">
           {PIPELINE_STEPS.map((step, i) => (
@@ -278,8 +292,10 @@ export default function DecisionRoom() {
       </SectionCard>
 
       <div style={{ marginBottom: 20 }} />
+      </>}
 
       {/* ── PRIORITY QUEUE ── */}
+      {activeView === "priorities" && <>
       <SectionCard
         title="Priority queue"
         icon={Target}
@@ -301,8 +317,10 @@ export default function DecisionRoom() {
       </SectionCard>
 
       <div style={{ marginBottom: 20 }} />
+      </>}
 
       {/* ── CONFIDENCE + READINESS ── */}
+      {activeView === "evidence" && <>
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <SectionCard title="Confidence indicators" icon={ShieldCheck}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 14, padding: "18px 16px" }}>
@@ -352,8 +370,10 @@ export default function DecisionRoom() {
           </div>
         </SectionCard>
       </div>
+      </>}
 
       {/* ── IMMEDIATE ACTIONS ── */}
+      {activeView === "workflow" && <>
       <SectionCard title="Immediate actions" icon={Zap}>
         <div style={{ padding: "14px 16px", display: "grid", gap: 8 }}>
           {[
@@ -373,6 +393,7 @@ export default function DecisionRoom() {
           ))}
         </div>
       </SectionCard>
+      </>}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, LockKeyhole, Map as MapIcon, Radar, ShieldCheck, Smartphone } from "lucide-react";
+import { Activity, AlertTriangle, Biohazard, BrainCircuit, Cloud, CloudSun, Database, FileCheck, FlaskConical, Home, KeyRound, LockKeyhole, Map as MapIcon, Menu, Radar, ShieldCheck, Smartphone, X } from "lucide-react";
 import Sidebar from "./components/Sidebar.jsx";
 import { hasOperatorKey, setOperatorKey } from "./api.js";
 
@@ -34,7 +34,7 @@ const PAGE_META = {
   "/data-readiness":{ title: "Data Control",            sub: "Readiness · validation queue · governance",            icon: Database },
 };
 
-function Topbar() {
+function Topbar({ mobileOpen, onToggleMobile }) {
   const { pathname } = useLocation();
   const [accessOpen, setAccessOpen] = useState(false);
   const [keyValue, setKeyValue] = useState("");
@@ -44,6 +44,9 @@ function Topbar() {
   return (
     <header className="topbar">
       <div className="topbar-left">
+        <button className="mobile-nav-trigger" onClick={onToggleMobile} aria-label="Toggle navigation">
+          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
         <h1>
           <Icon size={17} />
           {meta.title}
@@ -112,11 +115,13 @@ function Topbar() {
 }
 
 export default function App() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <div className="layout">
-      <Sidebar />
+      <Sidebar mobileOpen={mobileOpen} onNavigate={() => setMobileOpen(false)} />
+      {mobileOpen && <button className="sidebar-scrim" onClick={() => setMobileOpen(false)} aria-label="Close navigation" />}
       <div className="main-content">
-        <Topbar />
+        <Topbar mobileOpen={mobileOpen} onToggleMobile={() => setMobileOpen((open) => !open)} />
         <Suspense fallback={<div className="page-loading" role="status">Loading workspace...</div>}>
           <Routes>
             <Route path="/"              element={<Overview />} />

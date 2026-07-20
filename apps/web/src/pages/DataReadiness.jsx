@@ -113,6 +113,7 @@ export default function DataReadiness() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [drawerSource, setDrawerSource] = useState(null);
+  const [workspaceView, setWorkspaceView] = useState("quality");
 
   const items = data?.items ?? [];
   const ready = items.filter((i) => String(i.ready).toLowerCase() === "true").length;
@@ -172,50 +173,21 @@ export default function DataReadiness() {
         </div>
       </div>
 
-      {/* ── TOP METRICS ── */}
-      <div className="kpi-row">
-        {srL ? Array.from({ length: 5 }).map((_, i) => <SkeletonStatCard key={i} />) : (
-          <>
-            <div className="kpi-tile">
-              <div className="kpi-tile-accent teal" />
-              <div className="kpi-tile-label">Total sources</div>
-              <div className="kpi-tile-value">{registryItems.length}</div>
-              <div className="kpi-tile-sub">Tracked with provenance</div>
-              <Database size={48} className="kpi-tile-icon" />
-            </div>
-            <div className="kpi-tile">
-              <div className="kpi-tile-accent green" />
-              <div className="kpi-tile-label">Usable</div>
-              <div className="kpi-tile-value">{usableSrc}</div>
-              <div className="kpi-tile-sub">Validated or downloaded</div>
-              <CheckCircle2 size={48} className="kpi-tile-icon" />
-            </div>
-            <div className="kpi-tile">
-              <div className="kpi-tile-accent blue" />
-              <div className="kpi-tile-label">Validation passed</div>
-              <div className="kpi-tile-value">{valPassed}</div>
-              <div className="kpi-tile-sub">of {valTotal} file checks</div>
-              <Shield size={48} className="kpi-tile-icon" />
-            </div>
-            <div className="kpi-tile">
-              <div className="kpi-tile-accent red" />
-              <div className="kpi-tile-label">Issues</div>
-              <div className="kpi-tile-value">{valIssueCount}</div>
-              <div className="kpi-tile-sub">{valWarnings} warning · {valFailed} failed · {valMissing} missing</div>
-              <AlertTriangle size={48} className="kpi-tile-icon" />
-            </div>
-            <div className="kpi-tile">
-              <div className="kpi-tile-accent amber" />
-              <div className="kpi-tile-label">Pilot required</div>
-              <div className="kpi-tile-value">{PILOT_ITEMS.length}</div>
-              <div className="kpi-tile-sub">Formal access needed</div>
-              <Microscope size={48} className="kpi-tile-icon" />
-            </div>
-          </>
-        )}
+      <div className="command-metrics">
+        <div className="command-metric tone-neutral"><span>Tracked sources</span><strong>{registryItems.length}</strong><small>with provenance</small></div>
+        <div className="command-metric tone-good"><span>Usable now</span><strong>{usableSrc}</strong><small>validated or downloaded</small></div>
+        <div className={`command-metric ${valIssueCount ? "tone-warning" : "tone-good"}`}><span>Quality issues</span><strong>{valIssueCount}</strong><small>{valWarnings} warning · {valFailed + valMissing} blocked</small></div>
+        <div className="command-metric tone-neutral"><span>Readiness</span><strong>{readyPct}%</strong><small>{valPassed}/{valTotal} checks pass</small></div>
+      </div>
+
+      <div className="workspace-tabs" role="tablist" aria-label="Data Control views">
+        {[["quality", "Quality queue"], ["sources", "Source registry"], ["governance", "Governance & pilot gaps"]].map(([id, label]) => (
+          <button key={id} className={workspaceView === id ? "active" : ""} onClick={() => setWorkspaceView(id)}>{label}</button>
+        ))}
       </div>
 
       {/* ── READINESS BAR ── */}
+      {workspaceView === "quality" && <>
       <SectionCard title="Readiness" icon={ClipboardCheck}>
         <div style={{ padding: "16px 20px", display: "grid", gap: 10 }}>
           <ProgressBar label="Data readiness" value={readyPct} color="teal" />
@@ -254,8 +226,10 @@ export default function DataReadiness() {
       </SectionCard>
 
       <div style={{ marginBottom: 20 }} />
+      </>}
 
       {/* ── SOURCE REGISTRY ── */}
+      {workspaceView === "sources" && <>
       <SectionCard
         title="Source registry"
         icon={Database}
@@ -331,8 +305,10 @@ export default function DataReadiness() {
       </SectionCard>
 
       <div style={{ marginBottom: 20 }} />
+      </>}
 
       {/* ── GOVERNANCE ── */}
+      {workspaceView === "governance" && <>
       <SectionCard title="Partner governance pipeline" icon={Database}>
         <PhaseTimeline phases={GOVERNANCE_PHASES} />
         <div style={{ padding: "12px 16px", display: "grid", gap: 6 }}>
@@ -368,6 +344,7 @@ export default function DataReadiness() {
           ))}
         </div>
       </SectionCard>
+      </>}
 
       {/* ── SOURCE DETAIL DRAWER ── */}
       <SourceDetailDrawer source={drawerSource} onClose={() => setDrawerSource(null)} />
