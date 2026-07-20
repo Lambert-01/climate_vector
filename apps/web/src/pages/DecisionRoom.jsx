@@ -162,7 +162,7 @@ export default function DecisionRoom() {
         district: row.district,
         reason_for_visit: actionFor(row),
         climate_trigger: signalFor(row),
-        suspected_vector_group: "Aedes/Culex",
+        suspected_vector_group: "Aedes",
         notes: `Auto-generated from Decision Room priority queue. Limitation: ${limitationFor(row)}`,
       });
       setToast({ message: `Verification request created for ${row.district}`, type: "success" });
@@ -186,7 +186,7 @@ export default function DecisionRoom() {
     ``,
     `Top priority: ${topDistricts[0]?.district ?? "Pending"}`,
     `Action: ${actionFor(topDistricts[0] ?? {})}`,
-    `Limitation: No official arboviral case data connected. Pilot validation required.`,
+    `Limitation: No approved dengue outcome series is connected. Pilot validation is required.`,
   ].join("\n");
 
   const csvRows = topDistricts.map((r) => ({
@@ -327,7 +327,7 @@ export default function DecisionRoom() {
             </div>
             <div className="compact-insight">
               <span className="compact-insight-label">Field</span>
-              <span className="compact-insight-value">Aedes/Culex pilot traps needed</span>
+              <span className="compact-insight-value">Aedes pilot surveillance needed</span>
               <Badge variant="amber">Pilot required</Badge>
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function DecisionRoom() {
         <div style={{ padding: "14px 16px", display: "grid", gap: 8 }}>
           {[
             { action: "Validate sentinel site coordinates", priority: "high", owner: "PI / field team", deadline: "Week 1-2" },
-            { action: "Deploy Aedes/Culex pilot surveillance", priority: "high", owner: "Entomology team", deadline: "Month 1" },
+            { action: "Deploy Aedes pilot surveillance", priority: "high", owner: "Entomology team", deadline: "Months 6–12" },
             { action: "Initiate RBC/MoH data-sharing request", priority: "high", owner: "Data governance", deadline: "Month 1" },
             { action: "Confirm PI susceptibility protocols", priority: "medium", owner: "PI / lab team", deadline: "Month 2" },
           ].map((item, i) => (

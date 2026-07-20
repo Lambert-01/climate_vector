@@ -37,7 +37,6 @@ export default function Modeling() {
 
   const climateScores = scoring?.climate_suitability_scores ?? [];
   const aedesPrep     = scoring?.aedes_preparedness ?? {};
-  const rvfWatch      = scoring?.rvf_watch ?? {};
   const confidence    = scoring?.data_confidence ?? {};
 
   return (
@@ -45,12 +44,11 @@ export default function Modeling() {
 
       {/* ── HERO ── */}
       <div className="page-hero">
-        <div className="eyebrow">Preparedness priority engine</div>
-        <h2>Suitability intelligence and district screening</h2>
+        <div className="eyebrow">Dengue preparedness priority engine</div>
+        <h2>Aedes surveillance prioritization</h2>
         <p>
-          Climate-vector suitability indices for all 30 Rwanda districts, Aedes preparedness
-          and RVF watch scores, and data confidence tracking. All outputs are pilot-grade
-          screening — not confirmed disease prediction.
+          Climate suitability and existing vector evidence identify where prospective Aedes
+          surveillance should be reviewed first. These are screening priorities, not dengue forecasts.
         </p>
         <div className="hero-badges">
           <Badge variant="green">Decision support</Badge>
@@ -58,8 +56,8 @@ export default function Modeling() {
           <Badge variant="blue">30 Rwanda districts</Badge>
           <ExportToolbar
             csvFilename="arborisk_modeling_screening"
-            csvRows={(districts ?? []).map((d) => ({ district: d.district, risk_level: d.risk_level, suitability_index: d.suitability_index, reason: d.reason }))}
-            jsonData={districts ?? []}
+            csvRows={rows.map((d) => ({ district: d.district, risk_level: d.risk_level, suitability_index: d.suitability_index, reason: d.reason }))}
+            jsonData={rows}
           />
         </div>
         <div className="page-hero-kpis">
@@ -133,13 +131,13 @@ export default function Modeling() {
                   <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-.02em" }}>{Number(aedesPrep.index ?? 0).toFixed(3)}</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>{aedesPrep.recommended_action}</div>
                 </div>
-                <div style={{ background: RISK_BG[rvfWatch.level === "watch" ? "high" : rvfWatch.level === "monitor" ? "medium" : "low"] ?? "#f0fdf4", borderRadius: "var(--radius)", padding: "14px 16px", border: "1px solid var(--border-light)" }}>
+                <div style={{ background: "var(--surface-2)", borderRadius: "var(--radius)", padding: "14px 16px", border: "1px solid var(--border-light)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <strong style={{ fontSize: 13 }}>RVF One Health watch index</strong>
-                    <Badge variant={rvfWatch.level === "watch" ? "red" : rvfWatch.level === "monitor" ? "amber" : "green"}>{rvfWatch.level ?? "routine"}</Badge>
+                    <strong style={{ fontSize: 13 }}>Evidence confidence</strong>
+                    <Badge variant="amber">Pilot validation required</Badge>
                   </div>
-                  <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-.02em" }}>{Number(rvfWatch.index ?? 0).toFixed(3)}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>{rvfWatch.recommended_action}</div>
+                  <div style={{ fontSize: 28, fontWeight: 800 }}>{Math.round(Number(confidence.overall_index ?? 0) * 100)}%</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>Completeness of current climate, vector and sentinel evidence.</div>
                 </div>
               </>
             )}
@@ -184,8 +182,8 @@ export default function Modeling() {
         </div>
         <div className="pilot-card pending">
           <div className="pilot-card-phase">Blocked — pilot required</div>
-          <div className="pilot-card-title">Confirmed arboviral outbreak prediction</div>
-          <div className="pilot-card-body">Requires arboviral case data (RBC/MoH), Aedes/Culex field surveillance, livestock signals, and protocol confirmation.</div>
+          <div className="pilot-card-title">Validated dengue outbreak forecasting</div>
+          <div className="pilot-card-body">Requires approved dengue outcomes, prospective Aedes surveillance, effort denominators and temporal/spatial validation.</div>
           <Badge variant="red">Blocked</Badge>
         </div>
       </div>

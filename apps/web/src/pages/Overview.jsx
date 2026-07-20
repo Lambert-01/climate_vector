@@ -22,8 +22,8 @@ function fmt(v) { return Number(v ?? 0).toLocaleString(); }
 const PHASES = [
   { label: "MVP Build",        sub: "Current data · done",    status: "done" },
   { label: "Proposal Polish",  sub: "Docs + diagrams",        status: "active" },
-  { label: "Pilot Collection", sub: "Aedes/Culex traps",      status: "pending" },
-  { label: "Partner Data",     sub: "RBC/MoH approval",       status: "pending" },
+  { label: "Pilot Collection", sub: "Aedes traps + surveys",  status: "pending" },
+  { label: "Partner Data",     sub: "Dengue outcomes",        status: "pending" },
   { label: "Validation",       sub: "Model + field",          status: "pending" },
 ];
 
@@ -71,12 +71,11 @@ export default function Overview() {
 
       {/* ── HERO ── */}
       <div className="page-hero">
-        <div className="eyebrow">African Great Lakes · ArboRisk-GL v1.0</div>
-        <h2>Arboviral disease preparedness intelligence</h2>
+        <div className="eyebrow">African Great Lakes · DengueEW-GL v1.1</div>
+        <h2>Climate-informed dengue preparedness</h2>
         <p>
-          A professional proof-of-concept integrating PI field datasets, 30-district Rwanda climate,
-          regional vector occurrence context, and validated public evidence — built for the Nexa
-          climate-health funding call and future RBC/MoH pilot partnership.
+          A proposal-ready digital foundation linking climate evidence, Aedes occurrence context,
+          sentinel operations, community reporting, mosquito-pool genomics and reviewable response actions.
         </p>
         <div className="hero-badges">
           <Badge variant="green">Ready for proposal demo</Badge>
@@ -250,7 +249,7 @@ export default function Overview() {
         <div className="pilot-card active">
           <div className="pilot-card-phase">Pilot required</div>
           <div className="pilot-card-title">Validated outbreak preparedness model</div>
-          <div className="pilot-card-body">Requires Aedes/Culex field surveillance, arboviral case data (RBC/MoH), livestock signals, GPS, and protocol confirmation.</div>
+          <div className="pilot-card-body">Requires prospective Aedes observations, approved dengue outcomes, genomic results, sampling effort and protocol confirmation.</div>
           <Badge variant="amber">Phase 3 pilot</Badge>
         </div>
       </div>
